@@ -1,0 +1,16 @@
+{
+  "name": "openclaw-plugins",
+  "owner": {
+    "name": "Jason"
+  },
+  "metadata": {
+    "description": "OpenClaw management tools for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "openclaw-manager",
+      "source": "./",
+      "description": "Intelligent OpenClaw installation, configuration, and management assistant"
+    }
+  ]
+}
