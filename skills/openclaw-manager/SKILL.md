@@ -1,5 +1,5 @@
 ---
-description: Intelligent OpenClaw installation, configuration, and management assistant. Use when the user asks about installing OpenClaw, configuring channels (Slack, WhatsApp, Telegram, Discord), troubleshooting gateway issues, managing cron jobs, setting up security, or any OpenClaw-related task.
+description: Intelligent OpenClaw installation, configuration, and management assistant. Use when the user asks about installing OpenClaw, configuring channels (Slack, WhatsApp, Telegram, Discord, iMessage), troubleshooting gateway issues, managing cron jobs, setting up security, webhooks, or any OpenClaw-related task. Triggers on phrases like "install openclaw", "setup slack bot", "configure whatsapp", "openclaw not working", "gateway issues", "pairing code", "openclaw security", "cron job", "openclaw status".
 argument-hint: [task] [channel]
 ---
 

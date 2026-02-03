@@ -1,76 +1,194 @@
-# OpenClaw Manager Plugin
+# OpenClaw Manager Plugin for Claude Code
 
-A Claude Code plugin that provides intelligent OpenClaw installation, configuration, and management assistance.
+[![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](CHANGELOG.md)
 
-## Features
+> **Stop wrestling with config files.** Let Claude Code walk you through setting up OpenClaw from scratch to production-ready in minutes.
 
-- **Installation Guidance** - Step-by-step setup on macOS, Linux, or Windows (WSL2)
-- **Channel Configuration** - Slack, WhatsApp, Telegram, Discord setup with OAuth/token help
-- **Troubleshooting** - Diagnose and fix common gateway, auth, and channel issues
-- **Security Hardening** - Audit configurations and apply best practices
-- **Cron Job Management** - Schedule automated tasks and webhooks
+OpenClaw is an AI gateway that connects Claude (and other LLMs) to messaging platforms like Slack, WhatsApp, Telegram, and Discord. This plugin turns Claude Code into your personal OpenClaw expert—handling installation, configuration, troubleshooting, and security hardening through natural conversation.
 
-## Installation
+## Why This Plugin?
 
-### From a Marketplace
+Setting up OpenClaw manually involves:
+- Installing dependencies (Node.js v22+, systemd)
+- Creating OAuth apps and managing tokens
+- Configuring channel policies and access controls
+- Setting up cron jobs and webhooks
+- Hardening security settings
+- Debugging connection issues
 
-If this plugin is available in a marketplace you've added:
-
-```
-/plugin install openclaw-manager@marketplace-name
-```
-
-### Direct Installation
+**With this plugin, you just say what you want:**
 
 ```
-/plugin install path/to/openclaw-manager-plugin
+> /openclaw-manager install on WSL2
+> /openclaw-manager setup Slack channel
+> /openclaw-manager troubleshoot gateway not responding
+> /openclaw-manager security audit
 ```
 
-Or add the GitHub repository:
+Claude handles the rest—running commands, checking configurations, explaining what's happening, and fixing issues.
 
+## Quick Start
+
+### Installation
+
+**From GitHub (recommended):**
+```bash
+claude plugin install github:ClariSortAi/openclaw-manager-plugin
 ```
-/plugin install github:yourusername/openclaw-manager-plugin
+
+**From local directory:**
+```bash
+claude plugin install /path/to/openclaw-manager-plugin
 ```
 
-## Usage
-
-Once installed, invoke the skill with:
-
+**For development:**
+```bash
+claude --plugin-dir ./openclaw-manager-plugin
 ```
+
+### Usage
+
+Once installed, invoke the skill:
+
+```bash
+# Interactive mode - Claude guides you
 /openclaw-manager
+
+# Specific tasks
+/openclaw-manager install on macOS
+/openclaw-manager configure WhatsApp
+/openclaw-manager troubleshoot connection issues
+/openclaw-manager setup cron job for daily summary
+/openclaw-manager security hardening
 ```
 
-Or with specific tasks:
+Or just describe what you need in natural language—Claude will automatically use this skill when you mention OpenClaw.
 
-```
-/openclaw-manager install on WSL2
-/openclaw-manager setup Slack channel
-/openclaw-manager troubleshoot gateway
-/openclaw-manager security audit
-/openclaw-manager configure cron job
-```
+## What Can It Do?
 
-## What's Included
-
-| File | Purpose |
+| Task | Example |
 |------|---------|
-| `skills/openclaw-manager/SKILL.md` | Main skill definition |
-| `skills/openclaw-manager/cli-reference.md` | Complete CLI command reference |
-| `skills/openclaw-manager/troubleshooting.md` | Common issues and solutions |
-| `skills/openclaw-manager/channel-setup.md` | Platform setup guides |
-| `skills/openclaw-manager/security-checklist.md` | Security hardening guide |
+| **Fresh Install** | `Help me install OpenClaw on Ubuntu` |
+| **Channel Setup** | `Configure Slack with Socket Mode` |
+| **Troubleshooting** | `My WhatsApp keeps disconnecting` |
+| **Security** | `Audit my OpenClaw security settings` |
+| **Automation** | `Set up a daily standup reminder cron job` |
+| **Configuration** | `Change my gateway to allowlist mode` |
+
+### Supported Platforms
+
+- **Slack** - Socket Mode with OAuth scopes
+- **WhatsApp** - QR code linking, multi-account support
+- **Telegram** - BotFather integration
+- **Discord** - Bot token and privileged intents
+- **iMessage** - macOS native integration
+
+### Supported Operating Systems
+
+- macOS (native)
+- Linux (native, systemd)
+- Windows (WSL2 required)
+
+## Plugin Contents
+
+```
+openclaw-manager-plugin/
+├── .claude-plugin/
+│   └── plugin.json              # Plugin manifest
+├── skills/
+│   └── openclaw-manager/
+│       ├── SKILL.md             # Main skill definition
+│       ├── cli-reference.md     # Complete CLI command reference
+│       ├── troubleshooting.md   # Common issues and solutions
+│       ├── channel-setup.md     # Platform-specific setup guides
+│       └── security-checklist.md # Security hardening guide
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+└── LICENSE
+```
 
 ## Requirements
 
-- Claude Code CLI
+- **Claude Code** v1.0.33 or later
 - For OpenClaw itself:
-  - Node.js v22+ (NOT Bun)
+  - Node.js v22+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
 
-## License
+## How It Works
 
-MIT
+This plugin provides Claude with comprehensive OpenClaw knowledge through structured documentation:
+
+1. **Skill Definition** (`SKILL.md`) - Core capabilities and decision-making guidance
+2. **CLI Reference** - Every command, flag, and configuration path
+3. **Troubleshooting Guide** - Diagnostic workflows and common fixes
+4. **Channel Setup** - Platform-specific OAuth, tokens, and configurations
+5. **Security Checklist** - Hardening recommendations and audit procedures
+
+Claude reads these documents and uses them to guide you through any OpenClaw task, running the right commands and explaining each step.
+
+## Examples
+
+### Installing OpenClaw
+
+```
+You: Help me install OpenClaw on my Mac
+
+Claude: I'll guide you through installing OpenClaw on macOS. Let me first check
+if you have the prerequisites...
+
+[Runs: node --version]
+
+You have Node.js v22.1.0 - perfect. Now let's install the CLI...
+
+[Runs: curl -fsSL https://openclaw.ai/install.sh | bash]
+
+CLI installed. Running the onboarding wizard with daemon setup...
+
+[Runs: openclaw onboard --install-daemon]
+```
+
+### Troubleshooting
+
+```
+You: My Slack bot isn't responding to messages
+
+Claude: Let me diagnose your Slack connection. First, checking overall status...
+
+[Runs: openclaw status --all]
+
+I see the gateway is running but Slack shows "missing_scope" error. This means
+your Slack app is missing required OAuth permissions. The missing scope appears
+to be `im:write`.
+
+Here's how to fix it:
+1. Go to api.slack.com/apps → Your app
+2. OAuth & Permissions → Add `im:write` scope
+3. Reinstall to Workspace
+
+Then we'll update your token...
+```
 
 ## Contributing
 
-Issues and PRs welcome at the repository.
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- Report issues on GitHub
+- PRs for new features, better docs, or bug fixes
+- Share your use cases to improve the skill
+
+## License
+
+MIT - see [LICENSE](LICENSE)
+
+## Links
+
+- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [Claude Code Plugins](https://code.claude.com/docs/plugins)
+- [Report Issues](https://github.com/ClariSortAi/openclaw-manager-plugin/issues)
+
+---
+
+**Made for the Claude Code community.** If this plugin saves you time, give it a star!

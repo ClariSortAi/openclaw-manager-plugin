@@ -1,15 +1,31 @@
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.settings/
 
 # Logs
 *.log
 
 # Dependencies (if any added later)
 node_modules/
+
+# Local development
+.claude/settings.local.json
+*.local.md
+
+# Testing artifacts
+.coverage/
+.pytest_cache/
+
+# Archives
+*.zip
+*.tar.gz
