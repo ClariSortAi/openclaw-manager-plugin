@@ -1,0 +1,21 @@
+{
+  "name": "openclaw-manager",
+  "description": "Intelligent OpenClaw installation, configuration, and management assistant. Helps with installing OpenClaw, configuring channels (Slack, WhatsApp, Telegram, Discord), troubleshooting gateway issues, managing cron jobs, and security hardening.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jason"
+  },
+  "license": "MIT",
+  "keywords": [
+    "openclaw",
+    "ai-gateway",
+    "slack",
+    "whatsapp",
+    "telegram",
+    "discord",
+    "messaging",
+    "automation"
+  ],
+  "repository": "https://github.com/yourusername/openclaw-manager-plugin",
+  "homepage": "https://openclaw.ai"
+}
