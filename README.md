@@ -2,15 +2,17 @@
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue?style=flat-square)](CHANGELOG.md)
 
-> **Stop wrestling with config files.** Let Claude Code walk you through setting up OpenClaw from scratch to production-ready in minutes.
+> **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
-OpenClaw is an AI gateway that connects Claude (and other LLMs) to messaging platforms like Slack, WhatsApp, Telegram, and Discord. This plugin turns Claude Code into your personal OpenClaw expert—handling installation, configuration, troubleshooting, and security hardening through natural conversation.
+[OpenClaw](https://openclaw.ai) (formerly known as **ClawdBot**) is an AI gateway that connects Claude and other LLMs to messaging platforms like Slack, WhatsApp, Telegram, and Discord. This plugin turns Claude Code into your personal OpenClaw expert—handling installation, configuration, troubleshooting, and security hardening through natural conversation.
+
+**This is a weekend project built to help more people access OpenClaw.** The setup process can be intimidating for newcomers, so we wrapped all that complexity into a conversational interface. Just tell Claude what you want, and it handles the rest.
 
 ## Why This Plugin?
 
-Setting up OpenClaw manually involves:
+Setting up OpenClaw (formerly ClawdBot) manually involves:
 - Installing dependencies (Node.js v22+, systemd)
 - Creating OAuth apps and managing tokens
 - Configuring channel policies and access controls
@@ -18,7 +20,9 @@ Setting up OpenClaw manually involves:
 - Hardening security settings
 - Debugging connection issues
 
-**With this plugin, you just say what you want:**
+**That's a lot to ask of someone who just wants to chat with Claude from Slack.**
+
+With this plugin, you just say what you want:
 
 ```
 > /openclaw-manager install on WSL2
@@ -179,16 +183,28 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - PRs for new features, better docs, or bug fixes
 - Share your use cases to improve the skill
 
+## Disclaimer
+
+**This is a community project built over a weekend to help democratize OpenClaw.**
+
+- No warranty, no guarantees—use at your own risk
+- Not affiliated with or endorsed by Anthropic or the OpenClaw team
+- This plugin provides guidance and runs commands on your behalf; always review what it's doing
+- Security configurations are suggestions based on best practices; your threat model may differ
+- If something breaks, you get to keep both pieces
+
+That said, we've put care into making this useful and safe. The plugin follows OpenClaw's official documentation and recommends secure defaults. If you find issues, please [report them](https://github.com/ClariSortAi/openclaw-manager-plugin/issues).
+
 ## License
 
 MIT - see [LICENSE](LICENSE)
 
 ## Links
 
-- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [OpenClaw Documentation](https://docs.openclaw.ai) (formerly ClawdBot)
 - [Claude Code Plugins](https://code.claude.com/docs/plugins)
 - [Report Issues](https://github.com/ClariSortAi/openclaw-manager-plugin/issues)
 
 ---
 
-**Made for the Claude Code community.** If this plugin saves you time, give it a star!
+**Made for the Claude Code community.** If you can use Claude Code, you can use OpenClaw. Give it a star if this saves you time!
