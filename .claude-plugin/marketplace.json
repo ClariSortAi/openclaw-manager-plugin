@@ -1,0 +1,45 @@
+{
+  "name": "openclaw-manager-plugin",
+  "owner": {
+    "name": "Jason Rivard",
+    "url": "https://github.com/ClariSortAi"
+  },
+  "metadata": {
+    "description": "Claude Code plugin marketplace for OpenClaw (formerly ClawdBot) management"
+  },
+  "plugins": [
+    {
+      "name": "openclaw-manager",
+      "source": "./",
+      "description": "Intelligent OpenClaw installation, configuration, and management assistant. If you can use Claude Code, you can use OpenClaw.",
+      "author": {
+        "name": "Jason Rivard"
+      },
+      "homepage": "https://github.com/ClariSortAi/openclaw-manager-plugin",
+      "repository": "https://github.com/ClariSortAi/openclaw-manager-plugin",
+      "license": "MIT",
+      "keywords": [
+        "openclaw",
+        "clawdbot",
+        "ai-gateway",
+        "slack-bot",
+        "whatsapp-bot",
+        "telegram-bot",
+        "discord-bot",
+        "messaging",
+        "automation"
+      ],
+      "category": "devops",
+      "tags": [
+        "openclaw",
+        "clawdbot",
+        "messaging",
+        "slack",
+        "whatsapp",
+        "telegram",
+        "discord",
+        "ai-gateway"
+      ]
+    }
+  ]
+}
