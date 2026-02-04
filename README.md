@@ -103,7 +103,7 @@ openclaw-manager-plugin/
 │   └── plugin.json              # Plugin manifest
 ├── skills/
 │   └── openclaw-manager/
-│       ├── SKILL.md             # Main skill definition
+│       ├── SKILLS.md            # Main skill definition
 │       ├── cli-reference.md     # Complete CLI command reference
 │       ├── troubleshooting.md   # Common issues and solutions
 │       ├── channel-setup.md     # Platform-specific setup guides
@@ -125,7 +125,7 @@ openclaw-manager-plugin/
 
 This plugin provides Claude with comprehensive OpenClaw knowledge through structured documentation:
 
-1. **Skill Definition** (`SKILL.md`) - Core capabilities and decision-making guidance
+1. **Skill Definition** (`SKILLS.md`) - Core capabilities and decision-making guidance
 2. **CLI Reference** - Every command, flag, and configuration path
 3. **Troubleshooting Guide** - Diagnostic workflows and common fixes
 4. **Channel Setup** - Platform-specific OAuth, tokens, and configurations
