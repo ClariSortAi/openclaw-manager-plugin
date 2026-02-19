@@ -5,7 +5,51 @@ All notable changes to the OpenClaw Manager Plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2025-02-03
+## [1.1.0] - 2026-02-19
+
+### Added
+- **Critical security documentation**: CVE-2026-25253 (one-click RCE, CVSS 8.8), CVE-2026-24763, CVE-2026-25157
+- **Breaking change notice**: `auth: "none"` permanently removed in v2026.1.29
+- **Anthropic OAuth block**: Documented that Anthropic blocked OAuth tokens for OpenClaw; users must use direct API keys
+- **Government advisories**: Belgium CCB, Dutch DPA, and Meta ban warnings
+- **Control plane tool denials**: Recommended deny list for production (`gateway`, `cron`, `sessions_spawn`, `sessions_send`)
+- **iMessage channel setup**: Full setup guide for macOS native integration
+- **Microsoft Teams**: Plugin-based channel via `@openclaw/msteams` (plugin-only since v2026.1.15)
+- **Matrix, Nostr, Zalo**: Plugin-based channel documentation
+- **Gmail webhook setup**: Complete Pub/Sub webhook configuration guide
+- **Session isolation modes**: `main`, `per-channel-peer`, `per-account-channel-peer` with identity links
+- **Nested sub-agents**: `maxSpawnDepth` and `maxChildrenPerAgent` configuration (v2026.2.17)
+- **1M context window**: `params.context1m` for Anthropic models (v2026.2.17)
+- **Sonnet 4.6 model support**: Model selection guidance recommending Opus 4.6 for tool safety
+- **Tailscale authentication**: `gateway.auth.allowTailscale` configuration details
+- **Sandbox scope options**: `agent`, `session`, `shared` scope documentation
+- **Workspace access levels**: `none`, `ro`, `rw` with mount paths
+- **mDNS discovery modes**: `minimal`, `off`, `full` with `OPENCLAW_DISABLE_BONJOUR`
+- **ClawHub commands**: `clawhub install`, `clawhub update --all`, `clawhub sync --all`
+- **Plugin management commands**: Full `openclaw plugins` CLI reference
+- **Plugin slot system**: Exclusive plugin categories (e.g., memory slot)
+- **Official plugins table**: Voice Call, Teams, Matrix, Nostr, Zalo, Memory
+- **Skill/plugin validation checklist**: Audit guidance for third-party code
+- **Bug report issue template**: `.github/ISSUE_TEMPLATE/bug_report.md`
+- **CLAUDE.md**: Project development conventions for contributors
+- **OpenClaw foundation transition note**: Steinberger → OpenAI, project moving to independent foundation
+
+### Changed
+- Expanded skill description to cover new channels (Teams, Matrix) and new features (skills, plugins)
+- Updated minimum version requirement to v2026.1.29 throughout all documentation
+- Enhanced security checklist with version/patch section, credential rotation cadence, and plugin validation
+- Expanded threat model with malicious plugin risk and token leakage vector
+- Updated configuration examples with model selection, tool denials, mDNS, and plugin allowlists
+- Expanded error patterns table with `auth: "none"` and OAuth rejection entries
+- Updated environment variables table with `OPENCLAW_GATEWAY_PORT` and `OPENCLAW_DISABLE_BONJOUR`
+- Updated disclaimer to mention OpenAI and the OpenClaw foundation
+
+### Fixed
+- Corrected `SKILLS.md` → `SKILL.md` filename reference in README plugin contents tree
+- Fixed changelog dates from `2025-` to `2026-`
+- Fixed `How It Works` section referencing old `SKILLS.md` filename
+
+## [1.0.1] - 2026-02-03
 
 ### Changed
 - Added "formerly ClawdBot" naming context throughout documentation
@@ -13,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated tagline: "If you can use Claude Code, you can use OpenClaw"
 - Added `clawdbot` keyword for discoverability
 
-## [1.0.0] - 2025-02-03
+## [1.0.0] - 2026-02-03
 
 ### Added
 - Initial release of OpenClaw Manager Plugin for Claude Code

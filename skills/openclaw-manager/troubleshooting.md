@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status
+# 1. Quick status (check version is v2026.1.29+)
 openclaw status
 
 # 2. Full diagnosis
@@ -19,6 +19,21 @@ openclaw doctor --fix
 
 # 5. Live logs
 journalctl --user -u openclaw-gateway -f
+```
+
+## Critical: Version Check
+
+Before troubleshooting anything else, verify you are on **v2026.1.29 or later**:
+
+```bash
+openclaw status
+```
+
+If on an older version, upgrade immediately -- earlier versions contain critical security vulnerabilities (CVE-2026-25253: one-click RCE):
+
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
 ```
 
 ## Common Issues
@@ -61,6 +76,18 @@ openclaw config set gateway.mode local
 openclaw gateway restart
 ```
 
+#### Gateway Refuses to Start After Upgrade (auth: "none" Removed)
+**Symptoms:** Gateway exits immediately after upgrading to v2026.1.29+
+
+**Cause:** `gateway.auth.mode` was set to `"none"`, which is permanently removed.
+
+**Fix:**
+```bash
+openclaw config set gateway.auth.mode token
+openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+openclaw gateway restart
+```
+
 ### Authentication Issues
 
 #### No API Key Found
@@ -74,14 +101,30 @@ openclaw configure
 openclaw models auth setup-token --provider anthropic
 ```
 
-#### OAuth Token Refresh Failed
-**Symptoms:** Token expired errors
+#### Anthropic OAuth Token Rejected
+**Symptoms:** `OAuth token rejected`, `unauthorized`, or auth failures when using Anthropic models
+
+**Cause:** Anthropic has officially blocked OpenClaw from using Claude OAuth tokens. You must use direct API keys instead.
 
 **Fix:**
 ```bash
-# Switch to setup token
+# Switch to direct API key (get one from console.anthropic.com)
 openclaw models auth setup-token --provider anthropic
-# Or re-authenticate
+
+# Verify it works
+openclaw status --deep
+```
+
+**Note:** This is not a bug -- Anthropic blocked OAuth access for OpenClaw as a policy decision. The only supported method is direct API keys.
+
+#### OAuth Token Refresh Failed (Non-Anthropic Providers)
+**Symptoms:** Token expired errors for non-Anthropic providers
+
+**Fix:**
+```bash
+# Re-authenticate with the provider
+openclaw models auth setup-token --provider <provider-name>
+# Or re-run configure
 openclaw configure
 ```
 
@@ -152,6 +195,44 @@ openclaw config set channels.telegram.botToken "123:abc..."
 openclaw gateway restart
 ```
 
+#### iMessage: Not Working
+**Symptoms:** iMessage channel not receiving messages
+
+**Causes:**
+- Not on macOS (iMessage is macOS only)
+- Full Disk Access not granted
+- Messages app not signed in
+
+**Fix:**
+```bash
+# 1. Verify macOS
+uname -s  # Must be "Darwin"
+
+# 2. Grant Full Disk Access
+# System Settings → Privacy & Security → Full Disk Access → Add Terminal
+
+# 3. Verify Messages app is signed in and iMessage is active
+
+# 4. Enable and restart
+openclaw config set channels.imessage.enabled true
+openclaw gateway restart
+```
+
+#### Teams: Plugin Not Working
+**Symptoms:** Teams channel not available
+
+**Cause:** Teams is a plugin-only channel since v2026.1.15
+
+**Fix:**
+```bash
+# Install the Teams plugin
+openclaw plugins install @openclaw/msteams
+
+# Check plugin status
+openclaw plugins info msteams
+openclaw channels status
+```
+
 ### Pairing Issues
 
 #### Messages Not Triggering (Pairing Required)
@@ -176,7 +257,7 @@ openclaw config set channels.<channel>.allowFrom '["user1", "user2"]'
 **Symptoms:** User doesn't receive pairing code
 
 **Causes:**
-- Hit 3-request cap
+- Hit 3-request cap (pairing codes expire after 1 hour, max 3 pending)
 - Channel not connected
 
 **Fix:**
@@ -186,6 +267,55 @@ openclaw channels status
 
 # Clear pending and retry
 openclaw pairing list
+```
+
+### Plugin Issues
+
+#### Plugin Not Loading
+**Symptoms:** Installed plugin doesn't appear in `plugins list`
+
+**Fix:**
+```bash
+# Check plugin health
+openclaw plugins doctor
+
+# Verify plugin is enabled
+openclaw config get plugins.entries.<plugin-id>.enabled
+
+# Enable if needed
+openclaw plugins enable <plugin-id>
+openclaw gateway restart
+```
+
+#### Plugin Conflict (Slot Error)
+**Symptoms:** Error about conflicting plugins in same slot
+
+**Cause:** Two plugins competing for an exclusive slot (e.g., both memory plugins)
+
+**Fix:**
+```bash
+# Choose one plugin for the slot
+openclaw config set plugins.slots.memory "memory-core"
+# Or
+openclaw config set plugins.slots.memory "memory-lancedb"
+openclaw gateway restart
+```
+
+### Skill Issues
+
+#### ClawHub Skill Not Working
+**Symptoms:** Installed ClawHub skill not available
+
+**Fix:**
+```bash
+# Check skill requirements
+openclaw skills check
+
+# Verify skill is enabled
+openclaw config get skills.entries.<skill-name>.enabled
+
+# Check if skill requires specific binaries/env
+openclaw skills info <skill-name>
 ```
 
 ### Service Issues (systemd)
@@ -217,6 +347,7 @@ journalctl --user -u openclaw-gateway -f
 - Config syntax error: `openclaw doctor`
 - Port conflict: Check other processes
 - Missing dependencies: Reinstall
+- `auth: "none"` in config after upgrade (see above)
 
 ### WSL2-Specific Issues
 

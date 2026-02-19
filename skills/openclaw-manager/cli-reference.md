@@ -10,6 +10,7 @@ openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
 ### Gateway Management
@@ -86,6 +87,33 @@ openclaw skills info <name>  # Show skill details
 openclaw skills check        # Check skill requirements
 ```
 
+### ClawHub (Skill Registry)
+
+ClawHub is the public skill registry at clawhub.ai with 3,200+ community skills:
+
+```bash
+clawhub install <skill-slug>   # Install a skill from ClawHub
+clawhub update --all           # Update all installed ClawHub skills
+clawhub sync --all             # Sync all skills with registry
+```
+
+Skills are installed to `~/.openclaw/skills/` and are immediately available. Always audit third-party skills before installation.
+
+### Plugins
+```bash
+openclaw plugins list          # List installed plugins
+openclaw plugins info <id>     # Show plugin details
+openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install -l <path>  # Link local plugin for development
+openclaw plugins update <id>   # Update a plugin
+openclaw plugins update --all  # Update all plugins
+openclaw plugins enable <id>   # Enable a plugin
+openclaw plugins disable <id>  # Disable a plugin
+openclaw plugins doctor        # Check plugin health
+```
+
+Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). Bundled plugins are disabled by default; installed plugins are enabled by default.
+
 ### Agents
 ```bash
 openclaw agents list         # List configured agents
@@ -98,19 +126,20 @@ openclaw agents set-identity <id>  # Update agent identity
 ```bash
 openclaw memory status       # Memory index status
 openclaw memory index        # Reindex memory files
-openclaw memory search "query"  # Search memory
+openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
 ### Security
 ```bash
-openclaw security audit      # Basic security audit
-openclaw security audit --deep  # Thorough security check
-openclaw security audit --fix   # Auto-fix issues
+openclaw security audit          # Basic security audit
+openclaw security audit --deep   # Thorough security check
+openclaw security audit --fix    # Auto-fix issues
+openclaw security audit --json   # Machine-readable output
 ```
 
 ### Webhooks
 ```bash
-openclaw webhooks gmail setup    # Set up Gmail Pub/Sub
+openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
 openclaw webhooks gmail run      # Run Gmail webhook listener
 ```
 
@@ -130,6 +159,7 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth setup-token --provider anthropic  # Direct API key setup
 ```
 
 ## Configuration Paths
@@ -140,6 +170,8 @@ openclaw models auth         # Configure model auth
 openclaw config get gateway.bind
 openclaw config set gateway.bind loopback
 openclaw config set gateway.auth.mode token
+openclaw config set gateway.auth.allowTailscale true
+openclaw config set gateway.mdns.mode minimal
 
 # Channel settings
 openclaw config get channels.slack
@@ -148,7 +180,34 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
 openclaw config set agents.defaults.sandbox.mode all
+openclaw config set agents.defaults.sandbox.workspaceAccess none
+openclaw config set agents.defaults.sandbox.scope agent
+
+# Sub-agent settings (v2026.2.17+)
+openclaw config set agents.defaults.subagents.maxSpawnDepth 2
+openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
+
+# 1M context window (Anthropic models, v2026.2.17+)
+openclaw config set agents.defaults.params.context1m true
+
+# Session isolation
+openclaw config set session.dmScope "per-channel-peer"
+
+# Control plane tool denials (production recommended)
+openclaw config set agents.defaults.tools.deny '["gateway","cron","sessions_spawn","sessions_send"]'
+
+# Skill configuration
+openclaw config set skills.entries.my-skill.enabled true
+openclaw config set skills.entries.my-skill.apiKey "SECRET_VALUE"
+openclaw config set skills.load.extraDirs '["path/to/skills"]'
+openclaw config set skills.load.watch true
+
+# Plugin configuration
+openclaw config set plugins.enabled true
+openclaw config set plugins.allow '["voice-call"]'
+openclaw config set plugins.slots.memory "memory-core"
 ```
 
 ## Environment Variables
@@ -158,6 +217,28 @@ openclaw config set agents.defaults.sandbox.mode all
 | `OPENCLAW_STATE_DIR` | Override state directory |
 | `OPENCLAW_CONFIG_PATH` | Override config file path |
 | `OPENCLAW_GATEWAY_TOKEN` | Gateway auth token |
+| `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
+| `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
+
+## Official Plugins
+
+| Plugin | Package | Description |
+|--------|---------|-------------|
+| Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
+| Microsoft Teams | `@openclaw/msteams` | Teams channel (plugin-only since v2026.1.15) |
+| Matrix | `@openclaw/matrix` | Matrix protocol channel |
+| Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
+| Zalo | `@openclaw/zalo` | Zalo Official Account |
+| Zalo User | `@openclaw/zalouser` | Zalo personal account |
+| Memory (Core) | bundled | Long-term memory (default slot) |
+| Memory (LanceDB) | bundled | Vector-based memory alternative |
+
+Plugin slots allow exclusive categories (e.g., only one memory plugin active):
+```bash
+openclaw config set plugins.slots.memory "memory-core"
+# or
+openclaw config set plugins.slots.memory "memory-lancedb"
+```
