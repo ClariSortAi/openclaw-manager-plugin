@@ -8,7 +8,7 @@
 
 [OpenClaw](https://openclaw.ai) (formerly known as **ClawdBot**) is an AI gateway that connects Claude and other LLMs to messaging platforms like Slack, WhatsApp, Telegram, Discord, and more. This plugin turns Claude Code into your personal OpenClaw expert—handling installation, configuration, troubleshooting, and security hardening through natural conversation.
 
-**This is a weekend project built to help more people access OpenClaw.** The setup process can be intimidating for newcomers, so we wrapped all that complexity into a conversational interface. Just tell Claude what you want, and it handles the rest.
+**This is a weekend project built to help more people access OpenClaw.** The setup process can be intimidating for newcomers, so this wrapped all that complexity into a conversational interface. Just tell Claude what you want, and it handles the rest.
 
 ## Why This Plugin?
 
@@ -83,7 +83,7 @@ Or just describe what you need in natural language—Claude will automatically u
 | **Skills** | `Install a skill from ClawHub` |
 | **Plugins** | `Set up Microsoft Teams via the msteams plugin` |
 | **Sub-Agents** | `Configure nested sub-agent spawn depth` |
-| **1M Context** | `Enable the 1M context window for Opus 4.6` |
+
 
 ### Supported Platforms
 
@@ -126,7 +126,7 @@ openclaw-manager-plugin/
 
 ## Requirements
 
-- **Claude Code** v1.0.33 or later
+- **Claude Code** latest 
 - For OpenClaw itself:
   - Node.js v22+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
@@ -196,7 +196,7 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Disclaimer
 
-**This is a community project built over a weekend to help democratize OpenClaw.**
+**This is a side quest project built over a weekend to help democratize OpenClaw.**
 
 - No warranty, no guarantees—use at your own risk
 - Not affiliated with or endorsed by Anthropic, OpenAI, or the OpenClaw team/foundation
