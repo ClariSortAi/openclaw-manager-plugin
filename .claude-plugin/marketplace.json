@@ -26,8 +26,17 @@
         "whatsapp-bot",
         "telegram-bot",
         "discord-bot",
+        "imessage",
+        "teams",
+        "matrix",
+        "feishu",
+        "nostr",
+        "zalo",
         "messaging",
-        "automation"
+        "automation",
+        "security",
+        "clawhub",
+        "self-hosted"
       ],
       "category": "devops",
       "tags": [
@@ -38,7 +47,15 @@
         "whatsapp",
         "telegram",
         "discord",
-        "ai-gateway"
+        "imessage",
+        "teams",
+        "matrix",
+        "feishu",
+        "nostr",
+        "zalo",
+        "ai-gateway",
+        "security",
+        "clawhub"
       ]
     }
   ]

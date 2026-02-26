@@ -5,6 +5,35 @@ All notable changes to the OpenClaw Manager Plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-26
+
+### Added
+- **9 new CVEs documented**: CVE-2026-26322 (SSRF, CVSS 7.6), CVE-2026-26319 (missing Telnyx auth), CVE-2026-26329 (path traversal), CVE-2026-27001 (prompt injection via workspace path), CVE-2026-27004 (session transcript leakage), CVE-2026-27484 (Discord auth bypass), CVE-2026-27485 (symlink file disclosure), CVE-2026-27488 (cron webhook SSRF), CVE-2026-27576 (ACP prompt-size bypass)
+- **v2026.2.12 emergency patch documentation**: 40+ security fixes covering SSRF protection, path traversal prevention, prompt injection mitigation, session security hardening
+- **ClawHavoc attack scale update**: 1,184+ malicious skills confirmed (up from 341), 2,419 total removed, VirusTotal integration now active on ClawHub
+- **Feishu/Lark native channel**: Full setup guide for Chinese enterprise chat integration (v2026.2.2+)
+- **Discord interactive UI**: Buttons, selects, and modals documentation (v2026.2.16+)
+- **Discord WebSocket known issue**: v2026.2.24 1005/1006 disconnect workaround
+- **Session management commands**: `openclaw sessions list`, `openclaw sessions cleanup` with disk-budget controls (v2026.2.23+)
+- **Kilocode provider**: First-class model provider support (v2026.2.23+)
+- **Moonshot/Kimi provider**: Web search with citation extraction (v2026.2.23+)
+- **Multi-user trust heuristic**: `security.trust_model.multi_user_heuristic` configuration (v2026.2.24+)
+- **HTTP security headers**: Strict-Transport-Security for direct HTTPS (v2026.2.23+)
+- **`clawhub search` command**: Search ClawHub skill registry
+- **`plugins remove` command**: Remove/uninstall plugins
+- **Cron job troubleshooting**: Timezone issues, job not running, webhook SSRF awareness
+- **Sub-agent troubleshooting**: Spawn failures, depth limits, unresponsive sub-agents
+- **Session disk management troubleshooting**: Cleanup and disk budget configuration
+
+### Changed
+- Updated minimum safe version from v2026.1.29 to **v2026.2.12** throughout all documentation
+- Expanded security checklist with v2026.2.12 breaking change (`/hooks/agent` sessionKey rejection)
+- Updated threat model with SSRF and session leakage attack vectors
+- Added Feishu/Lark to official plugins/channels table in CLI reference
+- Expanded error patterns table with `spawn depth exceeded` and `WebSocket 1005/1006`
+- Updated marketplace.json tags to include all supported channels (iMessage, Teams, Matrix, Feishu, Nostr, Zalo)
+- Updated plugin.json keywords with Feishu, Lark, Nostr, Zalo
+
 ## [1.1.0] - 2026-02-19
 
 ### Added

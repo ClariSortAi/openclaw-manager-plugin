@@ -89,15 +89,16 @@ openclaw skills check        # Check skill requirements
 
 ### ClawHub (Skill Registry)
 
-ClawHub is the public skill registry at clawhub.ai with 3,200+ community skills:
+ClawHub is the public skill registry at clawhub.ai with 3,200+ community skills (down from 10,700+ after the ClawHavoc cleanup):
 
 ```bash
+clawhub search <query>         # Search for skills on ClawHub
 clawhub install <skill-slug>   # Install a skill from ClawHub
 clawhub update --all           # Update all installed ClawHub skills
 clawhub sync --all             # Sync all skills with registry
 ```
 
-Skills are installed to `~/.openclaw/skills/` and are immediately available. Always audit third-party skills before installation.
+Skills are installed to `~/.openclaw/skills/` and are immediately available. Always audit third-party skills before installation -- ClawHub now integrates with VirusTotal for automatic scanning.
 
 ### Plugins
 ```bash
@@ -109,6 +110,7 @@ openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
 openclaw plugins enable <id>   # Enable a plugin
 openclaw plugins disable <id>  # Disable a plugin
+openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins doctor        # Check plugin health
 ```
 
@@ -120,6 +122,18 @@ openclaw agents list         # List configured agents
 openclaw agents add          # Add new agent
 openclaw agents delete <id>  # Delete agent
 openclaw agents set-identity <id>  # Update agent identity
+```
+
+### Session Management (v2026.2.23+)
+```bash
+openclaw sessions list         # List active sessions
+openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
+```
+
+Session disk budget controls:
+```bash
+openclaw config set session.maintenance.maxDiskBytes 1073741824    # 1 GB max
+openclaw config set session.maintenance.highWaterBytes 858993459   # Trigger cleanup at 800 MB
 ```
 
 ### Memory
@@ -195,8 +209,21 @@ openclaw config set agents.defaults.params.context1m true
 # Session isolation
 openclaw config set session.dmScope "per-channel-peer"
 
+# Per-agent params overrides (v2026.2.23+)
+openclaw config set agents.defaults.params.cacheRetention true
+
 # Control plane tool denials (production recommended)
 openclaw config set agents.defaults.tools.deny '["gateway","cron","sessions_spawn","sessions_send"]'
+
+# Session disk budget (v2026.2.23+)
+openclaw config set session.maintenance.maxDiskBytes 1073741824
+openclaw config set session.maintenance.highWaterBytes 858993459
+
+# Multi-user trust heuristic (v2026.2.24+)
+openclaw config set security.trust_model.multi_user_heuristic true
+
+# HTTP security headers (v2026.2.23+)
+openclaw config set gateway.security.hsts true
 
 # Skill configuration
 openclaw config set skills.entries.my-skill.enabled true
@@ -234,6 +261,7 @@ openclaw config set plugins.slots.memory "memory-core"
 | Zalo | `@openclaw/zalo` | Zalo Official Account |
 | Zalo User | `@openclaw/zalouser` | Zalo personal account |
 | Memory (Core) | bundled | Long-term memory (default slot) |
+| Feishu/Lark | native (v2026.2.2+) | Chinese enterprise chat (Feishu and Lark) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):

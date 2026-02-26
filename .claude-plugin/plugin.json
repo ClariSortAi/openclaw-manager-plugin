@@ -1,7 +1,7 @@
 {
   "name": "openclaw-manager",
-  "description": "Intelligent OpenClaw (formerly ClawdBot) installation, configuration, and management assistant. Guides users through fresh installs, channel configuration (Slack, WhatsApp, Telegram, Discord, iMessage, Teams, Matrix), troubleshooting gateway issues, cron job automation, security hardening, skill/plugin management, and sub-agent configuration. If you can use Claude Code, you can use OpenClaw.",
-  "version": "1.1.0",
+  "description": "Intelligent OpenClaw (formerly ClawdBot) installation, configuration, and management assistant. Guides users through fresh installs, channel configuration (Slack, WhatsApp, Telegram, Discord, iMessage, Teams, Matrix, Feishu/Lark), troubleshooting gateway issues, cron job automation, security hardening (9+ CVEs), skill/plugin management, sub-agent configuration, session management, and multi-provider model setup. If you can use Claude Code, you can use OpenClaw.",
+  "version": "1.2.0",
   "author": {
     "name": "Jason Rivard",
     "url": "https://github.com/ClariSortAi"
@@ -19,6 +19,10 @@
     "imessage",
     "teams",
     "matrix",
+    "feishu",
+    "lark",
+    "nostr",
+    "zalo",
     "messaging",
     "automation",
     "claude-code",

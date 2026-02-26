@@ -2,9 +2,9 @@
 
 ## Critical Version Requirement
 
-**Minimum safe version: v2026.1.29**
+**Minimum safe version: v2026.2.12**
 
-Run `openclaw status` to check your version. If you are on anything older than v2026.1.29, upgrade immediately:
+Run `openclaw status` to check your version. If you are on anything older than v2026.2.12, upgrade immediately:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
@@ -13,13 +13,44 @@ openclaw gateway restart
 
 ### Known Critical Vulnerabilities
 
+#### v2026.1.29 Patches (January 30, 2026)
+
 | CVE | Severity | Description | Fixed In |
 |-----|----------|-------------|----------|
 | CVE-2026-25253 | **Critical (CVSS 8.8)** | One-click RCE: visiting a malicious site or clicking a crafted link leaks the gateway auth token, giving attackers full gateway control | v2026.1.29 |
 | CVE-2026-24763 | High | Command injection via crafted input | v2026.1.29 |
 | CVE-2026-25157 | High | Command injection via crafted input | v2026.1.29 |
 
-Additional vulnerabilities covering SSRF, missing authentication, and path traversal were also patched in v2026.1.29. A January 2026 audit identified 512 total vulnerabilities (8 critical).
+#### v2026.2.12 Emergency Patch (February 12, 2026)
+
+Over 40 security vulnerabilities patched in a single emergency release:
+
+| CVE | Severity | Description | Fixed In |
+|-----|----------|-------------|----------|
+| CVE-2026-26322 | **High (CVSS 7.6)** | SSRF in Gateway tool — explicit deny policies and hostname allowlists added | v2026.2.12 |
+| CVE-2026-26319 | **High (CVSS 7.5)** | Missing Telnyx webhook authentication | v2026.2.12 |
+| CVE-2026-26329 | High | Path traversal in browser upload | v2026.2.12 |
+
+Additional v2026.2.12 hardening:
+- SSRF protection: explicit deny policies and hostname allowlists
+- Path traversal prevention: skill sync limited to `skills/` root directory
+- Prompt injection mitigation: browser/web content shifted to "untrusted by default"
+- Transcript compaction now strips detailed tool results to reduce prompt injection replay risk
+
+**Breaking change:** POST `/hooks/agent` rejects `sessionKey` overrides by default.
+
+#### Post-v2026.2.12 CVEs (February 2026)
+
+| CVE | Severity | Description | Fixed In |
+|-----|----------|-------------|----------|
+| CVE-2026-27001 | High | Workspace path embedded into prompts without sanitization (prompt injection risk) | v2026.2.19 |
+| CVE-2026-27004 | High | Session transcript content could leak across peer sessions in multi-user environments | v2026.2.19 |
+| CVE-2026-27484 | High | Discord moderation authorization bypass: non-admin users could spoof sender identity | v2026.2.19 |
+| CVE-2026-27485 | Medium | Symlink handling in local skill packaging could disclose local files | v2026.2.19 |
+| CVE-2026-27488 | High | Cron webhook delivery SSRF: webhook targets could reach private/internal endpoints | v2026.2.19 |
+| CVE-2026-27576 | Medium | ACP prompt-size checks missing in local stdio bridge | v2026.2.19 |
+
+A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 additional security fixes were released across v2026.2.12 and v2026.2.19.
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -204,6 +235,22 @@ Use modern, instruction-hardened models for bots with tool access:
 openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
 ```
 
+### 10. Multi-User Trust Heuristic (v2026.2.24+)
+
+Detects likely shared-user ingress and flags potential multi-user abuse on single-user channels:
+
+```bash
+openclaw config set security.trust_model.multi_user_heuristic true
+```
+
+### 11. HTTP Security Headers (v2026.2.23+)
+
+When exposing the gateway over direct HTTPS (no reverse proxy), enable Strict-Transport-Security:
+
+```bash
+openclaw config set gateway.security.hsts true
+```
+
 ## File Permissions
 
 ### Check Permissions
@@ -228,9 +275,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.1.29 or later (CVE-2026-25253 patched)
-- [ ] `auth: "none"` not present in config (permanently removed)
+- [ ] Running v2026.2.12 or later (40+ security fixes including SSRF, path traversal, prompt injection)
+- [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
+- [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 
 ### Network Security
 - [ ] Gateway bound to loopback (127.0.0.1)
@@ -270,6 +318,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Every ClawHub skill audited before installation (review source, check author, verify VirusTotal)
 - [ ] Only trusted plugins installed (they run in-process with full privileges)
 - [ ] Plugin allowlist configured via `plugins.allow`
+- [ ] Aware of ClawHavoc supply chain attack: 1,184+ malicious skills confirmed, 2,419 removed from ClawHub
+- [ ] ClawHub VirusTotal integration active (automatic scanning since Feb 2026)
 
 ## Configuration Examples
 
@@ -368,11 +418,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 2. **Social Engineering** - Tricking bot into harmful actions
 3. **Credential Theft** - Accessing stored credentials
 4. **Session Hijacking** - Cross-user context leakage
-5. **Malicious Plugins/Skills** - ~20% of third-party plugins may contain malware (Dutch DPA estimate)
+5. **Malicious Plugins/Skills** - ~20% of third-party plugins may contain malware (Dutch DPA estimate). The ClawHavoc campaign distributed 1,184+ malicious ClawHub skills carrying Atomic macOS Stealer (AMOS) and Windows infostealers
 6. **Token Leakage** - CVE-2026-25253 demonstrated gateway token exfiltration via crafted links
+7. **SSRF** - CVE-2026-26322 and CVE-2026-27488 showed gateway and cron webhook SSRF reaching internal endpoints
+8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.1.29)
+- Keep OpenClaw updated to latest version (minimum v2026.2.12)
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)

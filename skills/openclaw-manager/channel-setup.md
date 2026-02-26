@@ -246,6 +246,12 @@ openclaw gateway restart
 }
 ```
 
+### Discord Interactive UI (v2026.2.16+)
+
+Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
+
+**Known Issue (v2026.2.24):** Discord WebSocket 1005/1006 disconnects can cause the bot to go offline for 30+ minutes due to failing resume logic. A typing indicator may also get stuck after upgrade. Monitor with `openclaw channels status` and restart the gateway if needed.
+
 ---
 
 ## iMessage (macOS Only)
@@ -393,6 +399,56 @@ openclaw plugins install @openclaw/zalouser
 openclaw plugins info zalo
 openclaw gateway restart
 ```
+
+---
+
+## Feishu / Lark (v2026.2.2+)
+
+Feishu (飞书) and Lark are natively supported as of v2026.2.2 -- the first Chinese enterprise chat integration.
+
+### Prerequisites
+- Feishu/Lark developer account
+- Custom app created in the Feishu Open Platform
+
+### Setup Steps
+
+1. **Create a Custom App**
+   - Go to the Feishu Open Platform developer console
+   - Create a new custom app
+   - Enable the Bot capability
+   - Note the App ID and App Secret
+
+2. **Configure OpenClaw**
+```bash
+openclaw config set channels.feishu.appId "cli_..."
+openclaw config set channels.feishu.appSecret "..."
+openclaw config set channels.feishu.dmPolicy pairing
+openclaw gateway restart
+```
+
+3. **Verify**
+```bash
+openclaw channels status
+```
+
+### Configuration
+```json
+{
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "appId": "cli_...",
+      "appSecret": "...",
+      "dmPolicy": "pairing"
+    }
+  }
+}
+```
+
+### Notes
+- Supports both Feishu (China) and Lark (international) via the same configuration
+- Requires event subscription configuration in the Feishu developer console
+- Group chat support follows the same `groupPolicy` pattern as other channels
 
 ---
 

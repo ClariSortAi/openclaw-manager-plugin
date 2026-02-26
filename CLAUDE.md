@@ -20,7 +20,7 @@ This is a **Claude Code plugin** (documentation-only skill) that provides Claude
 - Keep SKILL.md frontmatter `description` under 300 characters.
 - All OpenClaw commands should be tested against a real installation before documenting.
 - Default to the most secure configuration when giving examples.
-- Always reference minimum safe version (currently v2026.1.29) in security contexts.
+- Always reference minimum safe version (currently v2026.2.12) in security contexts.
 - Use consistent markdown formatting: code blocks for commands, tables for reference data.
 
 ## When Updating

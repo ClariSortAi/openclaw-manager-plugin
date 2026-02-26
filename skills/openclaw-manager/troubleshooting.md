@@ -23,13 +23,13 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.1.29 or later**:
+Before troubleshooting anything else, verify you are on **v2026.2.12 or later**:
 
 ```bash
 openclaw status
 ```
 
-If on an older version, upgrade immediately -- earlier versions contain critical security vulnerabilities (CVE-2026-25253: one-click RCE):
+If on an older version, upgrade immediately -- versions before v2026.2.12 contain critical security vulnerabilities including CVE-2026-25253 (one-click RCE) and 40+ additional SSRF, path traversal, and prompt injection fixes:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
@@ -218,6 +218,25 @@ openclaw config set channels.imessage.enabled true
 openclaw gateway restart
 ```
 
+#### Discord: WebSocket Disconnects (v2026.2.24 Known Issue)
+**Symptoms:** Bot goes offline for 30+ minutes, WebSocket error 1005 or 1006 in logs
+
+**Cause:** Known issue in v2026.2.24 -- Discord WebSocket resume logic fails on certain disconnects.
+
+**Workaround:**
+```bash
+# Check if Discord channel is connected
+openclaw channels status
+
+# Force restart to re-establish WebSocket
+openclaw gateway restart
+
+# Monitor for recurrence
+journalctl --user -u openclaw-gateway -f | grep -i discord
+```
+
+**Note:** A typing indicator may also get stuck after upgrading to v2026.2.24. Restarting the gateway clears it.
+
 #### Teams: Plugin Not Working
 **Symptoms:** Teams channel not available
 
@@ -316,6 +335,92 @@ openclaw config get skills.entries.<skill-name>.enabled
 
 # Check if skill requires specific binaries/env
 openclaw skills info <skill-name>
+```
+
+### Cron Job Issues
+
+#### Cron Job Not Running
+**Symptoms:** Scheduled job doesn't execute at expected time
+
+**Diagnose:**
+```bash
+# Check job status and next run time
+openclaw cron status
+openclaw cron list
+
+# View run history for the job
+openclaw cron runs
+```
+
+**Common causes:**
+- Wrong timezone: verify with `openclaw cron list` -- use `--tz` flag when creating jobs
+- Gateway not running: cron requires an active gateway
+- Job disabled: `openclaw cron enable <id>`
+
+**Fix:**
+```bash
+# Test job manually first
+openclaw cron run <id>
+
+# Fix timezone if needed
+openclaw cron edit <id>
+```
+
+#### Cron Webhook SSRF (Security)
+**Note:** CVE-2026-27488 (patched in v2026.2.19) allowed cron webhook targets to reach private/internal endpoints. Ensure you are on v2026.2.19+ if using cron webhooks.
+
+### Sub-Agent Issues (v2026.2.17+)
+
+#### Sub-Agent Spawn Fails
+**Symptoms:** Agent cannot create sub-agents, "spawn depth exceeded" errors
+
+**Diagnose:**
+```bash
+openclaw config get agents.defaults.subagents.maxSpawnDepth
+openclaw config get agents.defaults.subagents.maxChildrenPerAgent
+```
+
+**Fix:**
+```bash
+# Increase spawn depth (default: 2)
+openclaw config set agents.defaults.subagents.maxSpawnDepth 3
+
+# Increase children per agent (default: 5)
+openclaw config set agents.defaults.subagents.maxChildrenPerAgent 10
+
+openclaw gateway restart
+```
+
+#### Sub-Agent Not Responding
+**Symptoms:** Spawned sub-agent hangs or produces no output
+
+**Common causes:**
+- Model rate limits exceeded (sub-agents make additional API calls)
+- Sandbox restrictions blocking sub-agent tools
+- Insufficient context window for the task
+
+**Fix:**
+```bash
+# Check agent status
+openclaw agents list
+
+# Review logs for sub-agent errors
+openclaw logs | grep -i "sub-agent\|spawn"
+```
+
+### Session Management Issues (v2026.2.23+)
+
+#### Disk Space Growing from Sessions
+**Symptoms:** `~/.openclaw/agents/` directory consuming excessive disk
+
+**Fix:**
+```bash
+# Clean up old sessions
+openclaw sessions cleanup
+
+# Set disk budget to auto-manage
+openclaw config set session.maintenance.maxDiskBytes 1073741824
+openclaw config set session.maintenance.highWaterBytes 858993459
 ```
 
 ### Service Issues (systemd)
