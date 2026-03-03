@@ -48,15 +48,14 @@ Claude handles the rest—running commands, checking configurations, explaining 
 
 **From GitHub (recommended):**
 ```bash
-claude plugin install github:ClariSortAi/openclaw-manager-plugin
+# 1. Add the marketplace (one-time)
+/plugin marketplace add ClariSortAi/openclaw-manager-plugin
+
+# 2. Install the plugin
+/plugin install openclaw-manager@ClariSortAi-openclaw-manager-plugin
 ```
 
-**From local directory:**
-```bash
-claude plugin install /path/to/openclaw-manager-plugin
-```
-
-**For development:**
+**For development / local testing:**
 ```bash
 claude --plugin-dir ./openclaw-manager-plugin
 ```
