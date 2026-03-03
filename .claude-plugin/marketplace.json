@@ -26,17 +26,26 @@
         "whatsapp-bot",
         "telegram-bot",
         "discord-bot",
+        "bluebubbles",
+        "signal",
+        "google-chat",
+        "irc",
         "imessage",
         "teams",
         "matrix",
         "feishu",
+        "line",
+        "mattermost",
         "nostr",
+        "twitch",
         "zalo",
         "messaging",
         "automation",
         "security",
         "clawhub",
-        "self-hosted"
+        "self-hosted",
+        "docker",
+        "kubernetes"
       ],
       "category": "devops",
       "tags": [
@@ -47,15 +56,19 @@
         "whatsapp",
         "telegram",
         "discord",
+        "bluebubbles",
+        "signal",
         "imessage",
         "teams",
         "matrix",
         "feishu",
+        "line",
         "nostr",
         "zalo",
         "ai-gateway",
         "security",
-        "clawhub"
+        "clawhub",
+        "docker"
       ]
     }
   ]

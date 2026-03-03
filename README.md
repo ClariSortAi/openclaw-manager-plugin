@@ -2,7 +2,7 @@
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue?style=flat-square)](CHANGELOG.md)
 
 > **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
@@ -31,6 +31,13 @@ With this plugin, you just say what you want:
 > /openclaw-manager security audit
 ```
 
+Or start with the **interactive onboarding wizard** — it interviews you about your goals, channels, environment, and security needs, then generates a personalized setup journey:
+
+```
+> /onboarding
+> /onboarding set up a family gateway with WhatsApp and Telegram
+```
+
 Claude handles the rest—running commands, checking configurations, explaining what's happening, and fixing issues.
 
 ## Quick Start
@@ -54,13 +61,13 @@ claude --plugin-dir ./openclaw-manager-plugin
 
 ### Usage
 
-Once installed, invoke the skill:
+Once installed, invoke the skills:
 
 ```bash
-# Interactive mode - Claude guides you
-/openclaw-manager
+# Personalized onboarding — interviews you, then builds a custom plan
+/onboarding
 
-# Specific tasks
+# Or jump straight to specific tasks
 /openclaw-manager install on macOS
 /openclaw-manager configure WhatsApp
 /openclaw-manager troubleshoot connection issues
@@ -83,25 +90,39 @@ Or just describe what you need in natural language—Claude will automatically u
 | **Skills** | `Install a skill from ClawHub` |
 | **Plugins** | `Set up Microsoft Teams via the msteams plugin` |
 | **Sub-Agents** | `Configure nested sub-agent spawn depth` |
+| **Docker/K8s** | `Set up health probes for Kubernetes` |
+| **PDF Analysis** | `Configure PDF tool for document processing` |
 
 
-### Supported Platforms
+### Supported Platforms (23+)
 
-- **Slack** - Socket Mode with OAuth scopes, native text streaming
-- **WhatsApp** - QR code linking, multi-account support
-- **Telegram** - BotFather integration
-- **Discord** - Bot token and privileged intents
-- **iMessage** - macOS native integration
-- **Microsoft Teams** - Plugin-based (`@openclaw/msteams`)
-- **Matrix** - Plugin-based (`@openclaw/matrix`)
-- **Nostr** - Plugin-based (`@openclaw/nostr`)
-- **Zalo** - Plugin-based (`@openclaw/zalo`)
+**Native (built-in):**
+- **Slack** - Socket Mode, native text streaming
+- **WhatsApp** - QR code linking, multi-account
+- **Telegram** - BotFather, streaming, DM topics
+- **Discord** - Bot token, interactive UI
+- **BlueBubbles** - iMessage with full feature support (recommended)
+- **Signal** - Privacy-focused via signal-cli
+- **Google Chat** - HTTP webhook integration
+- **IRC** - Classic server support
+- **WebChat** - Built-in gateway UI
+
+**Plugin-based (install separately):**
+- **Feishu/Lark** - Chinese enterprise chat (native since v2026.2.2)
+- **Microsoft Teams** - `@openclaw/msteams`
+- **Matrix** - `@openclaw/matrix`
+- **LINE** - `@openclaw/line`
+- **Mattermost** - `@openclaw/mattermost`
+- **Nostr** - `@openclaw/nostr`
+- **Nextcloud Talk, Synology Chat, Tlon, Twitch** - Plugin ecosystem
+- **Zalo / Zalo Personal** - `@openclaw/zalo`, `@openclaw/zalouser`
 
 ### Supported Operating Systems
 
 - macOS (native)
 - Linux (native, systemd)
 - Windows (WSL2 required)
+- Docker / Kubernetes (health endpoints for liveness/readiness probes)
 
 ## Plugin Contents
 
@@ -111,12 +132,17 @@ openclaw-manager-plugin/
 │   ├── plugin.json              # Plugin manifest
 │   └── marketplace.json         # Marketplace metadata
 ├── skills/
-│   └── openclaw-manager/
-│       ├── SKILL.md             # Main skill definition
-│       ├── cli-reference.md     # Complete CLI command reference
-│       ├── troubleshooting.md   # Common issues and solutions
-│       ├── channel-setup.md     # Platform-specific setup guides
-│       └── security-checklist.md # Security hardening guide
+│   ├── openclaw-manager/        # Core management skill
+│   │   ├── SKILL.md             # Main skill definition
+│   │   ├── cli-reference.md     # Complete CLI command reference
+│   │   ├── troubleshooting.md   # Common issues and solutions
+│   │   ├── channel-setup.md     # Platform-specific setup guides (23+)
+│   │   └── security-checklist.md # Security hardening guide
+│   └── onboarding/              # Interactive onboarding wizard
+│       ├── SKILL.md             # Interview flow + journey synthesis
+│       └── references/
+│           ├── journey-templates.md  # 7 journey templates by use case
+│           └── feature-matrix.md     # Feature-to-goal mapping tables
 ├── CLAUDE.md                    # Development conventions
 ├── README.md
 ├── CHANGELOG.md
@@ -130,19 +156,25 @@ openclaw-manager-plugin/
 - For OpenClaw itself:
   - Node.js v22+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
-  - **Minimum OpenClaw version: v2026.1.29** (critical security patches)
+  - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
 
 ## How It Works
 
-This plugin provides Claude with comprehensive OpenClaw knowledge through structured documentation:
+This plugin provides Claude with comprehensive OpenClaw knowledge through two skills:
 
-1. **Skill Definition** (`SKILL.md`) - Core capabilities and decision-making guidance
+### Core Skill (`/openclaw-manager`)
+1. **Skill Definition** (`SKILL.md`) - Core capabilities, workflows, and decision-making guidance
 2. **CLI Reference** - Every command, flag, and configuration path
 3. **Troubleshooting Guide** - Diagnostic workflows and common fixes
-4. **Channel Setup** - Platform-specific OAuth, tokens, and configurations
+4. **Channel Setup** - Platform-specific setup for 23+ channels
 5. **Security Checklist** - Hardening recommendations, CVE awareness, and audit procedures
 
-Claude reads these documents and uses them to guide you through any OpenClaw task, running the right commands and explaining each step.
+### Onboarding Wizard (`/onboarding`)
+1. **Interview Flow** - 3-round structured interview about goals, channels, environment, and security
+2. **Journey Templates** - 7 pre-built deployment paths (personal, family, enterprise, developer, Docker/K8s, upgrader, public chatbot)
+3. **Feature Matrix** - Maps user goals to specific configurations and commands
+
+Claude reads these documents and uses them to guide you through any OpenClaw task. The onboarding wizard asks about your specific situation first, then generates a tailored plan instead of generic docs.
 
 ## Examples
 

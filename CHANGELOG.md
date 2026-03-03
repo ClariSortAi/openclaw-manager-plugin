@@ -5,6 +5,49 @@ All notable changes to the OpenClaw Manager Plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-03-03
+
+### Added
+- **12 new channel guides**: BlueBubbles, Signal, Google Chat, IRC, WebChat (native); LINE, Mattermost, Nextcloud Talk, Synology Chat, Tlon, Twitch (plugin); Zalo Personal rebuild documentation
+- **Breaking changes section in SKILL.md**: Documents `tools.profile` default change, ACP dispatch enabled, Plugin SDK migration, Zalo Personal rebuild, iMessage deprecation
+- **Tools profile documentation**: `tools.profile` setting (`"messaging"`, `"coding"`, `"full"`) as security boundary with per-agent overrides
+- **Tool execution security**: `tools.exec.security` setting (`"deny"`, `"ask"`, `"allow"`) for approval workflows
+- **Config validation CLI**: `openclaw config validate [--json]` and `openclaw config file` commands (v2026.3.2+)
+- **Health endpoints**: Docker/K8s liveness (`/health`, `/healthz`) and readiness (`/ready`, `/readyz`) probes (v2026.3.1+)
+- **PDF tool**: First-class PDF analysis with Anthropic/Google providers, configurable `pdfModel`, `pdfMaxBytesMb`, `pdfMaxPages` (v2026.3.2+)
+- **SecretRef system**: `openclaw secrets plan/apply/audit` for managing 64 credential targets (v2026.3.2+)
+- **Session attachments**: Inline file support for `sessions_spawn` with base64/utf8 encoding (v2026.3.2+)
+- **Adaptive thinking**: Claude 4.6 defaults to `"adaptive"` thinking level (v2026.3.1+)
+- **Telegram streaming**: Default `partial` mode with `sendMessageDraft` live preview (v2026.3.2+)
+- **Telegram DM topics**: Per-DM topic configuration with topic-aware sessions (v2026.3.1+)
+- **Feishu v2026.3.x improvements**: Reaction notifications, rich-text parsing, multi-account routing, `feishu_doc` tool, voice/TTS, webhook rate-limiting
+- **New model providers**: xAI/Grok (v2026.2.6+), MiniMax M2.5 (v2026.3.2+), Vercel AI Gateway normalization (v2026.2.23+)
+- **Ollama embeddings**: `memorySearch.provider = "ollama"` support (v2026.3.2+)
+- **`OPENCLAW_SHELL` environment variable** (v2026.3.1+)
+- **`diffs` plugin tool**: Read-only diff rendering (v2026.3.1+)
+- **Filesystem restriction**: `fs.workspaceOnly` security setting
+- **v2026.3.x security hardening table**: 13 new security items including gateway auth canonicalization, webhook auth enforcement, DNS pinning, ACP sandbox inheritance, macOS umask hardening
+- **5 real-world workflow recipes**: Personal assistant, family/team gateway, Docker/K8s deployment, multi-channel daily digest, security lockdown after incident
+- **New troubleshooting sections**: Tools profile issues, config validation, ACP dispatch, PDF tool, Plugin SDK breaking change, Zalo Personal login change
+- **Interactive onboarding wizard** (`/onboarding`): 3-round interview flow that asks about goals, channels, environment, and security posture, then generates a personalized deployment journey with specific milestones and commands
+- **7 journey templates**: Personal assistant, family/team, enterprise, developer tool, Docker/K8s, upgrader (v2026.2.x → v2026.3.x migration), and public chatbot/service
+- **Feature-to-use-case matrix**: Maps tools profiles, security configs, channel complexity, automation features, and model recommendations to user goals
+
+### Changed
+- Updated minimum safe version from **v2026.2.12 to v2026.3.1** throughout all documentation
+- Deprecated legacy iMessage channel — redirected to BlueBubbles with migration guidance
+- Expanded official plugins table to include 10 native channels + 12 plugin channels + 4 utility plugins
+- Updated security checklist from 11 to 15 critical settings (added tools profile, exec security, filesystem restriction, SecretRef)
+- Updated hardening checklist with config validation, tools.profile, exec security, SecretRef audit
+- Discord WebSocket 1005/1006 marked as fixed in v2026.3.1 (previously documented as known issue)
+- Updated error patterns table with `invalid-config`, `tools not available`, `registerHttpHandler` errors
+- Expanded model providers section with xAI, MiniMax, Vercel AI, and OpenAI WebSocket transport
+- Updated plugin.json keywords and marketplace.json tags for new channels (BlueBubbles, Signal, Google Chat, IRC, LINE, Mattermost, Twitch, Docker, Kubernetes)
+
+### Fixed
+- README version badge now shows correct version
+- README minimum version updated from v2026.1.29 to v2026.3.1
+
 ## [1.2.0] - 2026-02-26
 
 ### Added

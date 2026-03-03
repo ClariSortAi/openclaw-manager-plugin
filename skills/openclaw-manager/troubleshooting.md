@@ -5,34 +5,38 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.1.29+)
+# 1. Quick status (check version is v2026.3.1+)
 openclaw status
 
-# 2. Full diagnosis
+# 2. Validate config (catches invalid keys — v2026.3.2+)
+openclaw config validate
+
+# 3. Full diagnosis
 openclaw status --all
 
-# 3. Deep health check
+# 4. Deep health check
 openclaw status --deep
 
-# 4. Auto-fix
+# 5. Auto-fix
 openclaw doctor --fix
 
-# 5. Live logs
+# 6. Live logs
 journalctl --user -u openclaw-gateway -f
 ```
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.2.12 or later**:
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later**:
 
 ```bash
 openclaw status
 ```
 
-If on an older version, upgrade immediately -- versions before v2026.2.12 contain critical security vulnerabilities including CVE-2026-25253 (one-click RCE) and 40+ additional SSRF, path traversal, and prompt injection fixes:
+If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw config validate
 openclaw gateway restart
 ```
 
@@ -195,47 +199,50 @@ openclaw config set channels.telegram.botToken "123:abc..."
 openclaw gateway restart
 ```
 
-#### iMessage: Not Working
+#### iMessage: Not Working (Migrate to BlueBubbles)
 **Symptoms:** iMessage channel not receiving messages
 
-**Causes:**
+**Important:** Legacy iMessage is deprecated. Migrate to BlueBubbles for full feature support.
+
+**For BlueBubbles issues:**
+```bash
+# Check BlueBubbles server is running
+openclaw channels status
+
+# Verify server URL and password
+openclaw config get channels.bluebubbles
+```
+
+**If still using legacy iMessage:**
 - Not on macOS (iMessage is macOS only)
 - Full Disk Access not granted
 - Messages app not signed in
 
-**Fix:**
 ```bash
-# 1. Verify macOS
+# Verify macOS
 uname -s  # Must be "Darwin"
 
-# 2. Grant Full Disk Access
+# Grant Full Disk Access
 # System Settings → Privacy & Security → Full Disk Access → Add Terminal
 
-# 3. Verify Messages app is signed in and iMessage is active
-
-# 4. Enable and restart
+# Enable and restart
 openclaw config set channels.imessage.enabled true
 openclaw gateway restart
 ```
 
-#### Discord: WebSocket Disconnects (v2026.2.24 Known Issue)
+#### Discord: WebSocket Disconnects (Fixed in v2026.3.1)
 **Symptoms:** Bot goes offline for 30+ minutes, WebSocket error 1005 or 1006 in logs
 
-**Cause:** Known issue in v2026.2.24 -- Discord WebSocket resume logic fails on certain disconnects.
+**Cause:** Fixed in v2026.3.1 — Discord WebSocket resume logic used to fail on certain disconnects in v2026.2.24.
 
-**Workaround:**
+**Fix:**
 ```bash
-# Check if Discord channel is connected
-openclaw channels status
-
-# Force restart to re-establish WebSocket
+# Upgrade to v2026.3.1+
+curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway restart
-
-# Monitor for recurrence
-journalctl --user -u openclaw-gateway -f | grep -i discord
 ```
 
-**Note:** A typing indicator may also get stuck after upgrading to v2026.2.24. Restarting the gateway clears it.
+If still on v2026.2.24, force restart: `openclaw gateway restart`
 
 #### Teams: Plugin Not Working
 **Symptoms:** Teams channel not available
@@ -423,6 +430,114 @@ openclaw config set session.maintenance.maxDiskBytes 1073741824
 openclaw config set session.maintenance.highWaterBytes 858993459
 ```
 
+### Tools Profile Issues (v2026.3.2+)
+
+#### Agent Can't Run Commands / "Tools Not Available"
+**Symptoms:** Agent refuses to execute shell commands, read files, or use browser tools
+
+**Cause:** As of v2026.3.2, new installations default `tools.profile` to `"messaging"` which excludes coding/system tools.
+
+**Fix:**
+```bash
+# Check current profile
+openclaw config get agents.defaults.tools.profile
+
+# Set to coding or full
+openclaw config set agents.defaults.tools.profile "coding"
+openclaw gateway restart
+```
+
+**Per-agent override** (keep restrictive default, open up for specific agents):
+```bash
+openclaw config set agents.list.my-dev-agent.tools.profile "full"
+```
+
+### Config Validation Issues (v2026.3.2+)
+
+#### Gateway Refuses to Start with Invalid Config
+**Symptoms:** Gateway exits with "invalid-config" error
+
+**Diagnose:**
+```bash
+# Get detailed error paths
+openclaw config validate --json
+```
+
+**Fix:** Review the invalid key paths in the output and correct them:
+```bash
+# Check what config file is active
+openclaw config file
+
+# Fix the invalid keys
+openclaw config unset <invalid.path>
+openclaw config validate
+openclaw gateway restart
+```
+
+### ACP Dispatch Issues (v2026.3.2+)
+
+#### Unexpected ACP Behavior
+**Symptoms:** Agent Communication Protocol dispatching messages unexpectedly
+
+**Cause:** ACP dispatch is now enabled by default in v2026.3.2.
+
+**Fix:**
+```bash
+# Disable ACP dispatch if not wanted
+openclaw config set acp.dispatch.enabled false
+openclaw gateway restart
+```
+
+### PDF Tool Issues (v2026.3.2+)
+
+#### PDF Analysis Not Working
+**Symptoms:** PDF tool returns errors or no results
+
+**Diagnose:**
+```bash
+# Check PDF tool configuration
+openclaw config get agents.defaults.pdfModel
+openclaw config get agents.defaults.pdfMaxBytesMb
+```
+
+**Fix:**
+```bash
+# Ensure a supported model is configured (Anthropic or Google)
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+
+# Increase size limits if needed
+openclaw config set agents.defaults.pdfMaxBytesMb 50
+openclaw config set agents.defaults.pdfMaxPages 200
+```
+
+### Plugin SDK Breaking Change (v2026.3.2)
+
+#### Plugin Error: "registerHttpHandler is not a function"
+**Symptoms:** Plugin crashes on startup after upgrading to v2026.3.2
+
+**Cause:** `api.registerHttpHandler()` was removed. Plugins must use `api.registerHttpRoute()`.
+
+**Fix:** Update the plugin code to use the new API:
+```javascript
+// Old (removed):
+// api.registerHttpHandler('/webhook', handler)
+
+// New (v2026.3.2+):
+api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
+```
+
+### Zalo Personal Issues (v2026.3.2)
+
+#### Zalo Personal Login Changed
+**Symptoms:** Old Zalo Personal login method no longer works
+
+**Cause:** Rebuilt in v2026.3.2 using native `zca-js` — no external CLI dependency.
+
+**Fix:**
+```bash
+openclaw channels login --channel zalouser
+```
+
 ### Service Issues (systemd)
 
 #### Service Not Starting
@@ -449,10 +564,11 @@ journalctl --user -u openclaw-gateway -f
 ```
 
 **Common causes:**
-- Config syntax error: `openclaw doctor`
+- Config syntax error: `openclaw config validate --json`
 - Port conflict: Check other processes
 - Missing dependencies: Reinstall
 - `auth: "none"` in config after upgrade (see above)
+- Invalid config keys: `openclaw config validate` for detailed error paths
 
 ### WSL2-Specific Issues
 

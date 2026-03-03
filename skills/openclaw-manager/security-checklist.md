@@ -2,14 +2,17 @@
 
 ## Critical Version Requirement
 
-**Minimum safe version: v2026.2.12**
+**Minimum safe version: v2026.3.1**
 
-Run `openclaw status` to check your version. If you are on anything older than v2026.2.12, upgrade immediately:
+Run `openclaw status` to check your version. If you are on anything older than v2026.3.1, upgrade immediately:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw config validate
 openclaw gateway restart
 ```
+
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12.
 
 ### Known Critical Vulnerabilities
 
@@ -51,6 +54,24 @@ Additional v2026.2.12 hardening:
 | CVE-2026-27576 | Medium | ACP prompt-size checks missing in local stdio bridge | v2026.2.19 |
 
 A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 additional security fixes were released across v2026.2.12 and v2026.2.19.
+
+#### v2026.3.x Security Hardening (March 2026)
+
+| Area | Description | Fixed In |
+|------|-------------|----------|
+| Gateway auth | Security canonicalization with auth bypass prevention | v2026.3.2 |
+| Webhook auth | Request auth enforcement for BlueBubbles and Google Chat | v2026.3.2 |
+| Browser | Output boundary hardening | v2026.3.2 |
+| Config backup | Permission enforcement (0600) for backup files | v2026.3.2 |
+| SSRF | DNS pinning guard maintenance | v2026.3.2 |
+| Node camera | URL download restrictions | v2026.3.2 |
+| ACP sandbox | Inheritance enforcement for sub-agents | v2026.3.2 |
+| Feishu webhooks | Ingress rate-limiting with stale-window pruning | v2026.3.1 |
+| macOS | LaunchAgent umask hardening (077) | v2026.3.1 |
+| WebSocket | Plaintext loopback-only enforcement | v2026.3.1 |
+| Gateway | Closes repeated unauthorized request floods per connection | v2026.3.1 |
+| Edit tools | Workspace boundary error fixes | v2026.3.1 |
+| Compaction | Removed post-compaction audit injection message | v2026.3.1 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -180,7 +201,35 @@ openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
 ```
 
-### 7. Control Plane Tool Denials
+### 7. Tools Profile (v2026.3.2+)
+
+The `tools.profile` setting establishes a base tool allowlist. New installations default to `"messaging"` (no coding/system tools). This is a critical security boundary for multi-user gateways.
+
+| Profile | Description |
+|---------|-------------|
+| `messaging` | Chat-only tools — no exec, no filesystem, no browser (default for new installs) |
+| `coding` | Adds exec, filesystem, browser tools |
+| `full` | No restrictions (personal use only) |
+
+```bash
+# Per-agent override
+openclaw config set agents.list.support-bot.tools.profile "messaging"
+openclaw config set agents.list.personal.tools.profile "coding"
+```
+
+### 8. Tool Execution Security (v2026.3.2+)
+
+Control how exec/shell tools are handled:
+
+```bash
+# Deny all exec for untrusted agents
+openclaw config set agents.defaults.tools.exec.security "deny"
+
+# Require approval for each exec call
+openclaw config set agents.defaults.tools.exec.security "ask"
+```
+
+### 9. Control Plane Tool Denials
 
 In production, deny high-risk tools that allow agents to modify the gateway itself:
 
@@ -202,7 +251,7 @@ Also restrict elevated tools (`exec`, `browser`, `web_fetch`, `web_search`) to t
 openclaw config set agents.defaults.tools.deny '["gateway","cron","sessions_spawn","sessions_send"]'
 ```
 
-### 8. mDNS Discovery
+### 10. mDNS Discovery
 
 OpenClaw can broadcast gateway presence via mDNS. Three modes:
 
@@ -223,19 +272,20 @@ openclaw config set gateway.mdns.mode off
 export OPENCLAW_DISABLE_BONJOUR=1
 ```
 
-### 9. Model Selection
+### 11. Model Selection
 
-Use modern, instruction-hardened models for bots with tool access:
+Use modern, instruction-hardened models for bots with tool access. Larger models resist prompt injection better — this is a security property, not just a quality preference.
 
-- **Anthropic Opus 4.6**: Recommended for strong prompt injection resistance and tool safety
-- **Anthropic Sonnet 4.6**: Good balance of capability and speed
-- Avoid older or weaker models for tool-enabled agents facing untrusted inboxes
+- **Strongest injection resistance**: Use the largest tier available from your provider (e.g., Anthropic Opus, OpenAI GPT-4o)
+- **Good balance**: Mid-tier models (e.g., Anthropic Sonnet, OpenAI GPT-4o-mini) for moderate-risk surfaces
+- **Local models (Ollama)**: May be less robust against sophisticated prompt injection — pair with strict tool denials and sandbox
+- Avoid older or smaller models for tool-enabled agents facing untrusted inboxes
 
 ```bash
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "<provider>/<model>"
 ```
 
-### 10. Multi-User Trust Heuristic (v2026.2.24+)
+### 12. Multi-User Trust Heuristic (v2026.2.24+)
 
 Detects likely shared-user ingress and flags potential multi-user abuse on single-user channels:
 
@@ -243,13 +293,38 @@ Detects likely shared-user ingress and flags potential multi-user abuse on singl
 openclaw config set security.trust_model.multi_user_heuristic true
 ```
 
-### 11. HTTP Security Headers (v2026.2.23+)
+### 13. HTTP Security Headers (v2026.2.23+)
 
 When exposing the gateway over direct HTTPS (no reverse proxy), enable Strict-Transport-Security:
 
 ```bash
 openclaw config set gateway.security.hsts true
 ```
+
+### 14. Filesystem Restriction
+
+Restrict agent file access to the workspace directory only:
+
+```bash
+openclaw config set fs.workspaceOnly true
+```
+
+### 15. SecretRef Credential Management (v2026.3.2+)
+
+Use the SecretRef system instead of inline credentials:
+
+```bash
+# Audit all credential references
+openclaw secrets audit
+
+# Plan secret rotation
+openclaw secrets plan
+
+# Apply changes
+openclaw secrets apply
+```
+
+SecretRef covers 64 credential targets across runtime collectors, onboarding flows, and audit surfaces.
 
 ## File Permissions
 
@@ -275,10 +350,11 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.2.12 or later (40+ security fixes including SSRF, path traversal, prompt injection)
+- [ ] Running v2026.3.1 or later (security canonicalization, webhook auth, umask hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
+- [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
 - [ ] Gateway bound to loopback (127.0.0.1)
@@ -291,9 +367,12 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] DM policy set to `pairing` or `allowlist`
 - [ ] Group policy set to `allowlist`
 - [ ] Mention required in groups
+- [ ] `tools.profile` set to `"messaging"` for untrusted surfaces (v2026.3.2+)
+- [ ] `tools.exec.security` set to `"deny"` or `"ask"` for non-personal agents
 - [ ] Elevated tool access restricted
 - [ ] Unknown senders cannot execute commands
 - [ ] Control plane tools denied (`gateway`, `cron`, `sessions_spawn`, `sessions_send`)
+- [ ] `fs.workspaceOnly` enabled for agents with file access
 
 ### Sandboxing
 - [ ] Sandbox mode enabled (`all` or `non-main`)
@@ -303,10 +382,11 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 
 ### Credentials
 - [ ] File permissions set to 600/700
-- [ ] No credentials in environment variables (use config)
-- [ ] API keys stored via `openclaw configure`
+- [ ] Config backups at 0600 permissions (enforced in v2026.3.2+)
+- [ ] No credentials in environment variables (use config or SecretRef)
+- [ ] API keys stored via `openclaw configure` or `openclaw secrets apply`
 - [ ] Tokens rotated monthly (API keys, email credentials, messaging tokens)
-- [ ] Consider using a secret manager instead of environment files
+- [ ] SecretRef audit clean: `openclaw secrets audit`
 
 ### Logging & Monitoring
 - [ ] Sensitive data redaction enabled
@@ -344,15 +424,19 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   "agents": {
     "defaults": {
       "model": "anthropic/claude-opus-4-6",
+      "tools": {
+        "profile": "messaging",
+        "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
+      },
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "ro",
         "scope": "agent"
-      },
-      "tools": {
-        "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
       }
     }
+  },
+  "fs": {
+    "workspaceOnly": true
   }
 }
 ```
@@ -424,16 +508,19 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.2.12)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1)
+- Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 recommended)
+- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
 - Deny control plane tools in production
+- Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation
 - Rotate credentials monthly
-- Run in Docker container for process isolation
+- Run in Docker container for process isolation with health endpoints
+- Validate config before restart (`openclaw config validate`)
 
 ## Incident Response
 

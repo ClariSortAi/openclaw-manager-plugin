@@ -199,6 +199,18 @@ openclaw gateway restart
 }
 ```
 
+### Telegram Streaming (v2026.3.2+)
+
+Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
+
+### Telegram DM Topics (v2026.3.1+)
+
+Per-DM topic configuration with topic-aware sessions:
+```bash
+openclaw config set channels.telegram.dmTopics.enabled true
+```
+Each DM conversation can have its own topic context, with sessions scoped to the topic.
+
 ---
 
 ## Discord
@@ -250,23 +262,71 @@ openclaw gateway restart
 
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
-**Known Issue (v2026.2.24):** Discord WebSocket 1005/1006 disconnects can cause the bot to go offline for 30+ minutes due to failing resume logic. A typing indicator may also get stuck after upgrade. Monitor with `openclaw channels status` and restart the gateway if needed.
+**Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
 
 ---
 
-## iMessage (macOS Only)
+## BlueBubbles (iMessage — Recommended)
+
+BlueBubbles replaces legacy iMessage with full feature support including message editing, unsend, effects, reactions, and group management.
 
 ### Prerequisites
 - macOS with iMessage configured
-- Messages app signed into your Apple ID
-- Full Disk Access granted to the OpenClaw process (or Terminal)
+- BlueBubbles server running on the Mac
 
 ### Setup Steps
+
+1. **Install BlueBubbles Server on macOS**
+   - Download from [bluebubbles.app](https://bluebubbles.app)
+   - Follow the server setup wizard
+   - Note the server URL and password
+
+2. **Configure OpenClaw**
+```bash
+openclaw config set channels.bluebubbles.serverUrl "http://localhost:1234"
+openclaw config set channels.bluebubbles.password "your-server-password"
+openclaw config set channels.bluebubbles.dmPolicy pairing
+openclaw gateway restart
+```
+
+3. **Test**
+   - Send an iMessage to your number from another device
+   - Approve pairing: `openclaw pairing approve bluebubbles <code>`
+
+### Configuration
+```json
+{
+  "channels": {
+    "bluebubbles": {
+      "enabled": true,
+      "serverUrl": "http://localhost:1234",
+      "password": "...",
+      "dmPolicy": "pairing",
+      "allowFrom": ["+15551234567"]
+    }
+  }
+}
+```
+
+### Advantages Over Legacy iMessage
+- Full feature support: edit, unsend, tapback reactions, message effects
+- Group chat management (create, rename, add/remove members)
+- No Full Disk Access requirement (uses BlueBubbles API instead of chat.db)
+- Better reliability and reconnection handling
+
+---
+
+## iMessage Legacy (Deprecated)
+
+**This channel is deprecated. Use BlueBubbles instead for full feature support.**
+
+Legacy iMessage is macOS-only and reads the chat.db database directly. It has limited group chat support and requires Full Disk Access.
+
+### If You Must Use Legacy iMessage
 
 1. **Grant Full Disk Access**
    - System Settings → Privacy & Security → Full Disk Access
    - Add Terminal (or the app running OpenClaw)
-   - This is required for OpenClaw to read the iMessage database
 
 2. **Enable the Channel**
 ```bash
@@ -275,28 +335,12 @@ openclaw config set channels.imessage.dmPolicy pairing
 openclaw gateway restart
 ```
 
-3. **Test**
-   - Send an iMessage to your own number or Apple ID from another device
-   - Approve pairing: `openclaw pairing approve imessage <code>`
-
-### Configuration
-```json
-{
-  "channels": {
-    "imessage": {
-      "enabled": true,
-      "dmPolicy": "pairing",
-      "allowFrom": ["+15551234567", "user@icloud.com"]
-    }
-  }
-}
-```
-
 ### Limitations
-- macOS only (iMessage is not available on Linux or WSL2)
+- macOS only (not available on Linux or WSL2)
 - Requires Full Disk Access for the chat.db database
-- Apple ID changes may require re-configuration
+- No edit/unsend/effects support
 - Group chats have limited support
+- **Will be removed in a future version**
 
 ---
 
@@ -400,6 +444,169 @@ openclaw plugins info zalo
 openclaw gateway restart
 ```
 
+### Zalo Personal (Rebuilt in v2026.3.2)
+
+The Zalo Personal plugin was rebuilt in v2026.3.2 using native `zca-js` integration. It **no longer depends on external CLI binaries**. Login via:
+```bash
+openclaw channels login --channel zalouser
+```
+
+---
+
+## Signal (Native)
+
+Signal is supported natively via signal-cli for privacy-focused messaging.
+
+### Prerequisites
+- signal-cli installed and configured
+- A dedicated Signal phone number
+
+### Setup Steps
+
+1. **Install signal-cli** (follow [signal-cli docs](https://github.com/AsamK/signal-cli))
+
+2. **Register or link to a Signal account**
+```bash
+signal-cli -a +15551234567 register
+# or link to existing account
+signal-cli -a +15551234567 link
+```
+
+3. **Configure OpenClaw**
+```bash
+openclaw config set channels.signal.phoneNumber "+15551234567"
+openclaw config set channels.signal.dmPolicy pairing
+openclaw gateway restart
+```
+
+---
+
+## Google Chat (Native)
+
+Google Chat is supported natively via HTTP webhook integration.
+
+### Setup Steps
+
+1. **Create a Google Chat Bot** in the Google Cloud Console
+2. **Enable the Chat API**
+3. **Configure webhook URL** in OpenClaw
+```bash
+openclaw config set channels.googlechat.enabled true
+openclaw config set channels.googlechat.dmPolicy pairing
+openclaw gateway restart
+```
+
+---
+
+## IRC (Native)
+
+IRC is supported natively with pairing/allowlist access controls.
+
+### Setup Steps
+
+```bash
+openclaw config set channels.irc.server "irc.libera.chat"
+openclaw config set channels.irc.port 6697
+openclaw config set channels.irc.nick "openclaw-bot"
+openclaw config set channels.irc.dmPolicy pairing
+openclaw gateway restart
+```
+
+---
+
+## WebChat (Native)
+
+WebChat is the built-in Gateway UI accessible over WebSocket at the control plane address.
+
+### Access
+```bash
+openclaw dashboard  # Opens the Control UI in a browser
+# WebChat is available at ws://127.0.0.1:18789
+```
+
+No additional configuration needed — it runs as part of the gateway.
+
+---
+
+## LINE (Plugin Required)
+
+LINE is supported via the `@openclaw/line` plugin using the LINE Messaging API.
+
+### Setup Steps
+
+1. **Install the Plugin**
+```bash
+openclaw plugins install @openclaw/line
+```
+
+2. **Create a LINE Messaging API channel** in the LINE Developers Console
+
+3. **Configure**
+```bash
+openclaw plugins info line
+openclaw gateway restart
+```
+
+---
+
+## Mattermost (Plugin Required)
+
+Mattermost is supported via the `@openclaw/mattermost` plugin.
+
+### Setup Steps
+
+1. **Install the Plugin**
+```bash
+openclaw plugins install @openclaw/mattermost
+```
+
+2. **Configure with your Mattermost server**
+```bash
+openclaw config set plugins.entries.mattermost.config.serverUrl "https://mattermost.example.com"
+openclaw config set plugins.entries.mattermost.config.token "..."
+openclaw gateway restart
+```
+
+---
+
+## Nextcloud Talk (Plugin Required)
+
+```bash
+openclaw plugins install @openclaw/nextcloud-talk
+openclaw gateway restart
+```
+
+---
+
+## Synology Chat (Plugin Required)
+
+```bash
+openclaw plugins install @openclaw/synology-chat
+openclaw gateway restart
+```
+
+---
+
+## Tlon (Plugin Required)
+
+Tlon is supported via the `@openclaw/tlon` plugin for decentralized messaging.
+
+```bash
+openclaw plugins install @openclaw/tlon
+openclaw gateway restart
+```
+
+---
+
+## Twitch (Plugin Required)
+
+Twitch chat integration via the `@openclaw/twitch` plugin.
+
+```bash
+openclaw plugins install @openclaw/twitch
+openclaw gateway restart
+```
+
 ---
 
 ## Feishu / Lark (v2026.2.2+)
@@ -449,6 +656,15 @@ openclaw channels status
 - Supports both Feishu (China) and Lark (international) via the same configuration
 - Requires event subscription configuration in the Feishu developer console
 - Group chat support follows the same `groupPolicy` pattern as other channels
+
+### Feishu Improvements (v2026.3.x)
+- Reaction notifications and typing backoff fixes (v2026.3.1)
+- Rich-text parsing enhancements and media type corrections (v2026.3.1)
+- Multi-account routing with mention validation (v2026.3.1)
+- `feishu_doc` tool actions: table creation and file uploads (v2026.3.1)
+- TTS/voice bubbles, Opus audio as `msg_type: "audio"` (v2026.3.1)
+- Webhook ingress rate-limiting with stale-window pruning (v2026.3.1)
+- Multi-app mention routing validation (v2026.3.2)
 
 ---
 

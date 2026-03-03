@@ -28,6 +28,9 @@ openclaw configure           # Interactive configuration wizard
 openclaw config get <path>   # Get config value
 openclaw config set <path> <value>  # Set config value
 openclaw config unset <path> # Remove config value
+openclaw config validate     # Validate config before gateway restart (v2026.3.2+)
+openclaw config validate --json  # Machine-readable validation output
+openclaw config file         # Print active config file path (v2026.3.1+)
 ```
 
 ### Channel Management
@@ -136,6 +139,16 @@ openclaw config set session.maintenance.maxDiskBytes 1073741824    # 1 GB max
 openclaw config set session.maintenance.highWaterBytes 858993459   # Trigger cleanup at 800 MB
 ```
 
+### Secrets Management (v2026.3.2+)
+
+SecretRef system for managing credentials across 64 target surfaces:
+
+```bash
+openclaw secrets plan          # Plan secret changes (dry-run)
+openclaw secrets apply         # Apply secret changes
+openclaw secrets audit         # Audit credential references
+```
+
 ### Memory
 ```bash
 openclaw memory status       # Memory index status
@@ -149,6 +162,9 @@ openclaw security audit          # Basic security audit
 openclaw security audit --deep   # Thorough security check
 openclaw security audit --fix    # Auto-fix issues
 openclaw security audit --json   # Machine-readable output
+openclaw secrets plan            # Plan credential changes
+openclaw secrets apply           # Apply credential changes
+openclaw secrets audit           # Audit all SecretRef targets
 ```
 
 ### Webhooks
@@ -225,6 +241,31 @@ openclaw config set security.trust_model.multi_user_heuristic true
 # HTTP security headers (v2026.2.23+)
 openclaw config set gateway.security.hsts true
 
+# Tools profile (v2026.3.2+ — "messaging" is new default for fresh installs)
+openclaw config set agents.defaults.tools.profile "coding"
+# Options: "messaging" (no coding tools), "coding", "full" (no restrictions)
+
+# Tool execution security (v2026.3.2+)
+openclaw config set agents.defaults.tools.exec.security "ask"
+# Options: "allow", "ask" (approval workflow), "deny"
+
+# ACP dispatch (v2026.3.2+ — enabled by default)
+openclaw config set acp.dispatch.enabled false
+
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+openclaw config set agents.defaults.params.thinkingLevel "adaptive"
+
+# PDF tool (v2026.3.2+)
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfMaxBytesMb 50
+openclaw config set agents.defaults.pdfMaxPages 200
+
+# Ollama embeddings for memory search (v2026.3.2+)
+openclaw config set memorySearch.provider "ollama"
+
+# Filesystem restriction
+openclaw config set fs.workspaceOnly true
+
 # Skill configuration
 openclaw config set skills.entries.my-skill.enabled true
 openclaw config set skills.entries.my-skill.apiKey "SECRET_VALUE"
@@ -237,6 +278,17 @@ openclaw config set plugins.allow '["voice-call"]'
 openclaw config set plugins.slots.memory "memory-core"
 ```
 
+## Health Endpoints (v2026.3.1+)
+
+Built-in HTTP endpoints for Docker/Kubernetes orchestration:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health` | Liveness probe |
+| `GET /healthz` | Liveness probe (alias) |
+| `GET /ready` | Readiness probe |
+| `GET /readyz` | Readiness probe (alias) |
+
 ## Environment Variables
 
 | Variable | Purpose |
@@ -246,23 +298,53 @@ openclaw config set plugins.slots.memory "memory-core"
 | `OPENCLAW_GATEWAY_TOKEN` | Gateway auth token |
 | `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
+| `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
 
-## Official Plugins
+## Official Plugins & Channels
+
+### Native Channels (Built-in)
+
+| Channel | Description |
+|---------|-------------|
+| BlueBubbles | iMessage via macOS server API — full feature support (edit, unsend, effects, reactions, groups) |
+| Discord | Bot API + Gateway; servers, channels, DMs, interactive UI |
+| Google Chat | HTTP webhook integration |
+| iMessage (legacy) | **Deprecated** — use BlueBubbles instead |
+| IRC | Classic server support with pairing/allowlist controls |
+| Signal | signal-cli integration, privacy-focused |
+| Slack | Bolt SDK, Socket Mode, native text streaming |
+| Telegram | Bot API via grammY, group support, streaming, DM topics |
+| WebChat | Gateway UI over WebSocket |
+| WhatsApp | Baileys library, QR pairing, multi-account |
+
+### Plugin Channels (Install Separately)
+
+| Plugin | Package | Description |
+|--------|---------|-------------|
+| Feishu/Lark | native (v2026.2.2+) | Chinese enterprise chat (Feishu and Lark) |
+| LINE | `@openclaw/line` | LINE Messaging API bot |
+| Mattermost | `@openclaw/mattermost` | Self-hosted team chat |
+| Microsoft Teams | `@openclaw/msteams` | Teams channel (plugin-only since v2026.1.15) |
+| Matrix | `@openclaw/matrix` | Matrix protocol channel |
+| Nextcloud Talk | `@openclaw/nextcloud-talk` | Nextcloud integration |
+| Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
+| Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
+| Tlon | `@openclaw/tlon` | Decentralized platform |
+| Twitch | `@openclaw/twitch` | Streaming chat integration |
+| Zalo | `@openclaw/zalo` | Zalo Official Account |
+| Zalo Personal | `@openclaw/zalouser` | Zalo personal (rebuilt in v2026.3.2 — native JS, no external CLI) |
+
+### Other Plugins
 
 | Plugin | Package | Description |
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
-| Microsoft Teams | `@openclaw/msteams` | Teams channel (plugin-only since v2026.1.15) |
-| Matrix | `@openclaw/matrix` | Matrix protocol channel |
-| Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
-| Zalo | `@openclaw/zalo` | Zalo Official Account |
-| Zalo User | `@openclaw/zalouser` | Zalo personal account |
+| Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
-| Feishu/Lark | native (v2026.2.2+) | Chinese enterprise chat (Feishu and Lark) |
-| Memory (LanceDB) | bundled | Vector-based memory alternative |
+| Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
