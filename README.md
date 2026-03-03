@@ -6,6 +6,8 @@
 
 > **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
+<video src="https://github.com/user-attachments/assets/0a62a2dd-8f6c-4121-8e15-54fe8f65a61f" controls width="100%"></video>
+
 [OpenClaw](https://openclaw.ai) (formerly known as **ClawdBot**) is an AI gateway that connects Claude and other LLMs to messaging platforms like Slack, WhatsApp, Telegram, Discord, and more. This plugin turns Claude Code into your personal OpenClaw expert—handling installation, configuration, troubleshooting, and security hardening through natural conversation.
 
 **This is a weekend project built to help more people access OpenClaw.** The setup process can be intimidating for newcomers, so this wrapped all that complexity into a conversational interface. Just tell Claude what you want, and it handles the rest.
