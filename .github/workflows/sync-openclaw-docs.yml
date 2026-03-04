@@ -84,6 +84,7 @@ jobs:
         with:
           model: claude-sonnet-4-6
           max_turns: "25"
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           allowed_tools: "Read,Write,Edit,Bash(gh:*),Bash(git:*),Bash(curl:*),Glob,Grep"
           prompt: |
             You are maintaining the openclaw-manager-plugin, a Claude Code plugin that documents OpenClaw.
@@ -177,5 +178,3 @@ jobs:
             - Preserve existing formatting and structure of each file
             - Do not remove or rewrite content that is still accurate
             - Only add or update content where there is a genuine gap
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
