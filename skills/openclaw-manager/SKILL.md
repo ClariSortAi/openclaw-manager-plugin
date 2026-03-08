@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.7+** for the latest auth, config, and channel-routing fixes. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -34,15 +34,16 @@ See these supporting files for detailed information:
 - [channel-setup.md](channel-setup.md) - Platform-specific setup guides
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 
-## Breaking Changes to Watch For (v2026.3.x)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.7)
 
 These changes affect new and existing installations:
 
-1. **`tools.profile` defaults to `"messaging"`** (v2026.3.2) — New installs no longer have coding/system tools enabled. Users must explicitly set `tools.profile` to `"coding"` or `"full"` if they need those capabilities.
-2. **ACP dispatch enabled by default** (v2026.3.2) — Disable explicitly with `openclaw config set acp.dispatch.enabled false` if not wanted.
-3. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
-4. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
-5. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
+1. **`tools.profile` defaults changed across v2026.3.x** — v2026.3.2 introduced `"messaging"` as the safer default; v2026.3.7 changed fresh local onboarding fallback to `"coding"` when unset. Always set `agents.defaults.tools.profile` explicitly for predictable behavior.
+2. **Gateway auth mode must be explicit when both token and password exist** (v2026.3.7) — If `gateway.auth.token` and `gateway.auth.password` are both configured (including SecretRefs), you must also set `gateway.auth.mode` to `token` or `password`.
+3. **ACP dispatch enabled by default** (v2026.3.2) — Disable explicitly with `openclaw config set acp.dispatch.enabled false` if not wanted.
+4. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
+5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
+6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
 
 ## Quick Diagnostic Commands
 
@@ -183,9 +184,9 @@ openclaw plugins install @openclaw/voice-call
 openclaw plugins list
 ```
 
-### Configure Tools Profile (v2026.3.2+)
+### Configure Tools Profile (v2026.3.2+, behavior updated in v2026.3.7)
 
-New installs default to `"messaging"` (no coding/system tools). Set the profile based on your use case:
+Defaults vary by install path in v2026.3.x (for example, local onboarding now falls back to `"coding"` in v2026.3.7). Set the profile explicitly based on your use case:
 
 ```bash
 # Check current profile
@@ -368,7 +369,7 @@ openclaw gateway restart
 
 ### Family/Team Shared Gateway
 ```bash
-openclaw config set tools.profile "messaging"
+openclaw config set agents.defaults.tools.profile "messaging"
 openclaw config set session.dmScope "per-channel-peer"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess ro

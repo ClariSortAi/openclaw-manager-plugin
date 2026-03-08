@@ -350,20 +350,24 @@ openclaw config validate --json
 
 ### Milestone 2: Address Breaking Changes
 ```bash
-# 1. tools.profile now defaults to "messaging" for new installs
-#    Existing installs keep their config, but verify:
+# 1. tools.profile defaults vary across v2026.3.x
+#    (v2026.3.2 introduced "messaging"; v2026.3.7 local onboarding fallback is "coding")
+#    Existing installs keep their config, but verify explicitly:
 openclaw config get agents.defaults.tools.profile
-# If missing and you need coding tools:
+# Set explicitly for your use case:
 openclaw config set agents.defaults.tools.profile "coding"
 
-# 2. ACP dispatch is now enabled by default
+# 2. If both auth token and password are configured, set mode explicitly (v2026.3.7+)
+openclaw config set gateway.auth.mode token
+
+# 3. ACP dispatch is now enabled by default
 #    Disable if not wanted:
 openclaw config set acp.dispatch.enabled false
 
-# 3. If using Zalo Personal, the login method changed:
+# 4. If using Zalo Personal, the login method changed:
 openclaw channels login --channel zalouser
 
-# 4. If using legacy iMessage, migrate to BlueBubbles
+# 5. If using legacy iMessage, migrate to BlueBubbles
 #    See channel-setup.md for BlueBubbles guide
 ```
 

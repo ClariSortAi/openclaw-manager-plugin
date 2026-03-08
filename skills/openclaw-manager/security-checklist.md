@@ -132,6 +132,8 @@ openclaw config set gateway.auth.mode token
 openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
 ```
 
+If both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), v2026.3.7+ requires an explicit `gateway.auth.mode` (`token` or `password`).
+
 **Alternative: Trusted reverse proxy**
 ```bash
 openclaw config set gateway.auth.mode trusted-proxy
@@ -203,11 +205,11 @@ openclaw config set agents.defaults.sandbox.scope agent
 
 ### 7. Tools Profile (v2026.3.2+)
 
-The `tools.profile` setting establishes a base tool allowlist. New installations default to `"messaging"` (no coding/system tools). This is a critical security boundary for multi-user gateways.
+The `tools.profile` setting establishes a base tool allowlist. In v2026.3.x, defaults can vary by onboarding path (for example, local onboarding fallback changed in v2026.3.7), so set this explicitly. This is a critical security boundary for multi-user gateways.
 
 | Profile | Description |
 |---------|-------------|
-| `messaging` | Chat-only tools — no exec, no filesystem, no browser (default for new installs) |
+| `messaging` | Chat-only tools — no exec, no filesystem, no browser (recommended for untrusted/multi-user surfaces) |
 | `coding` | Adds exec, filesystem, browser tools |
 | `full` | No restrictions (personal use only) |
 
@@ -352,6 +354,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ### Version & Patches
 - [ ] Running v2026.3.1 or later (security canonicalization, webhook auth, umask hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
+- [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
