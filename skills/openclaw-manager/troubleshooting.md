@@ -94,6 +94,22 @@ openclaw gateway restart
 
 ### Authentication Issues
 
+#### Startup/Pairing Fails After Upgrade (Explicit `gateway.auth.mode` Required)
+**Symptoms:** Startup, pairing, or TUI auth errors after upgrading to v2026.3.7+
+
+**Cause:** Both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs) but `gateway.auth.mode` is not explicitly set.
+
+**Fix:**
+```bash
+# Pick one auth mode explicitly
+openclaw config set gateway.auth.mode token
+# or
+openclaw config set gateway.auth.mode password
+
+openclaw config validate
+openclaw gateway restart
+```
+
 #### No API Key Found
 **Symptoms:** Agent can't make requests, auth errors
 
@@ -435,7 +451,7 @@ openclaw config set session.maintenance.highWaterBytes 858993459
 #### Agent Can't Run Commands / "Tools Not Available"
 **Symptoms:** Agent refuses to execute shell commands, read files, or use browser tools
 
-**Cause:** As of v2026.3.2, new installations default `tools.profile` to `"messaging"` which excludes coding/system tools.
+**Cause:** `tools.profile` is currently set to `"messaging"` (chat-only tools). In v2026.3.x, defaults can differ by onboarding path, so rely on the configured value, not assumptions.
 
 **Fix:**
 ```bash

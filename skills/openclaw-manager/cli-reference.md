@@ -200,6 +200,7 @@ openclaw models auth setup-token --provider anthropic  # Direct API key setup
 openclaw config get gateway.bind
 openclaw config set gateway.bind loopback
 openclaw config set gateway.auth.mode token
+# v2026.3.7+: required when both gateway.auth.token and gateway.auth.password are set
 openclaw config set gateway.auth.allowTailscale true
 openclaw config set gateway.mdns.mode minimal
 
@@ -241,7 +242,7 @@ openclaw config set security.trust_model.multi_user_heuristic true
 # HTTP security headers (v2026.2.23+)
 openclaw config set gateway.security.hsts true
 
-# Tools profile (v2026.3.2+ — "messaging" is new default for fresh installs)
+# Tools profile (v2026.3.2+; defaults vary by onboarding path in v2026.3.7+)
 openclaw config set agents.defaults.tools.profile "coding"
 # Options: "messaging" (no coding tools), "coding", "full" (no restrictions)
 
