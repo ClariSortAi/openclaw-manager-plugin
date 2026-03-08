@@ -83,9 +83,7 @@ jobs:
         uses: anthropics/claude-code-action@e763fe78de2db7389e04818a00b5ff8ba13d1360 # v1 pinned 2026-03-04
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-6
-          max_turns: "50"
-          allowed_tools: "Read,Write,Edit,Bash(gh:*),Bash(git:*),Bash(curl:*),Glob,Grep"
+          claude_args: "--model claude-sonnet-4-6 --max-turns 50 --allowedTools 'Read,Write,Edit,Bash(gh:*),Bash(git:*),Bash(curl:*),Glob,Grep'"
           prompt: |
             You are maintaining the openclaw-manager-plugin, a Claude Code plugin that documents OpenClaw.
             Your job is to check for new OpenClaw releases and update the plugin documentation if needed.
