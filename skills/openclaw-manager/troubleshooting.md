@@ -32,12 +32,26 @@ Before troubleshooting anything else, verify you are on **v2026.3.1 or later**:
 openclaw status
 ```
 
-If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
+If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12. For best reliability and security fixes (Telegram DM dedupe, Teams allowlist enforcement, browser redirect SSRF hardening, backup tooling), prefer **v2026.3.8+**:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw config validate
 openclaw gateway restart
+```
+
+### Backup Integrity Before Risky Changes (v2026.3.8+)
+**When to use:** Before hard reset, major config refactors, or channel/plugin migration.
+
+```bash
+# Create backup first
+openclaw backup create
+
+# Optional: config-only backup
+openclaw backup create --only-config
+
+# Verify archive integrity
+openclaw backup verify
 ```
 
 ## Common Issues
@@ -615,6 +629,18 @@ sudo nano /etc/wsl.conf
 wsl --shutdown
 wsl -d Ubuntu
 ```
+
+#### Browser Extension Relay Not Reachable from Host/Container (v2026.3.8+)
+**Symptoms:** Browser tool cannot attach to Chrome from WSL2 or cross-namespace runtime.
+
+**Fix:**
+```bash
+# Bind relay to a reachable host address for your topology
+openclaw config set browser.relayBindHost "0.0.0.0"
+openclaw gateway restart
+```
+
+Then re-test browser actions and verify host firewall/network policies still enforce your trust boundary.
 
 ## Log Locations
 

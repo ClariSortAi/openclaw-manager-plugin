@@ -14,6 +14,8 @@ openclaw gateway restart
 
 The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12.
 
+For current deployments, prefer **v2026.3.8+** to pick up additional hardening around browser private-network redirects, script execution integrity, and skill download path binding.
+
 ### Known Critical Vulnerabilities
 
 #### v2026.1.29 Patches (January 30, 2026)
@@ -72,6 +74,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Gateway | Closes repeated unauthorized request floods per connection | v2026.3.1 |
 | Edit tools | Workspace boundary error fixes | v2026.3.1 |
 | Compaction | Removed post-compaction audit injection message | v2026.3.1 |
+| Browser SSRF | Blocks private-network intermediate redirect hops in strict browser navigation | v2026.3.8 |
+| Script execution | Binds approved `bun`/`deno run` script operands to on-disk snapshots before execution | v2026.3.8 |
+| Skills download | Pins validated per-skill tools root to prevent redirected writes outside tools dir | v2026.3.8 |
+| Teams authz | Preserves sender allowlists with `groupPolicy: "allowlist"` even with route allowlists | v2026.3.8 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -353,6 +359,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 
 ### Version & Patches
 - [ ] Running v2026.3.1 or later (security canonicalization, webhook auth, umask hardening)
+- [ ] Prefer v2026.3.8+ for latest browser/skills/script hardening
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens

@@ -369,6 +369,7 @@ openclaw channels status
 - Requires an Azure AD tenant with admin consent
 - Bot Framework registration is separate from the Azure AD app
 - Teams channels use the plugin system rather than native channel config
+- If using `groupPolicy: "allowlist"` with route allowlists, run v2026.3.8+ to ensure sender allowlists remain enforced (authz hardening fix)
 
 ---
 

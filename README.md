@@ -2,7 +2,7 @@
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.1-blue?style=flat-square)](CHANGELOG.md)
 
 > **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
@@ -157,7 +157,7 @@ openclaw-manager-plugin/
 - For OpenClaw itself:
   - Node.js v22+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
-  - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
+  - **Minimum OpenClaw version: v2026.3.1** (recommended: v2026.3.8+ for latest hardening and reliability fixes)
 
 ## How It Works
 

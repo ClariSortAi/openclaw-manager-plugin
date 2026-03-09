@@ -182,6 +182,18 @@ openclaw reset               # Reset config/state (keeps CLI)
 openclaw uninstall           # Full uninstall
 ```
 
+### Backup & Verification (v2026.3.8+)
+```bash
+openclaw backup create       # Create local state backup archive
+openclaw backup verify       # Validate backup manifest and payload integrity
+```
+
+Useful backup flags:
+```bash
+openclaw backup create --only-config         # Config-only backup
+openclaw backup create --no-include-workspace  # Skip workspace payload
+```
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -190,6 +202,7 @@ openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic  # Direct API key setup
+openclaw acp --provenance meta+receipt  # Include ACP provenance metadata/receipt (v2026.3.8+)
 ```
 
 ## Configuration Paths
@@ -256,6 +269,9 @@ openclaw config set acp.dispatch.enabled false
 # Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
+# Talk mode auto-send silence timeout (v2026.3.8+; ms)
+openclaw config set talk.silenceTimeoutMs 1500
+
 # PDF tool (v2026.3.2+)
 openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -263,6 +279,12 @@ openclaw config set agents.defaults.pdfMaxPages 200
 
 # Ollama embeddings for memory search (v2026.3.2+)
 openclaw config set memorySearch.provider "ollama"
+
+# Brave web search LLM Context mode (v2026.3.8+; opt-in)
+openclaw config set tools.web.search.brave.mode "llm-context"
+
+# Browser relay bind host (v2026.3.8+; useful for WSL2/cross-namespace setups)
+openclaw config set browser.relayBindHost "0.0.0.0"
 
 # Filesystem restriction
 openclaw config set fs.workspaceOnly true

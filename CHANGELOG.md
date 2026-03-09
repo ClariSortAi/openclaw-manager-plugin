@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.
+- Added OpenClaw v2026.3.8 coverage for backup workflows: `openclaw backup create` / `openclaw backup verify` with config-only and workspace-exclusion flags.
+- Added v2026.3.8 configuration references for `talk.silenceTimeoutMs`, `tools.web.search.brave.mode: "llm-context"`, `browser.relayBindHost`, and ACP provenance flag usage.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
 - Added v2026.3.7 compatibility notes and recommendation language in the main skill/troubleshooting references while keeping minimum safe version at v2026.3.1.
+- Updated compatibility guidance to recommend v2026.3.8+ for latest security and reliability fixes while retaining v2026.3.1 as minimum safe version.
+- Expanded security and channel docs with v2026.3.8 hardening notes (browser redirect SSRF protection, script snapshot binding, skills download path pinning, and Teams allowlist authz fix).
 
 ## [1.3.0] - 2026-03-03
 
