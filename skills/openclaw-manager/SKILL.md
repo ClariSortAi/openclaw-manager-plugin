@@ -33,6 +33,7 @@ See these supporting files for detailed information:
 - [troubleshooting.md](troubleshooting.md) - Common issues and solutions
 - [channel-setup.md](channel-setup.md) - Platform-specific setup guides
 - [security-checklist.md](security-checklist.md) - Security hardening guide
+- [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
 ## Breaking Changes to Watch For (v2026.3.x, including v2026.3.7)
 

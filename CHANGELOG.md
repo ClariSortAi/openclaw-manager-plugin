@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **User login mechanism guide**: Comprehensive documentation covering gateway authentication (token, password, trusted-proxy, Tailscale), channel login (WhatsApp QR, Zalo Personal), model provider authentication, pairing mechanisms, device management, and session isolation
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.
 
 ### Changed
