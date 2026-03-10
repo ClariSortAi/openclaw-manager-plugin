@@ -4,7 +4,7 @@
 
 **Minimum safe version: v2026.3.1**
 
-Run `openclaw status` to check your version. If you are on anything older than v2026.3.1, upgrade immediately:
+Run `openclaw status` to check your version. If you are on anything older than v2026.3.1, upgrade immediately (and prefer v2026.3.8+ for the latest hardening):
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
@@ -66,6 +66,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | SSRF | DNS pinning guard maintenance | v2026.3.2 |
 | Node camera | URL download restrictions | v2026.3.2 |
 | ACP sandbox | Inheritance enforcement for sub-agents | v2026.3.2 |
+| Browser SSRF | Blocks private-network intermediate redirects in strict browser flows | v2026.3.8 |
+| system.run | Binds approved script operands to on-disk snapshots before execution | v2026.3.8 |
+| Skills download | Pins validated per-skill tools root to prevent path-rebind write escapes | v2026.3.8 |
+| Teams allowlist | Preserves sender allowlist enforcement with route allowlists | v2026.3.8 |
 | Feishu webhooks | Ingress rate-limiting with stale-window pruning | v2026.3.1 |
 | macOS | LaunchAgent umask hardening (077) | v2026.3.1 |
 | WebSocket | Plaintext loopback-only enforcement | v2026.3.1 |
@@ -353,6 +357,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 
 ### Version & Patches
 - [ ] Running v2026.3.1 or later (security canonicalization, webhook auth, umask hardening)
+- [ ] Prefer v2026.3.8+ for current SSRF redirect protections, script-approval hardening, and skills download path pinning
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens

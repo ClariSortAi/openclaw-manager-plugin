@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.7+** for the latest auth, config, and channel-routing fixes. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.8+** for backup/restore tooling, routing fixes, and latest hardening updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -24,7 +24,8 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
 8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
-10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
+10. **Backup & Recovery** - Create and verify local state backups before destructive operations (v2026.3.8+)
+11. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
 
 ## Reference Documentation
 
@@ -34,7 +35,7 @@ See these supporting files for detailed information:
 - [channel-setup.md](channel-setup.md) - Platform-specific setup guides
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.7)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.8)
 
 These changes affect new and existing installations:
 
@@ -44,6 +45,14 @@ These changes affect new and existing installations:
 4. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
 5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
 6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
+
+## Notable Additions in v2026.3.8
+
+1. **Backup CLI** — `openclaw backup create` and `openclaw backup verify` for local state archives, including config-only mode and archive verification.
+2. **Talk silence timeout** — `talk.silenceTimeoutMs` allows explicit control of Talk mode auto-send pause.
+3. **Brave search extraction mode** — `tools.web.search.brave.mode: "llm-context"` enables grounding snippet extraction with source metadata.
+4. **ACP provenance controls** — `openclaw acp --provenance off|meta|meta+receipt` for ingress provenance metadata and optional receipt injection.
+5. **WSL2/remote browser relay** — `browser.relayBindHost` supports non-loopback relay binding for cross-namespace setups when needed.
 
 ## Quick Diagnostic Commands
 
@@ -290,6 +299,42 @@ openclaw secrets apply
 
 # Audit credential references
 openclaw secrets audit
+```
+
+### Create and Verify Backups (v2026.3.8+)
+
+Use before upgrades, migrations, reset operations, or large config edits:
+
+```bash
+# Full local-state backup
+openclaw backup create
+
+# Config-only backup (no sessions/workspace payload)
+openclaw backup create --only-config
+
+# Exclude workspace data while keeping other state
+openclaw backup create --no-include-workspace
+
+# Verify archive manifest and payload integrity
+openclaw backup verify <backup-archive-path>
+```
+
+### Configure Talk Silence Timeout (v2026.3.8+)
+```bash
+# Wait 1.5s of silence before auto-send in Talk mode
+openclaw config set talk.silenceTimeoutMs 1500
+```
+
+### Configure Brave LLM Context Search Mode (v2026.3.8+)
+```bash
+# Return extracted grounding snippets with source metadata
+openclaw config set tools.web.search.brave.mode "llm-context"
+```
+
+### Configure ACP Provenance Mode (v2026.3.8+)
+```bash
+# Add ACP provenance metadata and a visible receipt
+openclaw acp --provenance meta+receipt
 ```
 
 ### Configure Model Providers

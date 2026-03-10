@@ -32,7 +32,7 @@ Before troubleshooting anything else, verify you are on **v2026.3.1 or later**:
 openclaw status
 ```
 
-If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
+If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12. For current operations, prefer **v2026.3.8+** for backup tooling and routing/restart fixes:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
@@ -91,6 +91,43 @@ openclaw config set gateway.auth.mode token
 openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
 openclaw gateway restart
 ```
+
+#### Config Update Followed by Restart Loop
+**Symptoms:** Gateway restart fails repeatedly after config edits
+
+**Diagnose:**
+```bash
+openclaw config validate --json
+journalctl --user -u openclaw-gateway -n 80
+```
+
+**Fix:**
+```bash
+# Fix invalid keys first, then restart
+openclaw config validate
+openclaw gateway restart
+```
+
+If this started after upgrading from older v2026.3.x builds, move to v2026.3.8+, which improves restart-time config validation and timeout recovery behavior.
+
+### Backup & Recovery Issues (v2026.3.8+)
+
+#### Backup Verification Fails
+**Symptoms:** `openclaw backup verify` reports manifest/payload errors
+
+**Diagnose:**
+```bash
+openclaw backup verify <backup-archive-path>
+```
+
+**Fix:**
+```bash
+# Recreate archive, optionally in config-only mode for quick rollback checkpoints
+openclaw backup create
+openclaw backup create --only-config
+```
+
+Use verified backups before reset, upgrade, or large config migrations.
 
 ### Authentication Issues
 
@@ -212,6 +249,18 @@ openclaw config get channels.telegram
 ```bash
 # Verify token is set
 openclaw config set channels.telegram.botToken "123:abc..."
+openclaw gateway restart
+```
+
+#### Telegram: Duplicate DM Replies
+**Symptoms:** Same DM gets two near-identical replies
+
+**Cause:** Older builds could dedupe inbound Telegram DMs by session key instead of agent.
+
+**Fix:**
+```bash
+# Upgrade to latest v2026.3.x (v2026.3.8+ recommended)
+curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway restart
 ```
 
@@ -387,6 +436,16 @@ openclaw cron run <id>
 
 # Fix timezone if needed
 openclaw cron edit <id>
+```
+
+#### Cron Telegram Announce Marked Delivered But No Message
+**Symptoms:** Cron run output reports `delivered: true`, but Telegram receives nothing
+
+**Fix:**
+```bash
+# Upgrade to v2026.3.8+ and retest the same job
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw cron run <id>
 ```
 
 #### Cron Webhook SSRF (Security)
@@ -597,6 +656,18 @@ journalctl --user -u openclaw-gateway -f
 source ~/.nvm/nvm.sh
 openclaw status
 ```
+
+#### Browser Relay Unreachable From Windows Host
+**Symptoms:** Browser extension relay works inside WSL2 but not from host/browser
+
+**Fix:**
+```bash
+# Bind relay explicitly for cross-namespace access (v2026.3.8+)
+openclaw config set browser.relayBindHost "0.0.0.0"
+openclaw gateway restart
+```
+
+Then enforce host firewall and trusted-network controls before exposing non-loopback binds.
 
 #### systemd Not Available
 **Check:**
