@@ -182,6 +182,14 @@ openclaw reset               # Reset config/state (keeps CLI)
 openclaw uninstall           # Full uninstall
 ```
 
+### Backup & Recovery (v2026.3.8+)
+```bash
+openclaw backup create                 # Create local state backup archive
+openclaw backup create --only-config   # Backup only configuration files
+openclaw backup create --no-include-workspace  # Exclude workspace payload
+openclaw backup verify <path>          # Verify backup archive manifest/payload
+```
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -190,6 +198,13 @@ openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic  # Direct API key setup
+```
+
+### ACP
+```bash
+openclaw acp --provenance off          # Disable ACP ingress provenance metadata
+openclaw acp --provenance meta         # Include provenance metadata only
+openclaw acp --provenance meta+receipt # Include metadata + visible receipt text
 ```
 
 ## Configuration Paths
@@ -256,10 +271,16 @@ openclaw config set acp.dispatch.enabled false
 # Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
+# Talk mode auto-send timeout (v2026.3.8+)
+openclaw config set talk.silenceTimeoutMs 1500
+
 # PDF tool (v2026.3.2+)
 openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
+
+# Brave web search LLM context mode (v2026.3.8+)
+openclaw config set tools.web.search.brave.mode "llm-context"
 
 # Ollama embeddings for memory search (v2026.3.2+)
 openclaw config set memorySearch.provider "ollama"
