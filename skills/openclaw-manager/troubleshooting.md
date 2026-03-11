@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later**:
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.8+**):
 
 ```bash
 openclaw status
@@ -39,6 +39,8 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw config validate
 openclaw gateway restart
 ```
+
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**.
 
 ## Common Issues
 
@@ -490,6 +492,20 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+### Backup & Recovery Command Issues (v2026.3.8+)
+
+#### `openclaw backup` Command Not Found
+**Symptoms:** `unknown command "backup"` or similar CLI error
+
+**Cause:** Running OpenClaw older than v2026.3.8.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw status
+openclaw backup create --only-config
+```
+
 ### ACP Dispatch Issues (v2026.3.2+)
 
 #### Unexpected ACP Behavior
@@ -625,6 +641,13 @@ wsl -d Ubuntu
 | `~/.openclaw/agents/<id>/sessions/` | Session transcripts |
 
 ## Reset & Recovery
+
+### Pre-Reset Backup (Recommended, v2026.3.8+)
+```bash
+# Create and verify backup before reset/reinstall
+openclaw backup create
+openclaw backup verify "<backup-file>"
+```
 
 ### Soft Reset (Keep Credentials)
 ```bash

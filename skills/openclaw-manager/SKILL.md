@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.7+** for the latest auth, config, and channel-routing fixes. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.8+** for the latest auth, config, channel-routing, and recovery tooling updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -25,6 +25,7 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
 10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
+11. **Backup & Recovery** - Create and verify local state backups before destructive changes (v2026.3.8+)
 
 ## Reference Documentation
 
@@ -44,6 +45,15 @@ These changes affect new and existing installations:
 4. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
 5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
 6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
+
+## Notable Additions in v2026.3.8
+
+These are not breaking, but they are operationally important:
+
+1. **Backups in CLI** — `openclaw backup create` and `openclaw backup verify` for local state archives and pre-change safety checks.
+2. **Talk auto-send control** — `talk.silenceTimeoutMs` lets you tune when Talk mode auto-sends after silence.
+3. **Brave LLM Context mode** — `tools.web.search.brave.mode: "llm-context"` enables extracted grounding snippets and metadata in `web_search`.
+4. **ACP provenance control** — `openclaw acp --provenance off|meta|meta+receipt` controls origin metadata and optional receipt injection.
 
 ## Quick Diagnostic Commands
 
@@ -171,6 +181,18 @@ openclaw cron enable <id>
 openclaw cron run <id>  # Test run
 ```
 
+### Back Up Before Risky Changes (v2026.3.8+)
+```bash
+# Create a full local state backup
+openclaw backup create
+
+# Config-only snapshot before targeted edits
+openclaw backup create --only-config
+
+# Verify an archive before restore/migration use
+openclaw backup verify "<backup-file>"
+```
+
 ### Install Skills from ClawHub
 ```bash
 clawhub install <skill-slug>
@@ -290,6 +312,24 @@ openclaw secrets apply
 
 # Audit credential references
 openclaw secrets audit
+```
+
+### Tune Talk Mode Auto-Send (v2026.3.8+)
+```bash
+# Wait 1.5 seconds of silence before auto-send in Talk mode
+openclaw config set talk.silenceTimeoutMs 1500
+```
+
+### Enable Brave LLM Context Search Mode (v2026.3.8+)
+```bash
+# Use Brave's LLM Context endpoint for richer grounding snippets
+openclaw config set tools.web.search.brave.mode "llm-context"
+```
+
+### Configure ACP Provenance Metadata (v2026.3.8+)
+```bash
+# Include ACP ingress metadata and visible receipt text
+openclaw acp --provenance meta+receipt
 ```
 
 ### Configure Model Providers
