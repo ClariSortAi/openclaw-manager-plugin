@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.8+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.11+**.
 
 ### Known Critical Vulnerabilities
 
@@ -74,6 +74,8 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Compaction | Removed post-compaction audit injection message | v2026.3.1 |
 | Browser redirects | Blocks private-network redirect hops in strict browser navigation flows | v2026.3.8 |
 | `system.run` | Binds approved `bun`/`deno run` script operands to on-disk snapshots before execution | v2026.3.8 |
+| Gateway/WebSocket origins | Enforces browser-origin validation even in `trusted-proxy` mode to block cross-site WebSocket hijacking (GHSA-5wcw-8jjv-m286) | v2026.3.11 |
+| Secret/archive I/O | Hardened secret-file reads and archive extraction against symlink/path-swap escapes | v2026.3.11 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -354,7 +356,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.8+ for latest SSRF and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.11+ for latest WebSocket origin and secret/archive I/O hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens

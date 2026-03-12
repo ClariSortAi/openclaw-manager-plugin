@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.8+** for the latest auth, config, channel-routing, and recovery tooling updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.11+** for the latest trusted-proxy WebSocket hardening, cron migration safety, and operational fixes. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -35,25 +35,30 @@ See these supporting files for detailed information:
 - [channel-setup.md](channel-setup.md) - Platform-specific setup guides
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.7)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.11)
 
 These changes affect new and existing installations:
 
 1. **`tools.profile` defaults changed across v2026.3.x** — v2026.3.2 introduced `"messaging"` as the safer default; v2026.3.7 changed fresh local onboarding fallback to `"coding"` when unset. Always set `agents.defaults.tools.profile` explicitly for predictable behavior.
 2. **Gateway auth mode must be explicit when both token and password exist** (v2026.3.7) — If `gateway.auth.token` and `gateway.auth.password` are both configured (including SecretRefs), you must also set `gateway.auth.mode` to `token` or `password`.
-3. **ACP dispatch enabled by default** (v2026.3.2) — Disable explicitly with `openclaw config set acp.dispatch.enabled false` if not wanted.
-4. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
-5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
-6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
+3. **Cron isolated delivery tightened** (v2026.3.11) — Legacy cron storage and legacy notify/webhook metadata may stop delivering fallback summaries. Run `openclaw doctor --fix` after upgrading to migrate cron metadata.
+4. **ACP dispatch enabled by default** (v2026.3.2) — Disable explicitly with `openclaw config set acp.dispatch.enabled false` if not wanted.
+5. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
+6. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
+7. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
 
-## Notable Additions in v2026.3.8
+## Notable Additions in v2026.3.8-v2026.3.11
 
 These are not breaking, but they are operationally important:
 
-1. **Backups in CLI** — `openclaw backup create` and `openclaw backup verify` for local state archives and pre-change safety checks.
-2. **Talk auto-send control** — `talk.silenceTimeoutMs` lets you tune when Talk mode auto-sends after silence.
-3. **Brave LLM Context mode** — `tools.web.search.brave.mode: "llm-context"` enables extracted grounding snippets and metadata in `web_search`.
-4. **ACP provenance control** — `openclaw acp --provenance off|meta|meta+receipt` controls origin metadata and optional receipt injection.
+1. **Backups in CLI** — `openclaw backup create` and `openclaw backup verify` for local state archives and pre-change safety checks (v2026.3.8+).
+2. **Talk auto-send control** — `talk.silenceTimeoutMs` lets you tune when Talk mode auto-sends after silence (v2026.3.8+).
+3. **Brave LLM Context mode** — `tools.web.search.brave.mode: "llm-context"` enables extracted grounding snippets and metadata in `web_search` (v2026.3.8+).
+4. **ACP provenance control** — `openclaw acp --provenance off|meta|meta+receipt` controls origin metadata and optional receipt injection (v2026.3.8+).
+5. **Trusted-proxy WebSocket/browser origin hardening** — Browser-originated gateway connections now enforce origin checks even when proxy headers are present (v2026.3.11; GHSA-5wcw-8jjv-m286).
+6. **ACP spawn resume support** — `sessions_spawn` with `runtime: "acp"` can resume existing ACPX/Codex sessions via optional `resumeSessionId` (v2026.3.11).
+7. **Discord auto-thread archiving control** — Channel config now supports `autoArchiveDuration` for auto-created threads (1 hour, 1 day, 3 days, 1 week) in v2026.3.11.
+8. **Memory multimodal indexing improvements** — Memory indexing now supports Gemini embedding dimensions and opt-in image/audio indexing paths for richer retrieval (v2026.3.11).
 
 ## Quick Diagnostic Commands
 

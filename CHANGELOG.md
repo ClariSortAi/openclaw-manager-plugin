@@ -11,12 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.
 - Added v2026.3.8 command coverage for `openclaw backup create` and `openclaw backup verify` in core skill, CLI reference, and troubleshooting recovery flows.
 - Added v2026.3.8 advanced configuration coverage for `talk.silenceTimeoutMs`, `tools.web.search.brave.mode: "llm-context"`, and `openclaw acp --provenance`.
+- Added v2026.3.11 breaking-change guidance for tightened isolated cron delivery, including explicit post-upgrade `openclaw doctor --fix` migration coverage.
+- Added v2026.3.11 security coverage for trusted-proxy WebSocket/browser-origin enforcement (GHSA-5wcw-8jjv-m286) and secret/archive symlink hardening.
+- Added v2026.3.11 CLI/runtime notes for `OPENCLAW_CLI` child-process environment marking and cron migration behavior.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
 - Added v2026.3.7 compatibility notes and recommendation language in the main skill/troubleshooting references while keeping minimum safe version at v2026.3.1.
 - Updated recommended target version from v2026.3.7+ to v2026.3.8+ while preserving minimum safe baseline at v2026.3.1.
 - Expanded security checklist with v2026.3.8 hardening notes (browser private-network redirect blocking and `system.run` approved script snapshot binding).
+- Updated recommendation language across skill, security, and troubleshooting docs from v2026.3.8+ to v2026.3.11+ while preserving v2026.3.1 as the minimum safe baseline.
 
 ## [1.3.0] - 2026-03-03
 

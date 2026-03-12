@@ -9,7 +9,7 @@ openclaw status --all        # Full diagnosis with log tail
 openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
-openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --fix        # Auto-fix common problems and run post-upgrade migrations (v2026.3.11+ cron metadata migration)
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
@@ -69,6 +69,8 @@ openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
 ```
+
+v2026.3.11 tightened isolated cron delivery behavior. After upgrading from older v2026.3.x builds, run `openclaw doctor --fix` once to migrate legacy cron storage plus legacy notify/webhook metadata.
 
 ### Cron Add Options
 ```bash
@@ -321,6 +323,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
+| `OPENCLAW_CLI` | Set automatically in child command environments launched by OpenClaw (v2026.3.11+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
