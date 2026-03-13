@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.8+** for the latest auth, config, channel-routing, and recovery tooling updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.12+** for the latest browser-origin auth hardening, plugin trust gating, fast-mode controls, and cron migration fixes. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.7)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.11)
 
 These changes affect new and existing installations:
 
@@ -46,6 +46,19 @@ These changes affect new and existing installations:
 4. **Plugin SDK breaking change** (v2026.3.2) — `api.registerHttpHandler()` removed; plugins must use `api.registerHttpRoute()`.
 5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
 6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
+7. **Cron isolated delivery tightened** (v2026.3.11) — Legacy notify/webhook metadata and ad hoc fallback send paths are migrated by `openclaw doctor --fix`.
+
+## Notable Additions in v2026.3.11-v2026.3.12
+
+These are recent operationally important additions:
+
+1. **Fast mode controls** — shared `/fast` toggle and `params.fastMode` support for Anthropic and OpenAI-compatible providers.
+2. **Session orchestration control** — `sessions_yield` lets orchestrators end the current turn and defer follow-up payloads cleanly.
+3. **Slack Block Kit replies** — shared delivery path now supports `channelData.slack.blocks` for rich Slack messages.
+4. **Control UI refresh** — dashboard adds modular views, command palette, improved mobile layout, and richer chat actions.
+5. **Kubernetes starter path** — official starter manifests and install docs for K8s deployments.
+6. **Browser-origin auth enforcement** (v2026.3.11) — trusted-proxy WebSocket connections now enforce origin validation (`GHSA-5wcw-8jjv-m286`).
+7. **Workspace plugin trust gating** (v2026.3.12) — implicit workspace plugin auto-load disabled by default (`GHSA-99qw-6mr3-36qr`).
 
 ## Notable Additions in v2026.3.8
 
@@ -124,7 +137,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.12+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -249,6 +262,18 @@ openclaw config get agents.defaults.params.thinkingLevel
 
 # Explicitly set (options: off, low, adaptive, high)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
+```
+
+### Configure Fast Mode (v2026.3.12+)
+
+Use lower-latency execution where supported by the active provider and model:
+
+```bash
+# Check current fast-mode default
+openclaw config get agents.defaults.params.fastMode
+
+# Enable fast mode by default for new turns/sessions
+openclaw config set agents.defaults.params.fastMode true
 ```
 
 ### Configure PDF Tool (v2026.3.2+)

@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.8+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.12+**.
 
 ### Known Critical Vulnerabilities
 
@@ -74,6 +74,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Compaction | Removed post-compaction audit injection message | v2026.3.1 |
 | Browser redirects | Blocks private-network redirect hops in strict browser navigation flows | v2026.3.8 |
 | `system.run` | Binds approved `bun`/`deno run` script operands to on-disk snapshots before execution | v2026.3.8 |
+| Trusted-proxy WebSocket | Enforces browser origin validation for browser-originated connections to prevent CSWSH privilege escalation (`GHSA-5wcw-8jjv-m286`) | v2026.3.11 |
+| Plugin loading | Disables implicit workspace plugin auto-load without explicit trust decision (`GHSA-99qw-6mr3-36qr`) | v2026.3.12 |
+| Pairing bootstrap | Replaces shared credential exposure in `/pair` and `openclaw qr` with short-lived bootstrap tokens | v2026.3.12 |
+| Channel routing allowlists | Slack/Teams/Zalo default to stable ID matching; mutable name matching is break-glass via `dangerouslyAllowNameMatching` | v2026.3.12 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -354,7 +358,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.8+ for latest SSRF and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.12+ for latest auth, plugin-trust, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
@@ -372,6 +376,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] DM policy set to `pairing` or `allowlist`
 - [ ] Group policy set to `allowlist`
 - [ ] Mention required in groups
+- [ ] `dangerouslyAllowNameMatching` left disabled unless break-glass behavior is explicitly required
 - [ ] `tools.profile` set to `"messaging"` for untrusted surfaces (v2026.3.2+)
 - [ ] `tools.exec.security` set to `"deny"` or `"ask"` for non-personal agents
 - [ ] Elevated tool access restricted
@@ -513,7 +518,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.12+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

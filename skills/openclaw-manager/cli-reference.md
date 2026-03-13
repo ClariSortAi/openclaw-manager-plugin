@@ -70,6 +70,13 @@ openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
 ```
 
+`v2026.3.11+` cron migration note:
+
+```bash
+# Migrate legacy cron notify/webhook metadata after upgrade
+openclaw doctor --fix
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -270,6 +277,9 @@ openclaw config set acp.dispatch.enabled false
 
 # Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
+
+# Fast mode (v2026.3.12+; provider/model dependent)
+openclaw config set agents.defaults.params.fastMode true
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
