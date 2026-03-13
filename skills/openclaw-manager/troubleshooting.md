@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.8+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.12+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.8+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.12+**):
 
 ```bash
 openclaw status
@@ -40,7 +40,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening and cron migration behavior, upgrade to **v2026.3.12+**.
 
 ## Common Issues
 
@@ -389,6 +389,21 @@ openclaw cron run <id>
 
 # Fix timezone if needed
 openclaw cron edit <id>
+```
+
+#### Cron Notifications Missing After Upgrade (v2026.3.11+)
+**Symptoms:** Cron jobs execute, but expected notify/webhook fallback behavior no longer appears.
+
+**Cause:** v2026.3.11 tightened isolated cron delivery semantics and requires migration of legacy notify/webhook metadata.
+
+**Fix:**
+```bash
+# Run post-upgrade migration
+openclaw doctor --fix
+
+# Re-check cron definitions and run history
+openclaw cron list
+openclaw cron runs
 ```
 
 #### Cron Webhook SSRF (Security)
