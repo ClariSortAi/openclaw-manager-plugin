@@ -20,6 +20,7 @@ openclaw gateway start       # Start gateway
 openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
 openclaw gateway status      # Detailed gateway status
+openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable (v2026.3.13+)
 ```
 
 ### Configuration
@@ -48,6 +49,8 @@ openclaw channels remove     # Remove channel account
 openclaw pairing list        # List pending pairing requests
 openclaw pairing approve <channel> <code>  # Approve sender
 ```
+
+`v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
 ### Device Management
 ```bash
@@ -331,6 +334,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
+| `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.13+**.
 
 ### Known Critical Vulnerabilities
 
@@ -78,6 +78,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Plugin loading | Disables implicit workspace plugin auto-load without explicit trust decision (`GHSA-99qw-6mr3-36qr`) | v2026.3.12 |
 | Pairing bootstrap | Replaces shared credential exposure in `/pair` and `openclaw qr` with short-lived bootstrap tokens | v2026.3.12 |
 | Channel routing allowlists | Slack/Teams/Zalo default to stable ID matching; mutable name matching is break-glass via `dangerouslyAllowNameMatching` | v2026.3.12 |
+| Pairing setup codes | Bootstrap setup codes are enforced as single-use to prevent replay and silent privilege widening | v2026.3.13 |
+| Telegram webhook auth | Validates webhook secret before parsing request bodies to reject unauthenticated payloads early | v2026.3.13 |
+| iMessage remote attachments | Rejects unsafe remote attachment paths before spawning SCP to prevent shell metacharacter injection | v2026.3.13 |
+| External content boundaries | Strips zero-width/soft-hyphen marker splitting tricks to preserve untrusted content boundaries | v2026.3.13 |
+| Exec approval parsing | Expands fail-closed parsing for wrapper forms (`pnpm`, `env`, PowerShell `-File`/`-f`, Perl `-M`/`-I`, shell line continuation) | v2026.3.13 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -358,7 +363,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.12+ for latest auth, plugin-trust, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.13+ for latest auth, plugin-trust, pairing, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
@@ -374,6 +379,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 
 ### Access Control
 - [ ] DM policy set to `pairing` or `allowlist`
+- [ ] Operators understand pairing setup codes are single-use (v2026.3.13+)
 - [ ] Group policy set to `allowlist`
 - [ ] Mention required in groups
 - [ ] `dangerouslyAllowNameMatching` left disabled unless break-glass behavior is explicitly required
@@ -518,7 +524,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.13+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

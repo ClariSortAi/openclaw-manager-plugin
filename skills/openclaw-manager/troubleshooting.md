@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**):
 
 ```bash
 openclaw status
@@ -40,7 +40,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening and cron migration behavior, upgrade to **v2026.3.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, and pairing/webhook fixes, upgrade to **v2026.3.13+**.
 
 ## Common Issues
 
@@ -54,6 +54,22 @@ If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade t
 openclaw gateway restart
 # Or manually:
 openclaw gateway start
+```
+
+#### Gateway Reports Running But RPC Is Unavailable
+**Symptoms:** Service appears active, but automation or CLI calls still fail/hang when they require RPC.
+
+**Diagnose:**
+```bash
+# v2026.3.13+: fail hard if RPC is unavailable
+openclaw gateway status --require-rpc
+```
+
+**Fix:**
+```bash
+openclaw doctor --fix
+openclaw gateway restart
+openclaw gateway status --require-rpc
 ```
 
 #### Port 18789 Already in Use
@@ -303,6 +319,7 @@ openclaw config set channels.<channel>.allowFrom '["user1", "user2"]'
 **Causes:**
 - Hit 3-request cap (pairing codes expire after 1 hour, max 3 pending)
 - Channel not connected
+- Code already consumed (v2026.3.13+ setup/bootstrap codes are single-use)
 
 **Fix:**
 ```bash
