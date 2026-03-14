@@ -742,7 +742,7 @@ With `per-account-channel-peer`, you can link identities across channels so the 
 ### DM Policies
 | Policy | Behavior |
 |--------|----------|
-| `pairing` | Unknown senders get pairing code (default, 1-hour expiration, max 3 pending) |
+| `pairing` | Unknown senders get pairing code (default, 1-hour expiration, max 3 pending; setup/bootstrap codes are single-use in v2026.3.13+) |
 | `allowlist` | Only listed senders allowed |
 | `open` | Anyone can message (requires `"*"` in allowFrom) |
 | `disabled` | DMs blocked |

@@ -234,7 +234,7 @@ Pairing is the mechanism that approves individual users/senders to interact with
 
 | Policy | Behavior |
 |--------|----------|
-| `pairing` | Unknown senders get a pairing code (default, 1-hour expiration, max 3 pending) |
+| `pairing` | Unknown senders get a pairing code (default, 1-hour expiration, max 3 pending; setup/bootstrap codes are single-use in v2026.3.13+) |
 | `allowlist` | Only listed senders allowed |
 | `open` | Anyone can message (requires `"*"` in allowFrom) |
 | `disabled` | DMs blocked |
@@ -412,6 +412,7 @@ With `per-account-channel-peer`, you can link identities across channels so the 
 - Check pairing policy: `openclaw config get channels.<channel>.dmPolicy`
 - Verify code hasn't expired (1-hour expiration)
 - Check max pending limit (3 pending requests)
+- Generate a fresh code if a previous setup/bootstrap code was already consumed (single-use in v2026.3.13+)
 - List pending: `openclaw pairing list`
 
 ---

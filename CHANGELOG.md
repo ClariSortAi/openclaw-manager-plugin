@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added v2026.3.11-v2026.3.12 release coverage for fast-mode defaults (`agents.defaults.params.fastMode`), `sessions_yield`, Slack Block Kit replies (`channelData.slack.blocks`), and refreshed Control UI/Kubernetes deployment notes.
 - Added v2026.3.11 cron migration troubleshooting guidance documenting isolated-delivery tightening and post-upgrade `openclaw doctor --fix` workflow.
 - Added v2026.3.11-v2026.3.12 security hardening notes for browser-origin WebSocket validation (`GHSA-5wcw-8jjv-m286`), workspace plugin trust gating (`GHSA-99qw-6mr3-36qr`), short-lived pairing bootstrap tokens, and stable-ID channel allowlist routing defaults.
+- Added v2026.3.13 command coverage for `openclaw gateway status --require-rpc` and documented `OPENCLAW_TZ` Docker timezone override.
+- Added v2026.3.13 operational/security coverage for Chrome DevTools existing-session attach mode, built-in browser profiles (`user`, `chrome-relay`), single-use pairing setup codes, Telegram webhook pre-body auth validation, iMessage remote attachment path sanitization, and expanded exec-approval hardening guidance.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated recommended target version from v2026.3.7+ to v2026.3.8+ while preserving minimum safe baseline at v2026.3.1.
 - Expanded security checklist with v2026.3.8 hardening notes (browser private-network redirect blocking and `system.run` approved script snapshot binding).
 - Updated recommendation language across skill, troubleshooting, and security documentation from v2026.3.8+ to v2026.3.12+ while preserving minimum safe baseline at v2026.3.1.
+- Updated recommendation language across skill, troubleshooting, and security documentation from v2026.3.12+ to v2026.3.13+ while preserving minimum safe baseline at v2026.3.1.
 
 ## [1.3.0] - 2026-03-03
 
