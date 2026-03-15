@@ -20,7 +20,7 @@ openclaw gateway start       # Start gateway
 openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
 openclaw gateway status      # Detailed gateway status
-openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable (v2026.3.13+)
+openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+)
 ```
 
 ### Configuration
@@ -128,6 +128,8 @@ openclaw plugins doctor        # Check plugin health
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). Bundled plugins are disabled by default; installed plugins are enabled by default.
+
+`v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 ### Agents
 ```bash
@@ -355,6 +357,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Telegram | Bot API via grammY, group support, streaming, DM topics |
 | WebChat | Gateway UI over WebSocket |
 | WhatsApp | Baileys library, QR pairing, multi-account |
+
+`v2026.3.13+` Slack note: OpenClaw adds opt-in interactive reply directives in shared Slack delivery flows.
 
 ### Plugin Channels (Install Separately)
 
