@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+ / tag `v2026.3.13-1`)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**, released on GitHub as tag `v2026.3.13-1`):
 
 ```bash
 openclaw status
@@ -40,7 +40,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, and pairing/webhook fixes, upgrade to **v2026.3.13+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, plugin collision safeguards, and pairing/webhook fixes, upgrade to **v2026.3.13+** (GitHub tag `v2026.3.13-1`).
 
 ## Common Issues
 
@@ -61,7 +61,7 @@ openclaw gateway start
 
 **Diagnose:**
 ```bash
-# v2026.3.13+: fail hard if RPC is unavailable
+# v2026.3.13+: fail hard if RPC is unavailable (scope-limited probe RPC is treated as degraded)
 openclaw gateway status --require-rpc
 ```
 
@@ -207,7 +207,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22+
+node --version  # Should be v22.16.0+
 
 # Restart gateway
 openclaw gateway restart
@@ -359,6 +359,25 @@ openclaw gateway restart
 openclaw config set plugins.slots.memory "memory-core"
 # Or
 openclaw config set plugins.slots.memory "memory-lancedb"
+openclaw gateway restart
+```
+
+#### Plugin Channel/Binding Collision
+**Symptoms:** Plugin install/startup fails with channel or binding collision errors.
+
+**Cause:** v2026.3.13 fail-fast checks now reject channel and network binding conflicts immediately.
+
+**Fix:**
+```bash
+# Inspect current plugin/channel state
+openclaw plugins list
+openclaw channels list
+
+# Disable or remove conflicting plugin/channel before retrying
+openclaw plugins disable <plugin-id>
+# or
+openclaw plugins remove <plugin-id>
+
 openclaw gateway restart
 ```
 

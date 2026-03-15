@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.13+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.13+** (GitHub release tag `v2026.3.13-1`).
 
 ### Known Critical Vulnerabilities
 
@@ -83,6 +83,7 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | iMessage remote attachments | Rejects unsafe remote attachment paths before spawning SCP to prevent shell metacharacter injection | v2026.3.13 |
 | External content boundaries | Strips zero-width/soft-hyphen marker splitting tricks to preserve untrusted content boundaries | v2026.3.13 |
 | Exec approval parsing | Expands fail-closed parsing for wrapper forms (`pnpm`, `env`, PowerShell `-File`/`-f`, Perl `-M`/`-I`, shell line continuation) | v2026.3.13 |
+| Docker secrets handling | Prevents gateway token leakage through Docker build-context handling | v2026.3.13 (`v2026.3.13-1` tag path) |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -400,6 +401,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] File permissions set to 600/700
 - [ ] Config backups at 0600 permissions (enforced in v2026.3.2+)
 - [ ] No credentials in environment variables (use config or SecretRef)
+- [ ] Docker build contexts do not include OpenClaw state/secrets files
 - [ ] API keys stored via `openclaw configure` or `openclaw secrets apply`
 - [ ] Tokens rotated monthly (API keys, email credentials, messaging tokens)
 - [ ] SecretRef audit clean: `openclaw secrets audit`

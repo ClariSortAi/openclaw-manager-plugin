@@ -15,7 +15,7 @@
 ## Why This Plugin?
 
 Setting up OpenClaw (formerly ClawdBot) manually involves:
-- Installing dependencies (Node.js v22+, systemd)
+- Installing dependencies (Node.js v22.16.0+, systemd)
 - Creating OAuth apps and managing tokens
 - Configuring channel policies and access controls
 - Setting up cron jobs and webhooks
@@ -155,9 +155,10 @@ openclaw-manager-plugin/
 
 - **Claude Code** latest 
 - For OpenClaw itself:
-  - Node.js v22+ (NOT Bun—causes WhatsApp/Telegram issues)
+  - Node.js v22.16.0+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
   - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
+  - **Recommended OpenClaw version: v2026.3.13+** (published on GitHub as tag `v2026.3.13-1`)
 
 ## How It Works
 
