@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added v2026.3.11-v2026.3.12 release coverage for fast-mode defaults (`agents.defaults.params.fastMode`), `sessions_yield`, Slack Block Kit replies (`channelData.slack.blocks`), and refreshed Control UI/Kubernetes deployment notes.
 - Added v2026.3.11 cron migration troubleshooting guidance documenting isolated-delivery tightening and post-upgrade `openclaw doctor --fix` workflow.
 - Added v2026.3.11-v2026.3.12 security hardening notes for browser-origin WebSocket validation (`GHSA-5wcw-8jjv-m286`), workspace plugin trust gating (`GHSA-99qw-6mr3-36qr`), short-lived pairing bootstrap tokens, and stable-ID channel allowlist routing defaults.
+- Added v2026.3.11 environment-variable coverage for `OPENCLAW_CLI` (child-process marker exported by OpenClaw CLI invocations).
 - Added v2026.3.13 command coverage for `openclaw gateway status --require-rpc` and documented `OPENCLAW_TZ` Docker timezone override.
 - Added v2026.3.13 operational/security coverage for Chrome DevTools existing-session attach mode, built-in browser profiles (`user`, `chrome-relay`), single-use pairing setup codes, Telegram webhook pre-body auth validation, iMessage remote attachment path sanitization, and expanded exec-approval hardening guidance.
 - Added release-alignment coverage for upstream `v2026.3.13-1` (GitHub recovery tag for npm `2026.3.13`), including fail-fast plugin channel/binding collision behavior and Slack interactive reply directive support notes.
