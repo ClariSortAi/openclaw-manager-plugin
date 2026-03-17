@@ -67,10 +67,11 @@ These are operationally important additions in the current stable release line:
 1. **Strict gateway RPC probing** — `openclaw gateway status --require-rpc` fails hard when RPC is unavailable (useful for automation/health gates).
 2. **Docker timezone override** — `OPENCLAW_TZ` pins gateway/CLI containers to a chosen IANA timezone in Docker setups.
 3. **Live Chrome session attach mode** — official Chrome DevTools MCP existing-session attach flow, plus built-in browser profiles (`"user"` and `"chrome-relay"`) for signed-in browser routing.
-4. **Security hardening updates** — single-use pairing bootstrap setup codes, pre-body Telegram webhook secret validation, iMessage remote attachment path sanitization, and broader `tools.exec.security` parser hardening.
-5. **Slack interactive reply directives (opt-in)** — richer response controls for Slack delivery beyond basic text/block rendering.
-6. **Plugin collision fail-fast** — plugin startup now rejects channel/binding collisions early instead of failing later at runtime.
-7. **Docker token-leak hardening** — build flow fixes prevent accidental gateway token exposure through Docker build context handling.
+4. **Cron reliability hardening** — isolated cron nested-lane deadlock scenarios are fixed in the current stable line; upgrade if isolated cron jobs stall intermittently.
+5. **Security hardening updates** — single-use pairing bootstrap setup codes, pre-body Telegram webhook secret validation, iMessage remote attachment path sanitization, and broader `tools.exec.security` parser hardening.
+6. **Slack interactive reply directives (opt-in)** — richer response controls for Slack delivery beyond basic text/block rendering.
+7. **Plugin collision fail-fast** — plugin startup now rejects channel/binding collisions early instead of failing later at runtime.
+8. **Docker token-leak hardening** — build flow fixes prevent accidental gateway token exposure through Docker build context handling.
 
 ## Notable Additions in v2026.3.8
 

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added v2026.3.13 operational/security coverage for Chrome DevTools existing-session attach mode, built-in browser profiles (`user`, `chrome-relay`), single-use pairing setup codes, Telegram webhook pre-body auth validation, iMessage remote attachment path sanitization, and expanded exec-approval hardening guidance.
 - Added release-alignment coverage for upstream `v2026.3.13-1` (GitHub recovery tag for npm `2026.3.13`), including fail-fast plugin channel/binding collision behavior and Slack interactive reply directive support notes.
 - Added security checklist guidance for Docker build-context secret handling and the `v2026.3.13` token-leak hardening fix.
+- Added `v2026.3.13-1` cron reliability guidance covering isolated nested-lane deadlock fixes across skill, CLI reference, and troubleshooting docs.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
