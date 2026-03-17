@@ -442,6 +442,21 @@ openclaw cron list
 openclaw cron runs
 ```
 
+#### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+ / tag `v2026.3.13-1`)
+**Symptoms:** Isolated cron jobs occasionally stop progressing, especially when nested lane execution is involved.
+
+**Cause:** Older v2026.3.x builds could deadlock in isolated cron nested-lane scheduling paths.
+
+**Fix:**
+```bash
+# Upgrade to current stable line
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run migration and validate scheduler behavior
+openclaw doctor --fix
+openclaw cron runs
+```
+
 #### Cron Webhook SSRF (Security)
 **Note:** CVE-2026-27488 (patched in v2026.2.19) allowed cron webhook targets to reach private/internal endpoints. Ensure you are on v2026.2.19+ if using cron webhooks.
 
