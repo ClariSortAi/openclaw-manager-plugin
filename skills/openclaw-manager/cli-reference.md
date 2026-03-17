@@ -80,6 +80,8 @@ openclaw cron edit <id>      # Edit job settings
 openclaw doctor --fix
 ```
 
+`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in current stable (`v2026.3.13-1` tag path). If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
