@@ -233,6 +233,23 @@ openclaw config set channels.telegram.botToken "123:abc..."
 openclaw gateway restart
 ```
 
+#### Telegram: Inbound Media Attachments Fail Intermittently
+**Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
+
+**Cause:** Older builds may hit transport-policy and network-path edge cases during Telegram media retrieval. v2026.3.13 improves this path with tighter transport handling and IPv4 fallback retries.
+
+**Fix:**
+```bash
+# Upgrade to the current stable line
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and retest media delivery
+openclaw gateway restart
+openclaw channels status
+```
+
+If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
+
 #### iMessage: Not Working (Migrate to BlueBubbles)
 **Symptoms:** iMessage channel not receiving messages
 

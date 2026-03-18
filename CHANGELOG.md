@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added release-alignment coverage for upstream `v2026.3.13-1` (GitHub recovery tag for npm `2026.3.13`), including fail-fast plugin channel/binding collision behavior and Slack interactive reply directive support notes.
 - Added security checklist guidance for Docker build-context secret handling and the `v2026.3.13` token-leak hardening fix.
 - Added `v2026.3.13-1` cron reliability guidance covering isolated nested-lane deadlock fixes across skill, CLI reference, and troubleshooting docs.
+- Added `v2026.3.13-1` release-alignment notes for Telegram inbound media transport/retry hardening and webhook pre-body auth behavior in channel setup/troubleshooting docs.
+- Added Signal channel compatibility note documenting `v2026.3.13+` schema support for groups-related configuration keys.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
