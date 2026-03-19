@@ -76,6 +76,15 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | `system.run` | Binds approved `bun`/`deno run` script operands to on-disk snapshots before execution | v2026.3.8 |
 | Trusted-proxy WebSocket | Enforces browser origin validation for browser-originated connections to prevent CSWSH privilege escalation (`GHSA-5wcw-8jjv-m286`) | v2026.3.11 |
 | Plugin loading | Disables implicit workspace plugin auto-load without explicit trust decision (`GHSA-99qw-6mr3-36qr`) | v2026.3.12 |
+| Exec approval visibility and binding | Hardens approval prompts and parser/binding paths against Unicode obfuscation, ambiguous wrapper forms, and script-runner indirection (`GHSA-pcqg-f7rg-xfvv`, `GHSA-9r3v-37xh-2cf6`, `GHSA-f8r2-vg7x-gh8m`, `GHSA-57jw-9722-6rf2`, `GHSA-jvqh-rfmh-jh27`, `GHSA-x7pp-23xv-mmr4`, `GHSA-jc5j-vg4r-j5jx`) | v2026.3.12 |
+| Owner-only command surfaces | Restricts `/config` and `/debug` to sender ownership boundaries even for otherwise authorized non-owner senders (`GHSA-r7vr-gr74-94p8`) | v2026.3.12 |
+| Shared-token scope sanitization | Clears unbound client-declared scopes on shared-token WebSocket connects to prevent self-declared privilege expansion (`GHSA-rqpp-rjj8-7wv8`) | v2026.3.12 |
+| Session and workspace boundary guards | Blocks admin-only persistent browser profile mutations from write-scoped `browser.request`, rejects public lineage override fields, and enforces sandbox session-tree visibility in `session_status` (`GHSA-vmhq-cqm9-6p7q`, `GHSA-2rqg-gjgv-84jm`, `GHSA-wcxr-59v9-rxr8`) | v2026.3.12 |
+| Pairing scope caps | Caps issued/verified paired-device token scopes to approved device scope baselines (`GHSA-2pwv-x786-56f8`) | v2026.3.12 |
+| WebSocket pre-auth hardening | Shortens unauthenticated handshake retention and rejects oversized pre-auth frames earlier (`GHSA-jv4g-m82p-2j93`, `GHSA-xwx2-ppv2-wx98`) | v2026.3.12 |
+| Host exec environment hardening | Blocks inherited `GIT_EXEC_PATH` in sanitized host exec environments to prevent helper-path steering (`GHSA-jf5v-pqgw-gm5m`) | v2026.3.12 |
+| Browser proxy attachment limits | Restores shared media-store size caps so oversized persisted proxy payloads are rejected (`GHSA-6rph-mmhp-h7h9`) | v2026.3.12 |
+| Feishu, LINE, and Zalo webhook auth hardening | Requires stronger Feishu webhook validation and reaction context checks, signature validation for empty LINE probes, and pre-auth rate limiting for invalid Zalo webhook secrets (`GHSA-g353-mgv3-8pcj`, `GHSA-m69h-jm2f-2pv8`, `GHSA-mhxh-9pjm-w7q5`, `GHSA-5m9r-p9g7-679c`) | v2026.3.12 |
 | Pairing bootstrap | Replaces shared credential exposure in `/pair` and `openclaw qr` with short-lived bootstrap tokens | v2026.3.12 |
 | Channel routing allowlists | Slack/Teams/Zalo default to stable ID matching; mutable name matching is break-glass via `dangerouslyAllowNameMatching` | v2026.3.12 |
 | Pairing setup codes | Bootstrap setup codes are enforced as single-use to prevent replay and silent privilege widening | v2026.3.13 |
