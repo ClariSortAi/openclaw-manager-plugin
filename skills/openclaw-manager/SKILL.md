@@ -59,6 +59,7 @@ These are recent operationally important additions:
 5. **Kubernetes starter path** — official starter manifests and install docs for K8s deployments.
 6. **Browser-origin auth enforcement** (v2026.3.11) — trusted-proxy WebSocket connections now enforce origin validation (`GHSA-5wcw-8jjv-m286`).
 7. **Workspace plugin trust gating** (v2026.3.12) — implicit workspace plugin auto-load disabled by default (`GHSA-99qw-6mr3-36qr`).
+8. **Expanded v2026.3.12 security bundle** — includes exec-approval hardening against Unicode/wrapper obfuscation, owner-only `/config` and `/debug` checks, paired-device scope caps, stricter pre-auth WebSocket limits, and tighter Feishu/LINE/Zalo webhook validation (see `security-checklist.md` for GHSA-level details).
 
 ## Notable Additions in v2026.3.13 (GitHub tag `v2026.3.13-1`)
 
