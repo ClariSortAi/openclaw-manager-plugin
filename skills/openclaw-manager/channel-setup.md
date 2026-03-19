@@ -94,6 +94,10 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
+### Slack Interactive Reply Directives (v2026.3.13+)
+
+OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
+
 ---
 
 ## WhatsApp
@@ -210,6 +214,11 @@ Per-DM topic configuration with topic-aware sessions:
 openclaw config set channels.telegram.dmTopics.enabled true
 ```
 Each DM conversation can have its own topic context, with sessions scoped to the topic.
+
+### Telegram Security/Reliability Notes (v2026.3.13+)
+
+- Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
+- Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
 
 ---
 
@@ -478,6 +487,10 @@ openclaw config set channels.signal.phoneNumber "+15551234567"
 openclaw config set channels.signal.dmPolicy pairing
 openclaw gateway restart
 ```
+
+### Signal Groups Config Compatibility (v2026.3.13+)
+
+If your `channels.signal` config includes group controls and older builds reject those keys during validation, upgrade to v2026.3.13+ where Signal channel schema coverage includes groups settings.
 
 ---
 
