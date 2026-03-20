@@ -575,6 +575,21 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+#### Signal Group Keys Rejected as Invalid Config
+**Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.
+
+**Cause:** Older builds did not include full Signal groups schema coverage.
+
+**Fix:**
+```bash
+# Upgrade to v2026.3.13+ (GitHub tag path: v2026.3.13-1)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run validation
+openclaw config validate
+openclaw gateway restart
+```
+
 ### Backup & Recovery Command Issues (v2026.3.8+)
 
 #### `openclaw backup` Command Not Found

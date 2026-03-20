@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `v2026.3.13-1` cron reliability guidance covering isolated nested-lane deadlock fixes across skill, CLI reference, and troubleshooting docs.
 - Added `v2026.3.13-1` release-alignment notes for Telegram inbound media transport/retry hardening and webhook pre-body auth behavior in channel setup/troubleshooting docs.
 - Added Signal channel compatibility note documenting `v2026.3.13+` schema support for groups-related configuration keys.
+- Clarified `openclaw gateway status --require-rpc` behavior in the core skill docs: v2026.3.13+ treats unavailable or degraded RPC reachability as a non-zero probe failure.
+- Added troubleshooting coverage for Signal group-related config validation failures on pre-v2026.3.13 builds, with explicit upgrade guidance.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
