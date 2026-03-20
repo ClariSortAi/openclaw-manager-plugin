@@ -65,7 +65,7 @@ These are recent operationally important additions:
 
 These are operationally important additions in the current stable release line:
 
-1. **Strict gateway RPC probing** — `openclaw gateway status --require-rpc` fails hard when RPC is unavailable (useful for automation/health gates).
+1. **Strict gateway RPC probing** — `openclaw gateway status --require-rpc` fails hard when RPC is unavailable or degraded (useful for automation/health gates).
 2. **Docker timezone override** — `OPENCLAW_TZ` pins gateway/CLI containers to a chosen IANA timezone in Docker setups.
 3. **Live Chrome session attach mode** — official Chrome DevTools MCP existing-session attach flow, plus built-in browser profiles (`"user"` and `"chrome-relay"`) for signed-in browser routing.
 4. **Cron reliability hardening** — isolated cron nested-lane deadlock scenarios are fixed in the current stable line; upgrade if isolated cron jobs stall intermittently.
@@ -97,7 +97,7 @@ openclaw status --all
 # Health check with provider probes
 openclaw status --deep
 
-# Automation-safe gateway probe (v2026.3.13+)
+# Automation-safe gateway probe (v2026.3.13+; unavailable/degraded => non-zero)
 openclaw gateway status --require-rpc
 
 # Validate config before restart
