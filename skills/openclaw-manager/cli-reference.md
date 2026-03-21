@@ -52,6 +52,8 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
+`v2026.3.13` release-tag note: GitHub stable tag is `v2026.3.13-1`, while npm/CLI version output remains `2026.3.13`.
+
 ### Device Management
 ```bash
 openclaw devices list        # List pending and paired devices
@@ -92,7 +94,7 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai-codex/gpt-5.2  # Model override
+  --model openai-codex/gpt-5.4  # Model override
 ```
 
 ### Skills
