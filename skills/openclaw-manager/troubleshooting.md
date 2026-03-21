@@ -32,6 +32,8 @@ Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (
 openclaw status
 ```
 
+If `openclaw status` reports `2026.3.13` (without `-1`), that is expected. The `-1` suffix applies to the GitHub release tag path, not the npm/CLI version string.
+
 If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
 
 ```bash

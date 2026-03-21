@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Signal channel compatibility note documenting `v2026.3.13+` schema support for groups-related configuration keys.
 - Clarified `openclaw gateway status --require-rpc` behavior in the core skill docs: v2026.3.13+ treats unavailable or degraded RPC reachability as a non-zero probe failure.
 - Added troubleshooting coverage for Signal group-related config validation failures on pre-v2026.3.13 builds, with explicit upgrade guidance.
+- Added release-tag semantics guidance clarifying that GitHub stable tag `v2026.3.13-1` maps to npm/CLI version `2026.3.13` across core skill, CLI reference, and troubleshooting docs.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated recommendation language across skill, troubleshooting, and security documentation from v2026.3.12+ to v2026.3.13+ while preserving minimum safe baseline at v2026.3.1.
 - Updated Node.js minimum guidance from generic v22+ wording to **v22.16.0+** to match OpenClaw runtime guard expectations.
 - Clarified version messaging across docs that current stable `2026.3.13` is published on GitHub as tag `v2026.3.13-1`.
+- Updated cron command example model override from `openai-codex/gpt-5.2` to `openai-codex/gpt-5.4`.
 
 ## [1.3.0] - 2026-03-03
 
