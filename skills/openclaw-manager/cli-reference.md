@@ -20,7 +20,7 @@ openclaw gateway start       # Start gateway
 openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
 openclaw gateway status      # Detailed gateway status
-openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+)
+openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
 
 ### Configuration
