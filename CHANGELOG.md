@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified `openclaw gateway status --require-rpc` behavior in the core skill docs: v2026.3.13+ treats unavailable or degraded RPC reachability as a non-zero probe failure.
 - Added troubleshooting coverage for Signal group-related config validation failures on pre-v2026.3.13 builds, with explicit upgrade guidance.
 - Added release-tag semantics guidance clarifying that GitHub stable tag `v2026.3.13-1` maps to npm/CLI version `2026.3.13` across core skill, CLI reference, and troubleshooting docs.
+- Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
