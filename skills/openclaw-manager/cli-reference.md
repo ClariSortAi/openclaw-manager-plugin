@@ -52,7 +52,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.13` release-tag note: GitHub stable tag is `v2026.3.13-1`, while npm/CLI version output remains `2026.3.13`.
+Current stable release note: GitHub stable tag is `v2026.3.22`, and npm/CLI version output remains `2026.3.22`.
 
 ### Device Management
 ```bash
@@ -82,7 +82,7 @@ openclaw cron edit <id>      # Edit job settings
 openclaw doctor --fix
 ```
 
-`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in current stable (`v2026.3.13-1` tag path). If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks were fixed in the stable v2026.3.x line. If isolated jobs stall, upgrade to current stable (`v2026.3.22`) and run `openclaw doctor --fix`.
 
 ### Cron Add Options
 ```bash
@@ -99,6 +99,9 @@ openclaw cron add \
 
 ### Skills
 ```bash
+openclaw skills search <query>  # Search skills (native CLI path; ClawHub-backed)
+openclaw skills install <skill-slug>  # Install a skill (native CLI path)
+openclaw skills update [<skill-slug>|--all]  # Update one/all installed skills
 openclaw skills list         # List available skills
 openclaw skills info <name>  # Show skill details
 openclaw skills check        # Check skill requirements
@@ -121,7 +124,9 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 ```bash
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
-openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install <spec>  # Install plugin (ClawHub-first for npm-safe names, npm fallback, or local path)
+openclaw plugins install clawhub:<package>  # Force ClawHub source resolution
+openclaw plugins install <plugin>@<marketplace>  # Install from configured marketplace registry
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
@@ -134,6 +139,8 @@ openclaw plugins doctor        # Check plugin health
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). Bundled plugins are disabled by default; installed plugins are enabled by default.
 
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
+
+`v2026.3.22+` source-resolution note: bare `openclaw plugins install <package>` now checks ClawHub first for npm-safe names, then falls back to npm if no matching ClawHub package/version exists.
 
 ### Agents
 ```bash
@@ -342,9 +349,12 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
+| `OPENCLAW_HANDSHAKE_TIMEOUT_MS` | Override default WebSocket pre-auth handshake timeout (v2026.3.22+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
+
+`v2026.3.22+` migration note: legacy `CLAWDBOT_*` and `MOLTBOT_*` env aliases are removed. Use `OPENCLAW_*` names only.
 
 ## Official Plugins & Channels
 

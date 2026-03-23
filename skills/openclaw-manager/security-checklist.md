@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.13+** (GitHub release tag `v2026.3.13-1`).
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.22+** (GitHub release tag `v2026.3.22`).
 
 ### Known Critical Vulnerabilities
 
@@ -55,7 +55,7 @@ Additional v2026.2.12 hardening:
 
 A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 additional security fixes were released across v2026.2.12 and v2026.2.19.
 
-#### v2026.3.x Security Hardening (March 2026)
+#### v2026.3.x Security Hardening (March 2026+)
 
 | Area | Description | Fixed In |
 |------|-------------|----------|
@@ -92,7 +92,14 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | iMessage remote attachments | Rejects unsafe remote attachment paths before spawning SCP to prevent shell metacharacter injection | v2026.3.13 |
 | External content boundaries | Strips zero-width/soft-hyphen marker splitting tricks to preserve untrusted content boundaries | v2026.3.13 |
 | Exec approval parsing | Expands fail-closed parsing for wrapper forms (`pnpm`, `env`, PowerShell `-File`/`-f`, Perl `-M`/`-I`, shell line continuation) | v2026.3.13 |
-| Docker secrets handling | Prevents gateway token leakage through Docker build-context handling | v2026.3.13 (`v2026.3.13-1` tag path) |
+| Docker secrets handling | Prevents gateway token leakage through Docker build-context handling | v2026.3.13 |
+| Trusted proxy/session scope hardening | Clears self-declared scopes for device-less trusted-proxy sessions and blocks loopback-hop spoofing in trusted forwarding chains | v2026.3.22 |
+| Device token rotation hardening | Preserves approved-baseline enforcement and generic public failures for `device.token.rotate` deny paths (`GHSA-7jrw-x62h-64p8`) | v2026.3.22 |
+| Exec allowlist tightening | Removes `jq` from default safe-bin allowlist and blocks `jq -n env` style host-secret exposure without explicit trust path | v2026.3.22 |
+| Webhook pre-auth hardening | Moves auth earlier and tightens pre-auth body/time budgets to reduce unauthenticated request abuse across webhook handlers | v2026.3.22 |
+| Windows media path security | Blocks remote-host `file://` and UNC/network paths in media loading to prevent outbound SMB credential handshakes | v2026.3.22 |
+| Discovery fail-closed behavior | Rejects unresolved Bonjour/DNS-SD discovery endpoints to prevent TXT-only routing/auto-target steering | v2026.3.22 |
+| iOS setup code scope binding | Binds setup codes to intended node profile and rejects first-use bootstrap redemption requesting broader roles/scopes | v2026.3.22 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -373,7 +380,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.13+ for latest auth, plugin-trust, pairing, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.22+ for latest auth, pairing, plugin/source, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
@@ -535,7 +542,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.13+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.22+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

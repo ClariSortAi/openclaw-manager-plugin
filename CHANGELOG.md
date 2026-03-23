@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream `v2026.3.22` (current stable), including major breaking-change guidance for ClawHub-first plugin install resolution, legacy Chrome extension relay removal (`driver: "extension"` / `browser.relayBindHost`), legacy env/state migration (`CLAWDBOT_*`/`MOLTBOT_*`, `.moltbot`), and image-generation wrapper deprecation.
+- Added `v2026.3.22` operational coverage for native `openclaw skills search|install|update`, marketplace-aware plugin install patterns (`clawhub:<package>`, `plugin@marketplace`), and `OPENCLAW_HANDSHAKE_TIMEOUT_MS`.
+- Added troubleshooting playbooks for `v2026.3.22` migration failures (unexpected plugin source resolution, removed browser relay config, and removed legacy env/state compatibility paths).
+- Added security checklist hardening coverage for `v2026.3.22` updates, including trusted-proxy scope hardening, device-token rotation safeguards (`GHSA-7jrw-x62h-64p8`), `jq` safe-bin tightening, webhook pre-auth limits, Windows UNC/file media blocking, and fail-closed discovery behavior.
 - **User login mechanism guide**: Comprehensive documentation covering gateway authentication (token, password, trusted-proxy, Tailscale), channel login (WhatsApp QR, Zalo Personal), model provider authentication, pairing mechanisms, device management, and session isolation
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.
 - Added v2026.3.8 command coverage for `openclaw backup create` and `openclaw backup verify` in core skill, CLI reference, and troubleshooting recovery flows.
@@ -30,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended target version across docs from v2026.3.13+ (`v2026.3.13-1` tag path) to **v2026.3.22+** (`v2026.3.22` tag) while preserving minimum safe baseline at v2026.3.1.
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
 - Added v2026.3.7 compatibility notes and recommendation language in the main skill/troubleshooting references while keeping minimum safe version at v2026.3.1.
 - Updated recommended target version from v2026.3.7+ to v2026.3.8+ while preserving minimum safe baseline at v2026.3.1.

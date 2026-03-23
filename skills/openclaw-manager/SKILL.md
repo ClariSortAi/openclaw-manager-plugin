@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.13+** (GitHub release tag `v2026.3.13-1`) for the latest browser-origin auth hardening, plugin trust gating, gateway RPC probing, pairing/webhook hardening, and recovery fixes. Run `openclaw status` to check. If status shows `2026.3.13`, that is the expected stable version number; the `-1` suffix is GitHub tag/release metadata only.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.22+** (GitHub stable tag `v2026.3.22`) for the latest plugin/source-resolution behavior, browser relay migration updates, and expanded security hardening. Run `openclaw status` to check. If status shows `2026.3.22`, that is the expected current stable version.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.11)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.22)
 
 These changes affect new and existing installations:
 
@@ -47,6 +47,11 @@ These changes affect new and existing installations:
 5. **Zalo Personal rebuilt** (v2026.3.2) — No longer depends on external CLI binaries; login via `openclaw channels login --channel zalouser`.
 6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
 7. **Cron isolated delivery tightened** (v2026.3.11) — Legacy notify/webhook metadata and ad hoc fallback send paths are migrated by `openclaw doctor --fix`.
+8. **Plugin install source precedence changed** (v2026.3.22) — `openclaw plugins install <package>` now checks ClawHub first for npm-safe package names and falls back to npm only when missing.
+9. **Legacy Chrome extension relay removed** (v2026.3.22) — `driver: "extension"` and `browser.relayBindHost` are removed; run `openclaw doctor --fix` and migrate to `existing-session`/`user` browser profiles.
+10. **Legacy env/state compatibility removed** (v2026.3.22) — `CLAWDBOT_*` and `MOLTBOT_*` env aliases and `.moltbot` state-dir autodetection are removed; use `OPENCLAW_*` and `~/.openclaw` (or explicit `OPENCLAW_STATE_DIR` / `OPENCLAW_CONFIG_PATH`).
+11. **Image-generation wrapper removed** (v2026.3.22) — bundled `nano-banana-pro` wrapper path is removed; use core `image_generate` with `agents.defaults.imageGenerationModel`.
+12. **Plugin SDK import surface changed** (v2026.3.22) — `openclaw/extension-api` is removed; use `openclaw/plugin-sdk/*` subpaths.
 
 ## Notable Additions in v2026.3.11-v2026.3.12
 
@@ -63,7 +68,7 @@ These are recent operationally important additions:
 
 ## Notable Additions in v2026.3.13 (GitHub tag `v2026.3.13-1`, npm/CLI version `2026.3.13`)
 
-These are operationally important additions in the current stable release line:
+These were operationally important additions in the earlier v2026.3.13 stable line:
 
 1. **Strict gateway RPC probing** — `openclaw gateway status --require-rpc` fails hard when RPC is unavailable or degraded (useful for automation/health gates).
 2. **Docker timezone override** — `OPENCLAW_TZ` pins gateway/CLI containers to a chosen IANA timezone in Docker setups.
@@ -73,6 +78,19 @@ These are operationally important additions in the current stable release line:
 6. **Slack interactive reply directives (opt-in)** — richer response controls for Slack delivery beyond basic text/block rendering.
 7. **Plugin collision fail-fast** — plugin startup now rejects channel/binding collisions early instead of failing later at runtime.
 8. **Docker token-leak hardening** — build flow fixes prevent accidental gateway token exposure through Docker build context handling.
+
+## Notable Additions in v2026.3.22 (GitHub stable tag `v2026.3.22`, npm/CLI version `2026.3.22`)
+
+These are operationally important additions in the current stable release line:
+
+1. **Native skill distribution commands** — built-in `openclaw skills search|install|update` flows now cover common ClawHub operations directly from the OpenClaw CLI.
+2. **Marketplace-aware plugin installs** — plugin installs now support richer source resolution (`clawhub:<package>` and `plugin@marketplace` patterns), plus tracked update metadata.
+3. **Per-agent execution defaults** — agent defaults now support per-agent thinking/reasoning/fast behavior with safer override fallback handling.
+4. **Pluggable sandbox backends** — sandbox runtime now supports non-Docker backends (including OpenShell and SSH-backed sandbox flows) for advanced environments.
+5. **Existing-session browser expansion** — Chrome DevTools existing-session attach now supports custom browser user-data directories (for Brave/Edge and other Chromium variants).
+6. **Provider and web-tool expansion** — new bundled provider/tool coverage includes Anthropic Vertex AI and additional web-search providers (Exa, Tavily, Firecrawl).
+7. **Owner-gated plugin chat commands** — `/plugins` and `/plugin` command flows allow in-chat plugin list/show and enable/disable operations when `commands.plugins` is enabled.
+8. **Long-running session resilience** — default agent timeout raised from 600s to 48h to reduce failures on long ACP/automation sessions.
 
 ## Notable Additions in v2026.3.8
 
@@ -154,7 +172,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.13+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.22+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

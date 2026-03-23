@@ -385,6 +385,8 @@ openclaw channels status
 
 Matrix is supported via the `@openclaw/matrix` plugin.
 
+`v2026.3.22+` migration note: OpenClaw ships a Matrix plugin path backed by the official `matrix-js-sdk`. If you are upgrading from an older Matrix plugin implementation, follow the upstream migration guide at `https://docs.openclaw.ai/install/migrating-matrix`.
+
 ### Setup Steps
 
 1. **Install the Plugin**

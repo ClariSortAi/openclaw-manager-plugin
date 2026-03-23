@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+ / tag `v2026.3.13-1`)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.22+ / tag `v2026.3.22`)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,13 +26,13 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**, released on GitHub as tag `v2026.3.13-1`):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.22+**, released on GitHub as tag `v2026.3.22`):
 
 ```bash
 openclaw status
 ```
 
-If `openclaw status` reports `2026.3.13` (without `-1`), that is expected. The `-1` suffix applies to the GitHub release tag path, not the npm/CLI version string.
+If `openclaw status` reports `2026.3.22`, that is expected for current stable.
 
 If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
 
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, plugin collision safeguards, and pairing/webhook fixes, upgrade to **v2026.3.13+** (GitHub tag `v2026.3.13-1`).
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, plugin/source-resolution behavior, and browser relay migration support, upgrade to **v2026.3.22+** (GitHub tag `v2026.3.22`).
 
 ## Common Issues
 
@@ -400,6 +400,24 @@ openclaw plugins remove <plugin-id>
 openclaw gateway restart
 ```
 
+#### Plugin Install Resolves to Unexpected Source (v2026.3.22+)
+**Symptoms:** `openclaw plugins install <package>` installs a different package/source than expected.
+
+**Cause:** v2026.3.22 changed bare package installs to resolve ClawHub first for npm-safe package names, then fall back to npm.
+
+**Fix:**
+```bash
+# Force ClawHub source
+openclaw plugins install clawhub:<package>
+
+# Use explicit npm package specs when available (scoped names are unambiguous)
+openclaw plugins install @scope/package
+
+# Verify what is actually installed
+openclaw plugins list
+openclaw plugins info <plugin-id>
+```
+
 ### Skill Issues
 
 #### ClawHub Skill Not Working
@@ -461,7 +479,7 @@ openclaw cron list
 openclaw cron runs
 ```
 
-#### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+ / tag `v2026.3.13-1`)
+#### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+, recommended on current stable `v2026.3.22`)
 **Symptoms:** Isolated cron jobs occasionally stop progressing, especially when nested lane execution is involved.
 
 **Cause:** Older v2026.3.x builds could deadlock in isolated cron nested-lane scheduling paths.
@@ -584,10 +602,33 @@ openclaw gateway restart
 
 **Fix:**
 ```bash
-# Upgrade to v2026.3.13+ (GitHub tag path: v2026.3.13-1)
+# Upgrade to current stable v2026.3.22+
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run validation
+openclaw config validate
+openclaw gateway restart
+```
+
+#### Legacy Environment Variables or State Directory Not Recognized (v2026.3.22+)
+**Symptoms:** Existing `CLAWDBOT_*` / `MOLTBOT_*` envs stop working, or old `~/.moltbot` state is no longer auto-discovered.
+
+**Cause:** v2026.3.22 removed legacy env-name aliases and legacy `.moltbot` auto-detection fallback.
+
+**Fix:**
+```bash
+# Migrate env names
+export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+export OPENCLAW_CONFIG_PATH="$HOME/.openclaw/openclaw.json"
+
+# If your data still lives in ~/.moltbot, either point OpenClaw there:
+# export OPENCLAW_STATE_DIR="$HOME/.moltbot"
+# export OPENCLAW_CONFIG_PATH="$HOME/.moltbot/openclaw.json"
+# ...or migrate files into ~/.openclaw
+mkdir -p ~/.openclaw
+cp -a ~/.moltbot/. ~/.openclaw/
+
+# Validate and restart
 openclaw config validate
 openclaw gateway restart
 ```
@@ -619,6 +660,25 @@ openclaw backup create --only-config
 openclaw config set acp.dispatch.enabled false
 openclaw gateway restart
 ```
+
+### Browser / Chrome MCP Issues (v2026.3.22+)
+
+#### Browser Relay Config Breaks After Upgrade
+**Symptoms:** Browser tools fail after upgrade, often with stale `driver: "extension"` or `browser.relayBindHost` config.
+
+**Cause:** v2026.3.22 removed the legacy Chrome extension relay path and related config keys.
+
+**Fix:**
+```bash
+# Run automated migration first
+openclaw doctor --fix
+
+# Validate config and restart
+openclaw config validate
+openclaw gateway restart
+```
+
+If you still have stale browser relay keys, migrate to `existing-session` / `user` profile based browser config and remove deprecated relay-only settings.
 
 ### PDF Tool Issues (v2026.3.2+)
 
@@ -657,6 +717,13 @@ openclaw config set agents.defaults.pdfMaxPages 200
 // New (v2026.3.2+):
 api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 ```
+
+#### Plugin Error: Cannot Find `openclaw/extension-api` (v2026.3.22+)
+**Symptoms:** Plugin fails to load with module-resolution errors for `openclaw/extension-api`.
+
+**Cause:** v2026.3.22 removes `openclaw/extension-api` in favor of `openclaw/plugin-sdk/*` subpaths.
+
+**Fix:** Migrate plugin imports to `openclaw/plugin-sdk/*` and update plugin code to current SDK migration guidance before reinstalling/restarting.
 
 ### Zalo Personal Issues (v2026.3.2)
 
