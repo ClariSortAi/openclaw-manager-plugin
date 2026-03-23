@@ -158,7 +158,7 @@ openclaw-manager-plugin/
   - Node.js v22.16.0+ (NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
   - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
-  - **Recommended OpenClaw version: v2026.3.13+** (published on GitHub as tag `v2026.3.13-1`)
+  - **Recommended OpenClaw version: v2026.3.22+** (published on GitHub as tag `v2026.3.22`)
 
 ## How It Works
 
