@@ -38,7 +38,7 @@ openclaw config file         # Print active config file path (v2026.3.1+)
 ```bash
 openclaw channels list       # List configured channels
 openclaw channels status     # Show channel connection status
-openclaw channels login      # Link a channel (QR code for WhatsApp)
+openclaw channels login      # Link a channel (QR code for WhatsApp; v2026.3.23 can auto-select when only one login-capable channel is configured)
 openclaw channels logout     # Unlink a channel
 openclaw channels add        # Add channel account
 openclaw channels remove     # Remove channel account
@@ -52,7 +52,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.13` release-tag note: GitHub stable tag is `v2026.3.13-1`, while npm/CLI version output remains `2026.3.13`.
+`v2026.3.23` stability note: prefer current stable `v2026.3.23` for the latest channel-auth and plugin install reliability fixes.
 
 ### Device Management
 ```bash
@@ -82,7 +82,7 @@ openclaw cron edit <id>      # Edit job settings
 openclaw doctor --fix
 ```
 
-`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in current stable (`v2026.3.13-1` tag path). If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks were fixed in v2026.3.13. If isolated jobs stall, upgrade to a current stable release (`v2026.3.23+`) and run `openclaw doctor --fix`.
 
 ### Cron Add Options
 ```bash
@@ -134,6 +134,8 @@ openclaw plugins doctor        # Check plugin health
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). Bundled plugins are disabled by default; installed plugins are enabled by default.
 
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
+
+`v2026.3.22+` plugin source note: bare `openclaw plugins install <package>` now prefers ClawHub for npm-safe names; use explicit npm specs (e.g., `@scope/pkg` or versioned npm package ids) when you want npm resolution.
 
 ### Agents
 ```bash
@@ -342,6 +344,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
+| `OPENCLAW_HANDSHAKE_TIMEOUT_MS` | Override pre-auth WebSocket handshake timeout (default increased in v2026.3.22+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

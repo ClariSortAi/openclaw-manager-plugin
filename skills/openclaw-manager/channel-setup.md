@@ -96,7 +96,7 @@ As of v2026.2.17, Slack supports native single-message text streaming. This is e
 
 ### Slack Interactive Reply Directives (v2026.3.13+)
 
-OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
+OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on a recent stable release (recommended v2026.3.23+) so responses render as intended.
 
 ---
 

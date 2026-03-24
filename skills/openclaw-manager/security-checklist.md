@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.13+** (GitHub release tag `v2026.3.13-1`).
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and operational reliability fixes, prefer **v2026.3.23+** (GitHub release tag `v2026.3.23`).
 
 ### Known Critical Vulnerabilities
 
@@ -93,6 +93,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | External content boundaries | Strips zero-width/soft-hyphen marker splitting tricks to preserve untrusted content boundaries | v2026.3.13 |
 | Exec approval parsing | Expands fail-closed parsing for wrapper forms (`pnpm`, `env`, PowerShell `-File`/`-f`, Perl `-M`/`-I`, shell line continuation) | v2026.3.13 |
 | Docker secrets handling | Prevents gateway token leakage through Docker build-context handling | v2026.3.13 (`v2026.3.13-1` tag path) |
+| Webhook pre-auth limits | Rejects missing voice-call signature headers before body reads and tightens unauthenticated body/time budgets to reduce pre-auth resource abuse | v2026.3.22 |
+| Exec environment sandbox | Blocks additional host-exec environment injection vectors (`MAVEN_OPTS`, `SBT_OPTS`, `GRADLE_OPTS`, `ANT_OPTS`, `GLIBC_TUNABLES`, `DOTNET_ADDITIONAL_DEPS`) | v2026.3.22 |
+| Legacy compatibility aliases | Removes deprecated `CLAWDBOT_*` / `MOLTBOT_*` env compatibility and legacy `.moltbot` state/config fallback paths to reduce drift and ambiguous runtime state | v2026.3.22 |
+| Gateway auth scope handling | Preserves operator scope through device-auth bypass and rejects under-scoped cached tokens more consistently in Control UI auth paths | v2026.3.23 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -373,7 +377,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.13+ for latest auth, plugin-trust, pairing, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.23+ for latest auth, plugin-runtime, and execution hardening fixes)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
@@ -535,7 +539,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.13+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.23+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
