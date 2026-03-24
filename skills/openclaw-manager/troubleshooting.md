@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+ / tag `v2026.3.13-1`)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.23+ / tag `v2026.3.23`)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,13 +26,13 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**, released on GitHub as tag `v2026.3.13-1`):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.23+**, released on GitHub as tag `v2026.3.23`):
 
 ```bash
 openclaw status
 ```
 
-If `openclaw status` reports `2026.3.13` (without `-1`), that is expected. The `-1` suffix applies to the GitHub release tag path, not the npm/CLI version string.
+If `openclaw status` reports `2026.3.23` (or a same-base correction release like `2026.3.23-2`), that is expected. Patch suffixes apply to the release metadata and may vary by distribution path.
 
 If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
 
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, plugin collision safeguards, and pairing/webhook fixes, upgrade to **v2026.3.13+** (GitHub tag `v2026.3.13-1`).
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, plugin/channel auth reliability, and current release-line fixes, upgrade to **v2026.3.23+** (GitHub tag `v2026.3.23`).
 
 ## Common Issues
 
@@ -66,6 +66,22 @@ openclaw gateway start
 # v2026.3.13+: fail hard if RPC is unavailable (scope-limited probe RPC is treated as degraded)
 openclaw gateway status --require-rpc
 ```
+
+#### Browser Attach/Relay Config Broke After Upgrade (v2026.3.22+)
+**Symptoms:** Browser profile attach fails after upgrade, often with extension-relay profile or driver errors.
+
+**Cause:** v2026.3.22 removed the legacy Chrome extension relay path (`driver: "extension"` and `browser.relayBindHost`).
+
+**Fix:**
+```bash
+# Migrate host-local browser config
+openclaw doctor --fix
+
+# Then verify browser profile settings
+openclaw config get browser.profiles
+```
+
+Use `existing-session` / `user` style profiles for local signed-in browsers.
 
 **Fix:**
 ```bash
@@ -400,6 +416,20 @@ openclaw plugins remove <plugin-id>
 openclaw gateway restart
 ```
 
+#### Plugin Install Pulls Unexpected Source (v2026.3.22+)
+**Symptoms:** `openclaw plugins install <name>` installs from ClawHub when npm package behavior was expected.
+
+**Cause:** v2026.3.22 changed bare-name install precedence to prefer ClawHub for npm-safe names.
+
+**Fix:**
+```bash
+# Explicit ClawHub install
+openclaw plugins install clawhub:<package>
+
+# Explicit npm install
+openclaw plugins install @scope/package
+```
+
 ### Skill Issues
 
 #### ClawHub Skill Not Working
@@ -461,7 +491,7 @@ openclaw cron list
 openclaw cron runs
 ```
 
-#### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+ / tag `v2026.3.13-1`)
+#### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+; latest stable v2026.3.23)
 **Symptoms:** Isolated cron jobs occasionally stop progressing, especially when nested lane execution is involved.
 
 **Cause:** Older v2026.3.x builds could deadlock in isolated cron nested-lane scheduling paths.
@@ -584,7 +614,7 @@ openclaw gateway restart
 
 **Fix:**
 ```bash
-# Upgrade to v2026.3.13+ (GitHub tag path: v2026.3.13-1)
+# Upgrade to current stable line (recommended v2026.3.23+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run validation
