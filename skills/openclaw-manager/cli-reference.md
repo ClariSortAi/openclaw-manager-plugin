@@ -44,6 +44,8 @@ openclaw channels add        # Add channel account
 openclaw channels remove     # Remove channel account
 ```
 
+`v2026.3.23+` channel-auth note: when only one login-capable channel is configured, `openclaw channels login|logout` auto-selects it.
+
 ### Pairing & Access Control
 ```bash
 openclaw pairing list        # List pending pairing requests
@@ -52,7 +54,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.13` release-tag note: GitHub stable tag is `v2026.3.13-1`, while npm/CLI version output remains `2026.3.13`.
+`v2026.3.23` stable note: current stable is published as `v2026.3.23` and CLI version output should report `2026.3.23`.
 
 ### Device Management
 ```bash
@@ -82,7 +84,14 @@ openclaw cron edit <id>      # Edit job settings
 openclaw doctor --fix
 ```
 
-`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in current stable (`v2026.3.13-1` tag path). If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+`v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in the current stable line. If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+
+`v2026.3.23+` cron note:
+
+```bash
+# One-shot schedules now honor local wall-clock time with --tz
+openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
+```
 
 ### Cron Add Options
 ```bash
@@ -102,6 +111,9 @@ openclaw cron add \
 openclaw skills list         # List available skills
 openclaw skills info <name>  # Show skill details
 openclaw skills check        # Check skill requirements
+openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
+openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
+openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -109,6 +121,12 @@ openclaw skills check        # Check skill requirements
 ClawHub is the public skill registry at clawhub.ai with 3,200+ community skills (down from 10,700+ after the ClawHavoc cleanup):
 
 ```bash
+# Preferred (v2026.3.22+ core CLI path)
+openclaw skills search <query>     # Search ClawHub skills
+openclaw skills install <skill-slug>  # Install from ClawHub
+openclaw skills update --all       # Update installed skills
+
+# Compatibility path (legacy clawhub CLI)
 clawhub search <query>         # Search for skills on ClawHub
 clawhub install <skill-slug>   # Install a skill from ClawHub
 clawhub update --all           # Update all installed ClawHub skills
@@ -122,6 +140,7 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
@@ -131,7 +150,7 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins doctor        # Check plugin health
 ```
 
-Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). Bundled plugins are disabled by default; installed plugins are enabled by default.
+Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 

@@ -62,7 +62,7 @@ openclaw cron add --name "Daily Digest" --cron "0 8 * * *" \
 
 ### What's Next
 - Try the PDF tool for document analysis
-- Explore ClawHub for community skills (`clawhub search`)
+- Explore ClawHub for community skills (`openclaw skills search`)
 - Set up Gmail webhooks for email processing
 - Configure sub-agents for specialized tasks
 
@@ -273,7 +273,7 @@ openclaw cron add --name "Build Digest" --cron "0 17 * * 1-5" \
 ### What's Next
 - Install the `diffs` plugin for code review
 - Configure Gmail webhooks for PR notification processing
-- Explore ClawHub for development-focused skills
+- Explore ClawHub for development-focused skills (`openclaw skills search`)
 - Set up PDF tool for documentation analysis
 
 ---

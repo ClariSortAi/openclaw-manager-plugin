@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.3.22` and `v2026.3.23`, including ClawHub-first plugin install precedence, native `openclaw skills search|install|update` command guidance, `openclaw plugins install clawhub:<package>` flows, timezone-correct one-shot cron `--at --tz` behavior, and single-channel `channels login|logout` auto-selection notes.
+- Added troubleshooting coverage for post-install bundled plugin runtime sidecar gaps resolved by upgrading to `v2026.3.23+`.
+- Added security hardening notes for v2026.3.22 browser relay removal migration, expanded exec env injection blocking, Windows remote media path protections, and fail-closed discovery endpoint handling.
 - **User login mechanism guide**: Comprehensive documentation covering gateway authentication (token, password, trusted-proxy, Tailscale), channel login (WhatsApp QR, Zalo Personal), model provider authentication, pairing mechanisms, device management, and session isolation
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.
 - Added v2026.3.8 command coverage for `openclaw backup create` and `openclaw backup verify` in core skill, CLI reference, and troubleshooting recovery flows.
@@ -30,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.3.13+` to `v2026.3.23+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated docs to reflect removal of legacy Chrome extension relay assumptions (`chrome-relay`) in upstream `v2026.3.22`.
+- Updated onboarding and skill-install examples to prefer core `openclaw skills ...` commands while retaining `clawhub` compatibility references.
+- Updated README/version metadata for this docs release alignment (`1.3.2`).
 - Updated `tools.profile` guidance across OpenClaw manager docs to reflect v2026.3.7 behavior: defaults can vary by onboarding path, so profile should be set explicitly.
 - Added v2026.3.7 compatibility notes and recommendation language in the main skill/troubleshooting references while keeping minimum safe version at v2026.3.1.
 - Updated recommended target version from v2026.3.7+ to v2026.3.8+ while preserving minimum safe baseline at v2026.3.1.

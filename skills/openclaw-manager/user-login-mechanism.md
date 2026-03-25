@@ -118,6 +118,8 @@ openclaw channels login
 openclaw channels login --account secondary
 ```
 
+`v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
+
 **Process:**
 1. Run the command
 2. A QR code appears in your terminal

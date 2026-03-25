@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.13+ / tag `v2026.3.13-1`)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.23+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,13 +26,13 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.13+**, released on GitHub as tag `v2026.3.13-1`):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.23+**):
 
 ```bash
 openclaw status
 ```
 
-If `openclaw status` reports `2026.3.13` (without `-1`), that is expected. The `-1` suffix applies to the GitHub release tag path, not the npm/CLI version string.
+If you are upgrading from v2026.3.13-era docs, note that current stable is newer; use `openclaw status` to confirm your installed runtime and `openclaw update status` to check update availability.
 
 If on an older version, upgrade immediately — the v2026.3.x line adds critical security hardening (gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance) on top of the 40+ fixes in v2026.2.12:
 
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For latest security hardening, gateway RPC probe controls, plugin collision safeguards, and pairing/webhook fixes, upgrade to **v2026.3.13+** (GitHub tag `v2026.3.13-1`).
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.23+**.
 
 ## Common Issues
 
@@ -384,7 +384,7 @@ openclaw gateway restart
 #### Plugin Channel/Binding Collision
 **Symptoms:** Plugin install/startup fails with channel or binding collision errors.
 
-**Cause:** v2026.3.13 fail-fast checks now reject channel and network binding conflicts immediately.
+**Cause:** v2026.3.13+ fail-fast checks reject channel and network binding conflicts immediately.
 
 **Fix:**
 ```bash
@@ -398,6 +398,35 @@ openclaw plugins disable <plugin-id>
 openclaw plugins remove <plugin-id>
 
 openclaw gateway restart
+```
+
+#### Bundled Plugin Runtime Missing After Global Install
+**Symptoms:** Channels/plugins such as WhatsApp or Matrix fail to boot with missing runtime files after a package-manager/global install.
+
+**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run doctor and restart
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+#### Bare Plugin Install Pulls Unexpected Source
+**Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
+
+**Cause:** v2026.3.22+ prefers ClawHub before npm for npm-safe package names.
+
+**Fix:**
+```bash
+# Force ClawHub source
+openclaw plugins install clawhub:<package>
+
+# Or force npm source
+openclaw plugins install @scope/package
 ```
 
 ### Skill Issues
@@ -415,6 +444,22 @@ openclaw config get skills.entries.<skill-name>.enabled
 
 # Check if skill requires specific binaries/env
 openclaw skills info <skill-name>
+```
+
+#### Skill Search/Install Commands Not Found
+**Symptoms:** `openclaw skills search|install|update` is unavailable.
+
+**Cause:** Native skills lifecycle commands were added in v2026.3.22.
+
+**Fix:**
+```bash
+# Upgrade to v2026.3.22+ (prefer current stable)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Use native skills flows
+openclaw skills search <query>
+openclaw skills install <skill-slug>
+openclaw skills update --all
 ```
 
 ### Cron Job Issues
@@ -444,6 +489,20 @@ openclaw cron run <id>
 
 # Fix timezone if needed
 openclaw cron edit <id>
+```
+
+#### One-Shot Cron Runs at Wrong Local Time
+**Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.
+
+**Cause:** Older builds could interpret offset-less one-shot timestamps incorrectly around timezone conversion and DST.
+
+**Fix:**
+```bash
+# Upgrade to current stable (v2026.3.23+ includes timezone fix)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Recreate or edit the job with explicit timezone
+openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
