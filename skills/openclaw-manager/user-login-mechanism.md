@@ -120,6 +120,8 @@ openclaw channels login --account secondary
 
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
 
+`v2026.3.24+` container note: if your gateway runs in Docker/Podman, run auth/login commands inside the running container with `openclaw --container "<name>" ...` or set `OPENCLAW_CONTAINER`.
+
 **Process:**
 1. Run the command
 2. A QR code appears in your terminal

@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.23+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.24+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.23+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.24+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.23+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.24+**.
 
 ## Common Issues
 
@@ -209,7 +209,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.16.0+
+node --version  # Should be v22.14.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -415,6 +415,15 @@ openclaw doctor --fix
 openclaw gateway restart
 ```
 
+`v2026.3.24+` note: if you run OpenClaw inside Docker/Podman, you can run repair commands through the container-targeted CLI path:
+
+```bash
+openclaw --container "openclaw-gateway" doctor --fix
+# or set once:
+export OPENCLAW_CONTAINER="openclaw-gateway"
+openclaw doctor --fix
+```
+
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
@@ -498,7 +507,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.23+ includes timezone fix)
+# Upgrade to current stable (v2026.3.23+ introduced this timezone fix)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
