@@ -94,10 +94,10 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24-beta)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
-Recent beta builds also improve direct-delivery parity and auto-rendering of simple trailing `Options:` blocks into interactive controls.
+Current stable (`v2026.3.24`) improves direct-delivery parity and auto-renders simple trailing `Options:` blocks into interactive controls.
 
 ---
 
@@ -379,6 +379,7 @@ openclaw channels status
 - Requires an Azure AD tenant with admin consent
 - Bot Framework registration is separate from the Azure AD app
 - Teams channels use the plugin system rather than native channel config
+- `v2026.3.24+`: Teams runtime uses the official Teams SDK with improved AI-agent UX defaults, plus sent-message edit/delete support.
 
 ---
 

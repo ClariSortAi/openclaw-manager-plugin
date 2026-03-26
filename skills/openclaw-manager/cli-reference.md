@@ -54,7 +54,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.23` stable note: current stable is published as `v2026.3.23` and CLI version output should report `2026.3.23`.
+`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
 
 ### Device Management
 ```bash
@@ -91,6 +91,17 @@ openclaw doctor --fix
 ```bash
 # One-shot schedules now honor local wall-clock time with --tz
 openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
+```
+
+### Containerized CLI Execution (v2026.3.24+)
+```bash
+# Run commands inside a running OpenClaw container
+openclaw --container "openclaw-gateway" status
+openclaw --container "openclaw-gateway" doctor --fix
+
+# Set a default container target for future CLI calls
+export OPENCLAW_CONTAINER="openclaw-gateway"
+openclaw status
 ```
 
 ### Cron Add Options
@@ -360,6 +371,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
+| `OPENCLAW_CONTAINER` | Default container target for running `openclaw` commands in Docker/Podman (v2026.3.24+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
