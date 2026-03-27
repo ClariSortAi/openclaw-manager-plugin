@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added release-alignment coverage for upstream stable `v2026.3.22` and `v2026.3.23`, including ClawHub-first plugin install precedence, native `openclaw skills search|install|update` command guidance, `openclaw plugins install clawhub:<package>` flows, timezone-correct one-shot cron `--at --tz` behavior, and single-channel `channels login|logout` auto-selection notes.
 - Added troubleshooting coverage for post-install bundled plugin runtime sidecar gaps resolved by upgrading to `v2026.3.23+`.
+- Added `v2026.3.23` plugin-lifecycle coverage for `openclaw plugins uninstall <id-or-spec>` handling of installed `clawhub:` specs/versionless package names, plus `openclaw doctor --fix` cleanup of stale `plugins.allow` and `plugins.entries` references.
+- Added troubleshooting coverage for OpenAI token paste-store persistence, `openclaw skills update` legacy Unicode slug compatibility (`Invalid skill slug`), ClawHub auth-related 429 browse failures, and Mistral output-budget repair via `openclaw doctor --fix`.
+- Added release-alignment note for `Qwen (Alibaba Cloud Model Studio)` provider naming and DashScope endpoint support introduced in `v2026.3.23`.
 - Added security hardening notes for v2026.3.22 browser relay removal migration, expanded exec env injection blocking, Windows remote media path protections, and fail-closed discovery endpoint handling.
 - **User login mechanism guide**: Comprehensive documentation covering gateway authentication (token, password, trusted-proxy, Tailscale), channel login (WhatsApp QR, Zalo Personal), model provider authentication, pairing mechanisms, device management, and session isolation
 - Documented v2026.3.7 auth-mode upgrade requirement: when both `gateway.auth.token` and `gateway.auth.password` are configured (including SecretRefs), `gateway.auth.mode` must be set explicitly.

@@ -60,6 +60,9 @@ These are recent operationally important additions in current stable releases:
 4. **Timezone-correct one-shot cron scheduling** — `openclaw cron add|edit --at ... --tz <iana>` now honors requested local wall-clock time.
 5. **Single-channel auth UX hardening** (v2026.3.23) — `openclaw channels login|logout` auto-selects the single configured login-capable channel.
 6. **Packaged bundled-plugin runtime repair** (v2026.3.23) — npm installs include required bundled plugin runtime sidecars again, preventing missing-runtime failures after global installs.
+7. **ClawHub uninstall target recovery** (v2026.3.23) — `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless package names again, even when prior installs were pinned.
+8. **Plugin config self-healing improvements** (v2026.3.23) — `openclaw doctor --fix` prunes stale `plugins.allow` / `plugins.entries` refs after removals, and stale unknown `plugins.allow` ids no longer hard-fail recovery commands.
+9. **Qwen provider catalog update** (v2026.3.23) — Model Studio coverage now includes standard DashScope endpoints for China/global Qwen API keys under `Qwen (Alibaba Cloud Model Studio)`.
 
 ## Notable Additions in v2026.3.11-v2026.3.12
 

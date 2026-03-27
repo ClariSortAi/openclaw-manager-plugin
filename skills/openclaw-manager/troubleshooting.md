@@ -168,6 +168,21 @@ openclaw models auth setup-token --provider <provider-name>
 openclaw configure
 ```
 
+#### OpenAI Token Keeps Reverting to an Older Value
+**Symptoms:** You paste/save a fresh token (for example via onboarding or `models auth paste-token`), but it snaps back to an expired value after reconnect or refresh.
+
+**Cause:** Older builds could overwrite newly saved credentials with stale in-memory auth profile state.
+
+**Fix:**
+```bash
+# Upgrade to current stable (includes auth-profile write fixes)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-save token, then verify deep status
+openclaw models auth setup-token --provider openai
+openclaw status --deep
+```
+
 ### Channel Issues
 
 #### Slack: missing_scope Error
@@ -429,6 +444,36 @@ openclaw plugins install clawhub:<package>
 openclaw plugins install @scope/package
 ```
 
+#### ClawHub Plugin Uninstall Fails for Previously Pinned Installs
+**Symptoms:** `openclaw plugins uninstall clawhub:<package>` fails even though the plugin was installed from ClawHub.
+
+**Cause:** Some older builds mismatched uninstall targets when recorded installs were pinned or normalized differently.
+
+**Fix:**
+```bash
+# Upgrade to current stable (v2026.3.23+)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Retry uninstall by id or clawhub spec
+openclaw plugins uninstall <plugin-id>
+openclaw plugins uninstall clawhub:<package>
+```
+
+#### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
+**Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
+
+**Cause:** Older builds could treat stale `plugins.allow` entries as fatal and leave stale `plugins.entries` references after removal.
+
+**Fix:**
+```bash
+# Upgrade first so stale allowlist ids become warnings
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Then prune stale refs automatically
+openclaw doctor --fix
+openclaw status
+```
+
 ### Skill Issues
 
 #### ClawHub Skill Not Working
@@ -459,6 +504,20 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 # Use native skills flows
 openclaw skills search <query>
 openclaw skills install <skill-slug>
+openclaw skills update --all
+```
+
+#### `openclaw skills update` Fails with `Invalid skill slug`
+**Symptoms:** Updates fail on older installed skills with `Invalid skill slug` errors.
+
+**Cause:** Legacy installs using older Unicode slug variants could break after slug-hardening updates.
+
+**Fix:**
+```bash
+# Upgrade to current stable (includes legacy-slug update compatibility)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Retry update on all installed skills
 openclaw skills update --all
 ```
 
