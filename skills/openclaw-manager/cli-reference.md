@@ -54,7 +54,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.23` stable note: current stable is published as `v2026.3.23` and CLI version output should report `2026.3.23`.
+`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
 
 ### Device Management
 ```bash
@@ -222,6 +222,15 @@ openclaw reset               # Reset config/state (keeps CLI)
 openclaw uninstall           # Full uninstall
 ```
 
+### Containerized CLI Execution (v2026.3.24+)
+```bash
+# Run OpenClaw CLI commands inside a running Docker/Podman container
+openclaw --container <name-or-id> status
+openclaw --container <name-or-id> doctor --fix
+```
+
+Use this when your gateway runs in a container and host-side CLI paths differ from runtime state.
+
 ### Backup & Recovery (v2026.3.8+)
 ```bash
 openclaw backup create                 # Create local state backup archive
@@ -365,6 +374,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
+| `OPENCLAW_CONTAINER` | Default container target for containerized CLI execution (v2026.3.24+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |

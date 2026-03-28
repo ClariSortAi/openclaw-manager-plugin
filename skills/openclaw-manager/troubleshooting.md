@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.23+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.24+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.23+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.24+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.23+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.24+**.
 
 ## Common Issues
 
@@ -224,7 +224,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.16.0+
+node --version  # Should be v22.14.0+
 
 # Restart gateway
 openclaw gateway restart
@@ -451,7 +451,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.23+)
+# Upgrade to current stable (v2026.3.24+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -557,11 +557,29 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.23+ includes timezone fix)
+# Upgrade to current stable (v2026.3.24+ includes timezone fix)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
 openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
+```
+
+#### Running OpenClaw CLI Against a Container Fails
+**Symptoms:** Local `openclaw` command cannot manage a Docker/Podman deployment without shelling into the container first.
+
+**Cause:** Older builds did not support container-targeted CLI execution flags.
+
+**Fix:**
+```bash
+# Upgrade to current stable for container-aware CLI support
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Run command inside a running OpenClaw container
+openclaw --container openclaw-gateway status --all
+
+# Optional: set default target container
+export OPENCLAW_CONTAINER=openclaw-gateway
+openclaw status --deep
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
