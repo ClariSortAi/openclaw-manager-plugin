@@ -119,6 +119,7 @@ openclaw channels login --account secondary
 ```
 
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
+`v2026.3.24+` note: use `openclaw --container <name-or-id> channels login` (or set `OPENCLAW_CONTAINER`) when channel auth must run inside a running OpenClaw Docker/Podman container.
 
 **Process:**
 1. Run the command

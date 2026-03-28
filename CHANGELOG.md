@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.3.24`, including container-aware CLI execution via `openclaw --container` / `OPENCLAW_CONTAINER`, OpenAI-compatible gateway endpoint additions (`/v1/models`, `/v1/embeddings`), explicit model-override forwarding notes, and stable status for sandbox media alias-bypass hardening.
+- Added troubleshooting guidance for running OpenClaw CLI commands inside active Docker/Podman containers and for OpenAI-compatible client interoperability checks against expanded `/v1/*` gateway surfaces.
+- Added CLI reference examples for `openclaw --container <name-or-id> ...` and environment-variable driven container targeting with `OPENCLAW_CONTAINER`.
 - Added release-alignment coverage for upstream stable `v2026.3.22` and `v2026.3.23`, including ClawHub-first plugin install precedence, native `openclaw skills search|install|update` command guidance, `openclaw plugins install clawhub:<package>` flows, timezone-correct one-shot cron `--at --tz` behavior, and single-channel `channels login|logout` auto-selection notes.
 - Added troubleshooting coverage for post-install bundled plugin runtime sidecar gaps resolved by upgrading to `v2026.3.23+`.
 - Added `v2026.3.23` plugin-lifecycle coverage for `openclaw plugins uninstall <id-or-spec>` handling of installed `clawhub:` specs/versionless package names, plus `openclaw doctor --fix` cleanup of stale `plugins.allow` and `plugins.entries` references.
@@ -36,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across plugin docs from `v2026.3.23+` to `v2026.3.24+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated Node.js runtime guidance from `v22.16.0+` to **v22.14.0+** with explicit Node 24 recommendation, matching upstream v2026.3.24 engine support changes.
+- Updated stable-version notes in command references and troubleshooting language from `v2026.3.23` to `v2026.3.24`.
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.13+` to `v2026.3.23+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated docs to reflect removal of legacy Chrome extension relay assumptions (`chrome-relay`) in upstream `v2026.3.22`.
 - Updated onboarding and skill-install examples to prefer core `openclaw skills ...` commands while retaining `clawhub` compatibility references.
