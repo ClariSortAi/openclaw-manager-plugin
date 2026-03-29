@@ -23,6 +23,16 @@ openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
 
+### Container-Targeted CLI (v2026.3.24+)
+```bash
+# Run a command inside an already-running OpenClaw container
+openclaw --container openclaw-gateway status --all
+
+# Environment-variable alternative
+export OPENCLAW_CONTAINER=openclaw-gateway
+openclaw status --all
+```
+
 ### Configuration
 ```bash
 openclaw configure           # Interactive configuration wizard
@@ -54,7 +64,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.23` stable note: current stable is published as `v2026.3.23` and CLI version output should report `2026.3.23`.
+`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
 
 ### Device Management
 ```bash
@@ -363,6 +373,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_GATEWAY_TOKEN` | Gateway auth token |
 | `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
+| `OPENCLAW_CONTAINER` | Run `openclaw` CLI commands inside a running Docker/Podman OpenClaw container (v2026.3.24+) |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
