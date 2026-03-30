@@ -54,7 +54,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.23` stable note: current stable is published as `v2026.3.23` and CLI version output should report `2026.3.23`.
+`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
 
 ### Device Management
 ```bash
@@ -240,6 +240,16 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic  # Direct API key setup
 ```
 
+### Container-Targeted CLI Execution (v2026.3.24+)
+```bash
+# Run OpenClaw command against an active Docker/Podman container
+openclaw --container openclaw-gateway status
+
+# Set a default target container for subsequent commands
+export OPENCLAW_CONTAINER=openclaw-gateway
+openclaw status --all
+```
+
 ### ACP
 ```bash
 openclaw acp --provenance off          # Disable ACP ingress provenance metadata
@@ -366,6 +376,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
+| `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -387,7 +398,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | WebChat | Gateway UI over WebSocket |
 | WhatsApp | Baileys library, QR pairing, multi-account |
 
-`v2026.3.13+` Slack note: OpenClaw adds opt-in interactive reply directives in shared Slack delivery flows.
+`v2026.3.13+` Slack note: OpenClaw adds opt-in interactive reply directives in shared Slack delivery flows. In v2026.3.24+, direct deliveries regain rich interactive parity and simple trailing `Options:` lines can auto-render as controls.
 
 ### Plugin Channels (Install Separately)
 

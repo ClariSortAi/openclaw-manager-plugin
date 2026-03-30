@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.23+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.24+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.23+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.24+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.23+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.24+**.
 
 ## Common Issues
 
@@ -224,7 +224,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.16.0+
+node --version  # Should be v22.14.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -451,12 +451,50 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.23+)
+# Upgrade to current stable (v2026.3.24+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
 openclaw plugins uninstall <plugin-id>
 openclaw plugins uninstall clawhub:<package>
+```
+
+#### Container-Targeted CLI Command Runs Against the Wrong OpenClaw Instance
+**Symptoms:** You expect a command to run in Docker/Podman, but it executes against the local host runtime (or vice versa).
+
+**Cause:** The command did not include `--container`, or `OPENCLAW_CONTAINER` is unset/points to the wrong container id/name.
+
+**Fix:**
+```bash
+# Verify target container exists and is running
+docker ps
+
+# Run command explicitly against the container
+openclaw --container openclaw-gateway status --all
+
+# Optional: set default for repeated commands in this shell session
+export OPENCLAW_CONTAINER=openclaw-gateway
+openclaw status --all
+```
+
+If commands still fail, validate that the selected container image version is current stable and supports the command surface you are invoking.
+
+#### `openclaw update` Fails Due to Node Engine Floor
+**Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
+
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes now fail with a clear upgrade message instead of attempting unsupported installs.
+
+**Fix:**
+```bash
+# Check local Node runtime first
+node --version
+
+# Upgrade Node if below minimum supported floor
+# (v22.14.0+ required; Node 24 recommended)
+
+# Retry update after runtime upgrade
+openclaw update
+openclaw status
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -557,7 +595,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.23+ includes timezone fix)
+# Upgrade to current stable (v2026.3.24+ includes timezone fix)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
