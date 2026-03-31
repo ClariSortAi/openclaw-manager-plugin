@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.3.28`, including Qwen auth-path migration (`qwen-portal-auth` removal in favor of Model Studio API-key onboarding), `openclaw config schema`, async plugin-approval routing with `/approve`, and normalized `upload-file` channel action guidance.
+- Added troubleshooting playbooks for `v2026.3.28` migration failures: removed legacy Qwen portal OAuth path and dropped auto-migration of very old config keys that now fail validation.
 - Added release-alignment coverage for upstream stable `v2026.3.24`, including container-targeted CLI execution (`openclaw --container`, `OPENCLAW_CONTAINER`), OpenAI-compatible gateway endpoint additions (`/v1/models`, `/v1/embeddings`, explicit model override forwarding), and refreshed Slack/Teams behavior notes.
 - Added troubleshooting guidance for container-targeted CLI command dispatch and stale npm engine-floor update failures resolved by upgrading Node runtimes or pinning supported releases.
 - Added CLI reference and skill workflow examples for running diagnostics against active Docker/Podman OpenClaw containers without shelling into the container directly.
@@ -39,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across plugin docs from `v2026.3.24+` to `v2026.3.28+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated plugin metadata/versioning for this release alignment (`1.3.4`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.23+` to `v2026.3.24+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated Node.js minimum guidance from **v22.16.0+** to **v22.14.0+** to reflect upstream runtime floor changes in `v2026.3.24` while still recommending Node 24 for new installs.
 - Updated README/version metadata for this docs release alignment (`1.3.3`).

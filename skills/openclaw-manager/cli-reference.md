@@ -32,6 +32,7 @@ openclaw config unset <path> # Remove config value
 openclaw config validate     # Validate config before gateway restart (v2026.3.2+)
 openclaw config validate --json  # Machine-readable validation output
 openclaw config file         # Print active config file path (v2026.3.1+)
+openclaw config schema       # Print generated JSON schema for openclaw.json (v2026.3.28+)
 ```
 
 ### Channel Management
@@ -54,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
+`v2026.3.28` stable note: current stable is published as `v2026.3.28` and CLI version output should report `2026.3.28`.
 
 ### Device Management
 ```bash
@@ -158,6 +159,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
 
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
+
+`v2026.3.28+` plugin note: plugins can request interactive approvals through async hook checks, and `/approve` now covers both exec and plugin approval flows with channel-aware fallback controls.
 
 ### Agents
 ```bash
@@ -399,6 +402,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | WhatsApp | Baileys library, QR pairing, multi-account |
 
 `v2026.3.13+` Slack note: OpenClaw adds opt-in interactive reply directives in shared Slack delivery flows. In v2026.3.24+, direct deliveries regain rich interactive parity and simple trailing `Options:` lines can auto-render as controls.
+`v2026.3.28+` file-action note: prefer explicit `upload-file` action semantics for Slack/Teams/Google Chat and BlueBubbles file sends (legacy `sendAttachment` remains a compatibility alias).
 
 ### Plugin Channels (Install Separately)
 
