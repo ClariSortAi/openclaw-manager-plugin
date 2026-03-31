@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.24+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.24+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.24+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider/auth-path compatibility, and updated migration behavior, upgrade to **v2026.3.28+**.
 
 ## Common Issues
 
@@ -451,7 +451,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.24+)
+# Upgrade to current stable (v2026.3.28+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -482,7 +482,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes now fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -595,7 +595,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.24+ includes timezone fix)
+# Upgrade to current stable (v2026.3.28+ includes timezone fix)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -744,6 +744,38 @@ openclaw gateway restart
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run validation
+openclaw config validate
+openclaw gateway restart
+```
+
+#### Qwen Authentication Flow Breaks After Upgrade
+**Symptoms:** Qwen setup/auth that depended on `portal.qwen.ai` OAuth or `qwen-portal-auth` fails after upgrading.
+
+**Cause:** v2026.3.28 removed the deprecated portal OAuth integration path for Qwen.
+
+**Fix:**
+```bash
+# Use Model Studio API key onboarding/auth instead
+openclaw onboard --auth-choice modelstudio-api-key
+
+# Or reconfigure provider auth directly, then verify
+openclaw configure
+openclaw status --deep
+```
+
+#### Legacy Config Keys No Longer Auto-Migrate
+**Symptoms:** `openclaw config validate` starts failing on old keys that previously worked after automatic doctor/load rewrites.
+
+**Cause:** v2026.3.28 drops automatic config migrations for very old keys (older than two months).
+
+**Fix:**
+```bash
+# Inspect exact invalid paths
+openclaw config validate --json
+openclaw config schema
+
+# Remove or migrate stale keys explicitly
+openclaw config unset <legacy.path>
 openclaw config validate
 openclaw gateway restart
 ```

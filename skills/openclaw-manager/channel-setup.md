@@ -94,10 +94,11 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24+)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
+As of v2026.3.28+, file sends can be standardized on explicit `upload-file` action paths for Slack uploads, including optional filename/title/comment overrides.
 
 ---
 

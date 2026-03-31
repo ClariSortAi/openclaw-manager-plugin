@@ -120,6 +120,7 @@ openclaw channels login --account secondary
 
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
+`v2026.3.28+` note: deprecated Qwen `portal.qwen.ai` OAuth (`qwen-portal-auth`) is removed; use Model Studio API-key onboarding (`openclaw onboard --auth-choice modelstudio-api-key`) for Qwen auth flows.
 
 **Process:**
 1. Run the command
@@ -213,7 +214,7 @@ openclaw models auth setup-token --provider kilocode
 # Moonshot/Kimi (v2026.2.23+)
 openclaw models auth setup-token --provider moonshot
 
-# MiniMax M2.5 (v2026.3.2+)
+# MiniMax M2.7 (v2026.3.28+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)

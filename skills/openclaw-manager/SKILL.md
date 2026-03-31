@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.24+** for the latest container-aware CLI flows, OpenAI-compatible gateway endpoint coverage, Slack/Teams delivery fixes, and plugin/runtime recovery fixes. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.28+** for the latest Qwen auth-path compatibility, config migration behavior, bundled CLI/provider plugin defaults, and expanded file-delivery tooling. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.22)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.22-v2026.3.28)
 
 These changes affect new and existing installations:
 
@@ -49,6 +49,20 @@ These changes affect new and existing installations:
 7. **Cron isolated delivery tightened** (v2026.3.11) — Legacy notify/webhook metadata and ad hoc fallback send paths are migrated by `openclaw doctor --fix`.
 8. **Browser extension relay removed** (v2026.3.22) — Legacy Chrome extension relay path and `chrome-relay` profile assumptions are removed; migrate browser config to `existing-session` / `user` with `openclaw doctor --fix`.
 9. **ClawHub resolution precedence changed** (v2026.3.22) — `openclaw plugins install <package>` now prefers ClawHub before npm for npm-safe names; use explicit `clawhub:` specs when you need deterministic source selection.
+10. **Qwen portal OAuth path removed** (v2026.3.28) — deprecated `qwen-portal-auth` for `portal.qwen.ai` is removed; migrate to Model Studio API key onboarding (`openclaw onboard --auth-choice modelstudio-api-key`) and keep provider setup on `Qwen (Alibaba Cloud Model Studio)`.
+11. **Very old config auto-migrations removed** (v2026.3.28) — automatic rewrites for legacy keys older than two months are dropped; stale keys now fail validation and require explicit cleanup/migration.
+
+## Notable Additions in v2026.3.28
+
+These are recent operationally important additions in current stable releases:
+
+1. **xAI Responses + first-class `x_search`** — bundled xAI provider shifts to Responses API, supports first-class `x_search`, and can auto-enable bundled plugin wiring from owned web-search/tool config.
+2. **xAI onboarding enhancements** — `openclaw onboard` and `openclaw configure --section web` now expose optional `x_search` setup with model picker using shared xAI credentials.
+3. **Config schema introspection command** — `openclaw config schema` prints the generated JSON schema for `openclaw.json`, improving validation/migration workflows.
+4. **Unified plugin approval routing** — plugin hooks can request async approvals and `/approve` now handles both exec and plugin approvals with channel-aware fallbacks.
+5. **Bundled CLI backend/plugin default improvements** — Claude CLI, Codex CLI, and Gemini CLI backends are aligned onto the plugin surface and auto-loaded from explicit config references.
+6. **OpenAI/Codex `apply_patch` default enablement** — patch tool is enabled by default for OpenAI-compatible Codex paths, aligned with `write` sandbox permissioning.
+7. **File-first channel action unification** — explicit `upload-file` action now routes through Slack upload transport and expands normalized file-delivery handling across Teams/Google Chat/BlueBubbles.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -174,7 +188,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.24+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.28+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -429,7 +443,7 @@ openclaw models auth setup-token --provider xai
 # OpenAI (WebSocket-first transport in v2026.3.1+)
 openclaw models auth setup-token --provider openai
 
-# MiniMax M2.5 (v2026.3.2+)
+# MiniMax M2.7 (v2026.3.28+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)
