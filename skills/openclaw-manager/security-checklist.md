@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.24+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.31+**.
 
 ### Known Critical Vulnerabilities
 
@@ -98,6 +98,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Windows media path hardening | Blocks remote-host `file://` and UNC/network path coercion in media loading paths to prevent SMB credential leakage | v2026.3.22 |
 | Discovery fail-closed behavior | Rejects unresolved Bonjour/DNS-SD endpoints so TXT-only hints cannot steer routing or SSH auto-targeting | v2026.3.22 |
 | Sandbox media dispatch hardening | Closes `mediaUrl`/`fileUrl` alias bypass paths so outbound tools/messages cannot escape media-root restrictions | v2026.3.24 |
+| Trusted-proxy auth tightening | Rejects mixed shared-token trusted-proxy configs and removes implicit same-host local-direct fallback auth | v2026.3.31 |
+| Owner-only tool HTTP invoke guard | Tightens `/tools/invoke` authorization so owner-only tools stay off HTTP invoke paths | v2026.3.31 |
+| Handshake brute-force protection | Keeps shared-auth rate limiting active during WebSocket handshake attempts even with fake device-token candidates | v2026.3.31 |
+| Exec environment sanitization expansion | Blocks additional proxy/TLS/Docker/Python package index env override vectors in approved host exec paths | v2026.3.31 |
+| ACP dangerous-tool approvals | Replaces ACP dangerous-tool-name override behavior with semantic approval classes so indirect exec/control tools still require explicit approval | v2026.3.31 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -378,9 +383,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.24+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.3.31+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
+- [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -430,6 +436,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Every ClawHub skill audited before installation (review source, check author, verify VirusTotal)
 - [ ] Only trusted plugins installed (they run in-process with full privileges)
 - [ ] Plugin allowlist configured via `plugins.allow`
+- [ ] Install-time dangerous-code findings are reviewed; avoid bypassing fail-closed safety overrides unless risk is explicitly accepted (v2026.3.31+)
 - [ ] Aware of ClawHavoc supply chain attack: 1,184+ malicious skills confirmed, 2,419 removed from ClawHub
 - [ ] ClawHub VirusTotal integration active (automatic scanning since Feb 2026)
 
@@ -540,7 +547,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.24+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.31+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

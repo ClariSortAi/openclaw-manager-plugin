@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.24+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.31+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.24+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.31+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.24+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.31+**.
 
 ## Common Issues
 
@@ -127,6 +127,21 @@ openclaw config set gateway.auth.mode token
 openclaw config set gateway.auth.mode password
 
 openclaw config validate
+openclaw gateway restart
+```
+
+#### Trusted-Proxy Auth Breaks After Upgrade
+**Symptoms:** Existing trusted-proxy deployments start failing authentication after upgrading to v2026.3.31.
+
+**Cause:** v2026.3.31 hardens trusted-proxy auth by rejecting mixed shared-token configurations and removing implicit local-direct fallback auth.
+
+**Fix:**
+```bash
+# Keep one clear auth surface and explicit mode
+openclaw config set gateway.auth.mode trusted-proxy
+
+# If local direct access is still required, pass the configured token explicitly
+openclaw config get gateway.auth.token
 openclaw gateway restart
 ```
 
@@ -451,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.24+)
+# Upgrade to current stable (v2026.3.31+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -482,7 +497,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes now fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -595,7 +610,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.24+ includes timezone fix)
+# Upgrade to current stable (v2026.3.31+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -733,6 +748,22 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+#### Legacy Config Keys Stop Auto-Migrating
+**Symptoms:** After upgrading to v2026.3.28+, startup or `openclaw config validate` fails on very old legacy keys that used to auto-rewrite.
+
+**Cause:** v2026.3.28 removed automatic config migrations for older legacy keys (roughly older than two months).
+
+**Fix:**
+```bash
+# Surface exact invalid paths
+openclaw config validate --json
+
+# Remove or rewrite stale keys manually, then re-validate
+openclaw config unset <legacy.path>
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Signal Group Keys Rejected as Invalid Config
 **Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.
 
@@ -812,6 +843,18 @@ openclaw config set agents.defaults.pdfMaxPages 200
 
 // New (v2026.3.2+):
 api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
+```
+
+#### Plugin or Skill Install Suddenly Fails on Security Scan
+**Symptoms:** Installs that used to pass now fail with dangerous-code `critical` or install-time scan failure messages.
+
+**Cause:** v2026.3.31 switched plugin installs and gateway-backed skill dependency installs to fail closed by default on critical dangerous findings.
+
+**Fix:**
+```bash
+# First choice: do not override; audit package source and try a safer alternative.
+# If you fully trust the source and accept risk, rerun with explicit dangerous override flags.
+openclaw plugins install <spec>
 ```
 
 ### Zalo Personal Issues (v2026.3.2)

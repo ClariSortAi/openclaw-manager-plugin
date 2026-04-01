@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.3.28` and `v2026.3.31`, including new breaking-change guidance for Qwen Portal OAuth removal, very old config auto-migration removal, MiniMax legacy model-id removals (M2/M2.1/M2.5/VL-01), trusted-proxy auth tightening, and install-time dangerous-code fail-closed behavior.
+- Added CLI reference coverage for `openclaw config schema` and `openclaw flows list|show|cancel` task-flow controls introduced in the latest stable line.
+- Added troubleshooting coverage for trusted-proxy auth breakage after upgrade, legacy-key validation failures after migration removal, and fail-closed install scan behavior requiring explicit override decisions.
+- Added security-checklist hardening notes for trusted-proxy mixed-token rejection, owner-only `/tools/invoke` authorization tightening, handshake brute-force protections, and expanded host exec environment sanitization in `v2026.3.31`.
+- Added channel/setup coverage for Slack-native exec approval routing in `v2026.3.31`.
 - Added release-alignment coverage for upstream stable `v2026.3.24`, including container-targeted CLI execution (`openclaw --container`, `OPENCLAW_CONTAINER`), OpenAI-compatible gateway endpoint additions (`/v1/models`, `/v1/embeddings`, explicit model override forwarding), and refreshed Slack/Teams behavior notes.
 - Added troubleshooting guidance for container-targeted CLI command dispatch and stale npm engine-floor update failures resolved by upgrading Node runtimes or pinning supported releases.
 - Added CLI reference and skill workflow examples for running diagnostics against active Docker/Podman OpenClaw containers without shelling into the container directly.
@@ -39,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated model-provider references from MiniMax M2.5 wording to the current M2.7 catalog guidance where applicable.
+- Updated README/version metadata for this docs release alignment (`1.3.4`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.23+` to `v2026.3.24+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated Node.js minimum guidance from **v22.16.0+** to **v22.14.0+** to reflect upstream runtime floor changes in `v2026.3.24` while still recommending Node 24 for new installs.
 - Updated README/version metadata for this docs release alignment (`1.3.3`).
