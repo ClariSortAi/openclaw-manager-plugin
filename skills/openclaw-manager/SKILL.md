@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.24+** for the latest container-aware CLI flows, OpenAI-compatible gateway endpoint coverage, Slack/Teams delivery fixes, and plugin/runtime recovery fixes. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.31+** for the latest trusted-proxy auth hardening, background task/flow controls, Qwen Model Studio migration behavior, and install-time dangerous-code fail-closed protections. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.22)
+## Breaking Changes to Watch For (v2026.3.x, including v2026.3.31)
 
 These changes affect new and existing installations:
 
@@ -49,6 +49,12 @@ These changes affect new and existing installations:
 7. **Cron isolated delivery tightened** (v2026.3.11) — Legacy notify/webhook metadata and ad hoc fallback send paths are migrated by `openclaw doctor --fix`.
 8. **Browser extension relay removed** (v2026.3.22) — Legacy Chrome extension relay path and `chrome-relay` profile assumptions are removed; migrate browser config to `existing-session` / `user` with `openclaw doctor --fix`.
 9. **ClawHub resolution precedence changed** (v2026.3.22) — `openclaw plugins install <package>` now prefers ClawHub before npm for npm-safe names; use explicit `clawhub:` specs when you need deterministic source selection.
+10. **Qwen Portal OAuth removed** (v2026.3.28) — deprecated `qwen-portal-auth`/`portal.qwen.ai` OAuth flow is removed; migrate to Model Studio API keys (for example via `openclaw onboard --auth-choice modelstudio-api-key`).
+11. **Very old config auto-migrations removed** (v2026.3.28) — legacy keys older than roughly two months are no longer silently rewritten by runtime load or doctor; outdated keys now fail validation and must be fixed explicitly.
+12. **MiniMax legacy model IDs removed** (v2026.3.28) — old M2/M2.1/M2.5/VL-01 catalog entries were removed; move MiniMax model selections to the M2.7 catalog.
+13. **Dangerous install findings now fail closed** (v2026.3.31) — plugin installs and gateway-backed skill dependency installs with built-in dangerous-code `critical` findings now block by default unless explicitly overridden.
+14. **Trusted-proxy auth tightened** (v2026.3.31) — mixed shared-token configs are rejected, and local-direct fallback now requires the configured gateway token instead of implicit same-host authentication.
+15. **`nodes.run` shell wrapper removed** (v2026.3.31) — node-shell execution should use `exec host=node`; keep node-specific behavior on `nodes invoke` and dedicated node actions.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -67,6 +73,21 @@ These are recent operationally important additions in current stable releases:
 11. **OpenAI-compatible gateway expansions** (v2026.3.24) — gateway now exposes `/v1/models` and `/v1/embeddings`, and forwards explicit model overrides in `/v1/chat/completions` and `/v1/responses`.
 12. **Slack interactive direct-delivery parity** (v2026.3.24) — direct replies regain rich interactive parity, with simple trailing `Options:` lines auto-rendered as controls.
 13. **Teams channel UX refresh** (v2026.3.24) — `@openclaw/msteams` moves to the official Teams SDK with richer 1:1 streaming UX and message edit/delete support.
+
+## Notable Additions in v2026.3.28-v2026.3.31
+
+These are recent operationally important additions in the latest stable releases:
+
+1. **Task-flow control surface** (v2026.3.31) — `openclaw flows list|show|cancel` adds first-class visibility/control over detached background work.
+2. **`openclaw config schema`** (v2026.3.28) — prints the generated JSON schema for `openclaw.json`, which helps CI/config-lint workflows.
+3. **Remote MCP server URL support** (v2026.3.31) — `mcp.servers` can target HTTP/SSE endpoints with auth headers and safer credential redaction behavior.
+4. **Slack-native exec approvals** (v2026.3.31) — exec approval routing can stay inside Slack with approver authorization rather than falling back to Web UI/terminal.
+5. **QQ Bot bundled channel plugin** (v2026.3.31) — adds multi-account QQ Bot support with SecretRef-aware credentials and media flows.
+6. **xAI Responses + `x_search` integration** (v2026.3.28) — bundled xAI provider uses Responses API with first-class `x_search` and onboarding/config wiring.
+7. **OpenAI/Codex `apply_patch` default enablement** (v2026.3.28) — `apply_patch` is enabled by default on OpenAI/OpenAI Codex models with write-aligned sandbox policy.
+8. **Current-conversation ACP bind support expands** (v2026.3.28) — Discord, BlueBubbles, and iMessage support `/acp spawn ... --bind here` workflows.
+9. **Plugin approval hook enrichment** (v2026.3.28) — async `requireApproval` in `before_tool_call` lets plugins pause tool execution and request explicit approval.
+10. **Matrix draft streaming** (v2026.3.31) — partial Matrix replies can update the same message in place instead of emitting chunk-per-message noise.
 
 ## Notable Additions in v2026.3.11-v2026.3.12
 
@@ -174,7 +195,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.24+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.31+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -429,7 +450,7 @@ openclaw models auth setup-token --provider xai
 # OpenAI (WebSocket-first transport in v2026.3.1+)
 openclaw models auth setup-token --provider openai
 
-# MiniMax M2.5 (v2026.3.2+)
+# MiniMax (M2.7 catalog in v2026.3.28+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)

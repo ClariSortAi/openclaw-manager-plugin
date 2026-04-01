@@ -32,6 +32,7 @@ openclaw config unset <path> # Remove config value
 openclaw config validate     # Validate config before gateway restart (v2026.3.2+)
 openclaw config validate --json  # Machine-readable validation output
 openclaw config file         # Print active config file path (v2026.3.1+)
+openclaw config schema       # Print generated JSON schema for openclaw.json (v2026.3.28+)
 ```
 
 ### Channel Management
@@ -54,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.24` stable note: current stable is published as `v2026.3.24` and CLI version output should report `2026.3.24`.
+`v2026.3.31` stable note: current stable is published as `v2026.3.31` and CLI version output should report `2026.3.31`.
 
 ### Device Management
 ```bash
@@ -91,6 +92,13 @@ openclaw doctor --fix
 ```bash
 # One-shot schedules now honor local wall-clock time with --tz
 openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
+```
+
+### Background Task Flows (v2026.3.31+)
+```bash
+openclaw flows list          # List background task flows
+openclaw flows show <id>     # Show flow details and linked tasks
+openclaw flows cancel <id>   # Cancel an active flow
 ```
 
 ### Cron Add Options
@@ -158,6 +166,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
 
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
+
+`v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
 
 ### Agents
 ```bash
@@ -267,6 +277,7 @@ openclaw config set gateway.bind loopback
 openclaw config set gateway.auth.mode token
 # v2026.3.7+: required when both gateway.auth.token and gateway.auth.password are set
 openclaw config set gateway.auth.allowTailscale true
+# v2026.3.31+: trusted-proxy rejects mixed shared-token configurations
 openclaw config set gateway.mdns.mode minimal
 
 # Channel settings
@@ -411,6 +422,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Matrix | `@openclaw/matrix` | Matrix protocol channel |
 | Nextcloud Talk | `@openclaw/nextcloud-talk` | Nextcloud integration |
 | Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
+| QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (v2026.3.31+) |
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |

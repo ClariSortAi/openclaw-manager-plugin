@@ -112,7 +112,7 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Kilo Code | `setup-token --provider kilocode` | Managed gateway, easy onboarding | Subscription |
 | xAI / Grok | `setup-token --provider xai` | Alternative reasoning models | API usage fees |
 | Moonshot / Kimi | `setup-token --provider moonshot` | Built-in web search with citations | API usage fees |
-| MiniMax | `setup-token --provider minimax` | M2.5 highspeed model | API usage fees |
+| MiniMax | `setup-token --provider minimax` | M2.7 model catalog (v2026.3.28+) | API usage fees |
 | Vercel AI | `setup-token --provider vercel-ai` | Gateway with model routing | Varies |
 
 ### By Use Case
