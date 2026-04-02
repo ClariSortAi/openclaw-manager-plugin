@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.31` stable note: current stable is published as `v2026.3.31` and CLI version output should report `2026.3.31`.
+`v2026.4.1` stable note: current stable is published as `v2026.4.1` and CLI version output should report `2026.4.1`.
 
 ### Device Management
 ```bash
@@ -76,6 +76,8 @@ openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
+# v2026.4.1+: restrict job tool surface
+openclaw cron add --name "Safe Job" --cron "0 9 * * *" --message "Task" --tools "web_search,web_fetch"
 ```
 
 `v2026.3.11+` cron migration note:
@@ -94,12 +96,16 @@ openclaw doctor --fix
 openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
 ```
 
+`v2026.4.1+` cron hardening note: use `--tools` to pin a per-job allowlist so scheduled automation can only invoke required tools.
+
 ### Background Task Flows (v2026.3.31+)
 ```bash
 openclaw flows list          # List background task flows
 openclaw flows show <id>     # Show flow details and linked tasks
 openclaw flows cancel <id>   # Cancel an active flow
 ```
+
+`v2026.4.1+` task UX note: chat-native `/tasks` now shows current-session background work and recent task details without leaving the conversation.
 
 ### Cron Add Options
 ```bash
@@ -108,6 +114,7 @@ openclaw cron add \
   --cron "0 8 * * *" \        # Cron expression (or --every/--at)
   --tz "America/New_York" \   # Timezone
   --message "Task prompt" \   # What to do
+  --tools "web_search,web_fetch" \  # v2026.4.1+: per-job tool allowlist
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
@@ -334,6 +341,9 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
+
+# Global provider-parameter defaults (v2026.4.1+)
+openclaw config set agents.defaults.params.temperature 0.2
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500

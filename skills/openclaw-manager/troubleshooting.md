@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.31+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.1+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.31+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.1+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.31+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.4.1+**.
 
 ## Common Issues
 
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+)
+# Upgrade to current stable (v2026.4.1+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -610,11 +610,25 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.1+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
 openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
+```
+
+#### Cron Job Uses More Tools Than Intended
+**Symptoms:** Scheduled jobs can execute broader tools than expected, increasing blast radius for automation mistakes.
+
+**Cause:** Older cron definitions may rely only on global/default tool policy instead of explicit per-job tool scoping.
+
+**Fix:**
+```bash
+# Upgrade to current stable (v2026.4.1+) for per-job tool allowlists
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Recreate/edit jobs with explicit tool scope
+openclaw cron add --name "Safe Job" --cron "0 8 * * *" --message "Task" --tools "web_search,web_fetch"
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
@@ -855,6 +869,39 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 # First choice: do not override; audit package source and try a safer alternative.
 # If you fully trust the source and accept risk, rerun with explicit dangerous override flags.
 openclaw plugins install <spec>
+```
+
+### Tasks & Background Work (v2026.4.1+)
+
+#### Gateway Becomes Sluggish or Hangs Shortly After Startup
+**Symptoms:** Gateway starts successfully but then becomes unresponsive roughly within the first minute, often on instances with many historical task records.
+
+**Cause:** Older builds could let task-registry maintenance pressure the event loop under synchronous SQLite workloads.
+
+**Fix:**
+```bash
+# Upgrade to current stable (contains task-registry sweep/event-loop fixes)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Validate and restart after upgrade
+openclaw config validate
+openclaw gateway restart
+openclaw status --all
+```
+
+#### `/tasks` Shows Unexpectedly Empty or Stale Results
+**Symptoms:** Task board output appears stale or omits expected entries for the current session.
+
+**Cause:** Completed or stale task visibility can differ depending on active linked tasks and gateway version behavior.
+
+**Fix:**
+```bash
+# Verify active task state from CLI task flows
+openclaw flows list
+openclaw flows show <id>
+
+# Upgrade if needed for latest task/status visibility behavior
+curl -fsSL https://openclaw.ai/install.sh | bash
 ```
 
 ### Zalo Personal Issues (v2026.3.2)

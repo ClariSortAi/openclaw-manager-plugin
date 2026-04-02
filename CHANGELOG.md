@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.1`, including chat-native `/tasks` visibility, cron per-job `--tools` allowlists, `agents.defaults.params` global provider-parameter defaults, bundled SearXNG web-search provider support, and Bedrock Guardrails availability notes.
+- Added troubleshooting coverage for `v2026.4.1` task-registry sweep stability fixes (gateway event-loop hang symptoms) and per-cron job tool-scope hardening guidance.
+- Added security-checklist hardening notes for `v2026.4.1` exec-approval policy consistency updates and task-maintenance stability improvements.
 - Added release-alignment coverage for upstream stable `v2026.3.28` and `v2026.3.31`, including new breaking-change guidance for Qwen Portal OAuth removal, very old config auto-migration removal, MiniMax legacy model-id removals (M2/M2.1/M2.5/VL-01), trusted-proxy auth tightening, and install-time dangerous-code fail-closed behavior.
 - Added CLI reference coverage for `openclaw config schema` and `openclaw flows list|show|cancel` task-flow controls introduced in the latest stable line.
 - Added troubleshooting coverage for trusted-proxy auth breakage after upgrade, legacy-key validation failures after migration removal, and fail-closed install scan behavior requiring explicit override decisions.
@@ -44,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.1+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.5`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated model-provider references from MiniMax M2.5 wording to the current M2.7 catalog guidance where applicable.
 - Updated README/version metadata for this docs release alignment (`1.3.4`).

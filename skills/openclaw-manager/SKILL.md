@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.31+** for the latest trusted-proxy auth hardening, background task/flow controls, Qwen Model Studio migration behavior, and install-time dangerous-code fail-closed protections. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.1+** for the latest task/flow operational controls, cron tool-allowlist controls, and task-registry/exec-approval reliability fixes on top of v2026.3.31 hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -88,6 +88,18 @@ These are recent operationally important additions in the latest stable releases
 8. **Current-conversation ACP bind support expands** (v2026.3.28) — Discord, BlueBubbles, and iMessage support `/acp spawn ... --bind here` workflows.
 9. **Plugin approval hook enrichment** (v2026.3.28) — async `requireApproval` in `before_tool_call` lets plugins pause tool execution and request explicit approval.
 10. **Matrix draft streaming** (v2026.3.31) — partial Matrix replies can update the same message in place instead of emitting chunk-per-message noise.
+
+## Notable Additions in v2026.4.1
+
+These are recent operationally important additions and fixes in the latest stable release:
+
+1. **Chat-native task board** — `/tasks` provides in-session visibility into background work, recent task details, and fallback counts when linked tasks are not visible.
+2. **Per-cron job tool allowlists** — cron supports per-job tool scoping via `--tools`, enabling tighter automation blast-radius control.
+3. **Global provider-parameter defaults** — `agents.defaults.params` adds a first-class global default layer for provider parameters.
+4. **Bundled SearXNG web search provider** — OpenClaw now includes a bundled SearXNG provider path for `web_search` with configurable host support.
+5. **Bedrock Guardrails support** — bundled Amazon Bedrock provider now exposes Guardrails integration controls.
+6. **Gateway task-registry stability fixes** — task maintenance sweeps no longer stall the gateway event loop under synchronous SQLite pressure.
+7. **Exec approval reliability hardening** — Slack/Discord-native approvals, durable `allow-always` behavior, and trust/default-policy handling are more consistent across remote exec paths.
 
 ## Notable Additions in v2026.3.11-v2026.3.12
 
@@ -195,7 +207,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.31+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.1+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -249,8 +261,19 @@ openclaw config set channels.<channel>.<setting> <value>
 ```bash
 openclaw cron list
 openclaw cron add --name "Job" --cron "0 8 * * *" --message "Task"
+# v2026.4.1+: limit tool surface per job
+openclaw cron add --name "Safe Job" --cron "0 9 * * *" --message "Task" --tools "web_search,web_fetch"
 openclaw cron enable <id>
 openclaw cron run <id>  # Test run
+```
+
+### Monitor Background Tasks (v2026.4.1+)
+```bash
+# In chat surfaces, use /tasks to view active and recent background tasks.
+# For CLI visibility/control, keep using:
+openclaw flows list
+openclaw flows show <id>
+openclaw flows cancel <id>
 ```
 
 ### Back Up Before Risky Changes (v2026.3.8+)

@@ -120,7 +120,7 @@ openclaw channels login --account secondary
 
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
-`v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
+`v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth. On current stable (`v2026.4.1+`), keep this baseline and validate approval/policy behavior with `openclaw doctor --fix` after auth model changes.
 
 **Process:**
 1. Run the command
