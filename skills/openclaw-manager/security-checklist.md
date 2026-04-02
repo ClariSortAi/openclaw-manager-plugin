@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.31+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.1+**.
 
 ### Known Critical Vulnerabilities
 
@@ -103,6 +103,8 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Handshake brute-force protection | Keeps shared-auth rate limiting active during WebSocket handshake attempts even with fake device-token candidates | v2026.3.31 |
 | Exec environment sanitization expansion | Blocks additional proxy/TLS/Docker/Python package index env override vectors in approved host exec paths | v2026.3.31 |
 | ACP dangerous-tool approvals | Replaces ACP dangerous-tool-name override behavior with semantic approval classes so indirect exec/control tools still require explicit approval | v2026.3.31 |
+| Exec approval policy consistency | Keeps native Slack/Discord approvals and approval persistence aligned with explicit/default policy handling, including durable `allow-always` trust and safer fallback behavior | v2026.4.1 |
+| Gateway task-maintenance stability | Prevents task-registry sweeps from stalling the gateway event loop under synchronous SQLite pressure | v2026.4.1 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -383,7 +385,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.31+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.1+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -437,6 +439,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Only trusted plugins installed (they run in-process with full privileges)
 - [ ] Plugin allowlist configured via `plugins.allow`
 - [ ] Install-time dangerous-code findings are reviewed; avoid bypassing fail-closed safety overrides unless risk is explicitly accepted (v2026.3.31+)
+- [ ] Exec approval defaults and persisted trust behavior are explicitly reviewed after upgrades that change approval policy handling (v2026.4.1+)
 - [ ] Aware of ClawHavoc supply chain attack: 1,184+ malicious skills confirmed, 2,419 removed from ClawHub
 - [ ] ClawHub VirusTotal integration active (automatic scanning since Feb 2026)
 
@@ -547,7 +550,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.31+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.1+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
