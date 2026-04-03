@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.31+** for the latest trusted-proxy auth hardening, background task/flow controls, Qwen Model Studio migration behavior, and install-time dangerous-code fail-closed protections. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest task-flow/runtime recovery fixes, cron per-job tool allowlists, and plugin-owned config migration coverage. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.31)
+## Breaking Changes to Watch For (v2026.3.x-v2026.4.2)
 
 These changes affect new and existing installations:
 
@@ -55,6 +55,22 @@ These changes affect new and existing installations:
 13. **Dangerous install findings now fail closed** (v2026.3.31) — plugin installs and gateway-backed skill dependency installs with built-in dangerous-code `critical` findings now block by default unless explicitly overridden.
 14. **Trusted-proxy auth tightened** (v2026.3.31) — mixed shared-token configs are rejected, and local-direct fallback now requires the configured gateway token instead of implicit same-host authentication.
 15. **`nodes.run` shell wrapper removed** (v2026.3.31) — node-shell execution should use `exec host=node`; keep node-specific behavior on `nodes invoke` and dedicated node actions.
+16. **xAI `x_search` config moved to plugin-owned path** (v2026.4.2) — migrate legacy `tools.web.x_search.*` and related auth settings to `plugins.entries.xai.config.xSearch.*` plus `plugins.entries.xai.config.webSearch.apiKey`/`XAI_API_KEY`; run `openclaw doctor --fix` after upgrade.
+17. **Firecrawl `web_fetch` config moved to plugin-owned path** (v2026.4.2) — migrate legacy `tools.web.fetch.firecrawl.*` settings to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` after upgrade.
+18. **Gateway/node host exec now defaults to no-prompt mode unless explicitly constrained** (v2026.4.2) — set `agents.defaults.tools.exec.security` and approval policy intentionally for multi-user/untrusted deployments.
+
+## Notable Additions in v2026.4.1-v2026.4.2
+
+These are recent operationally important additions in the current stable line:
+
+1. **Chat-native `/tasks` board** (v2026.4.1) — inspect background tasks directly from chat for the current session.
+2. **Cron per-job tool allowlists** (v2026.4.1) — `openclaw cron ... --tools ...` allows stricter capability scoping per scheduled job.
+3. **Global provider parameter defaults** (v2026.4.1) — `agents.defaults.params` can set shared default model-provider params centrally.
+4. **SearXNG bundled web-search provider** (v2026.4.1) — built-in `web_search` provider path for self-hosted SearXNG deployments.
+5. **Bedrock Guardrails support** (v2026.4.1) — bundled Bedrock provider now supports Guardrails configuration.
+6. **Task-flow substrate restore and managed/mirrored sync modes** (v2026.4.2) — background orchestration state/revisions are now durable and easier to recover/operate.
+7. **Plugin runtime `taskFlow` seam** (v2026.4.2) — trusted plugin layers can create/manage Task Flows via host runtime context.
+8. **`before_agent_reply` plugin hook** (v2026.4.2) — plugins can emit synthetic replies and short-circuit LLM output after inline actions.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -195,7 +211,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.31+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

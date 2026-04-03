@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.1` and `v2026.4.2`, including chat-native `/tasks`, cron per-job tool allowlists (`openclaw cron ... --tools`), global default provider parameters (`agents.defaults.params`), bundled SearXNG search provider support, Bedrock Guardrails support, and restored Task Flow runtime/recovery guidance.
+- Added breaking-change guidance for `v2026.4.2` plugin-owned config migrations: xAI `x_search` (`tools.web.x_search.*` -> `plugins.entries.xai.config.xSearch.*`) and Firecrawl `web_fetch` (`tools.web.fetch.firecrawl.*` -> `plugins.entries.firecrawl.config.webFetch.*`), with `openclaw doctor --fix` remediation notes.
+- Added CLI/troubleshooting/security coverage for `v2026.4.2` host-exec default-policy shift, requiring explicit `tools.exec.security`/approval posture on multi-user or untrusted gateways.
 - Added release-alignment coverage for upstream stable `v2026.3.28` and `v2026.3.31`, including new breaking-change guidance for Qwen Portal OAuth removal, very old config auto-migration removal, MiniMax legacy model-id removals (M2/M2.1/M2.5/VL-01), trusted-proxy auth tightening, and install-time dangerous-code fail-closed behavior.
 - Added CLI reference coverage for `openclaw config schema` and `openclaw flows list|show|cancel` task-flow controls introduced in the latest stable line.
 - Added troubleshooting coverage for trusted-proxy auth breakage after upgrade, legacy-key validation failures after migration removal, and fail-closed install scan behavior requiring explicit override decisions.
@@ -44,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.5`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated model-provider references from MiniMax M2.5 wording to the current M2.7 catalog guidance where applicable.
 - Updated README/version metadata for this docs release alignment (`1.3.4`).

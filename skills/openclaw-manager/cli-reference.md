@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.31` stable note: current stable is published as `v2026.3.31` and CLI version output should report `2026.3.31`.
+`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
 
 ### Device Management
 ```bash
@@ -94,12 +94,18 @@ openclaw doctor --fix
 openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
 ```
 
-### Background Task Flows (v2026.3.31+)
+### Background Task Flows (v2026.3.31+, reliability expanded in v2026.4.2)
 ```bash
 openclaw flows list          # List background task flows
 openclaw flows show <id>     # Show flow details and linked tasks
 openclaw flows cancel <id>   # Cancel an active flow
 ```
+
+`v2026.4.2+` note: task-flow runtime/state handling was expanded with managed-vs-mirrored sync behavior and stronger recovery/consistency paths.
+
+### Chat Task Board (v2026.4.1+)
+
+`/tasks` is available in chat-native OpenClaw surfaces to inspect background tasks for the current session with recent task detail fallback behavior.
 
 ### Cron Add Options
 ```bash
@@ -108,6 +114,7 @@ openclaw cron add \
   --cron "0 8 * * *" \        # Cron expression (or --every/--at)
   --tz "America/New_York" \   # Timezone
   --message "Task prompt" \   # What to do
+  --tools "web_search,web_fetch" \  # Optional per-job tool allowlist (v2026.4.1+)
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
@@ -168,6 +175,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.2+` plugin-config migration note: legacy xAI `tools.web.x_search.*` and Firecrawl `tools.web.fetch.firecrawl.*` config paths moved to plugin-owned paths. Run `openclaw doctor --fix` post-upgrade to migrate settings automatically.
 
 ### Agents
 ```bash
@@ -335,6 +344,9 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
 
+# v2026.4.1+: global default provider/runtime params surface
+openclaw config set agents.defaults.params.temperature 0.2
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -362,7 +374,11 @@ openclaw config set skills.load.watch true
 openclaw config set plugins.enabled true
 openclaw config set plugins.allow '["voice-call"]'
 openclaw config set plugins.slots.memory "memory-core"
+openclaw config set plugins.entries.xai.config.xSearch.enabled true
+openclaw config set plugins.entries.firecrawl.config.webFetch.enabled true
 ```
+
+`v2026.4.2+` exec-policy note: gateway/node host exec defaults now trend toward no-prompt behavior unless explicitly constrained. In multi-user or untrusted surfaces, set `agents.defaults.tools.exec.security` and approval policy intentionally.
 
 ## Health Endpoints (v2026.3.1+)
 
