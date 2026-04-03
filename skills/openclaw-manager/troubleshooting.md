@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.31+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.31+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.31+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.4.2+**.
 
 ## Common Issues
 
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+)
+# Upgrade to current stable (v2026.4.2+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -610,7 +610,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -855,6 +855,27 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 # First choice: do not override; audit package source and try a safer alternative.
 # If you fully trust the source and accept risk, rerun with explicit dangerous override flags.
 openclaw plugins install <spec>
+```
+
+#### xAI `x_search` or Firecrawl `web_fetch` Settings Stop Applying After Upgrade
+**Symptoms:** xAI web search or Firecrawl web fetch behavior no longer matches your old config after upgrading to v2026.4.2+.
+
+**Cause:** v2026.4.2 moved these settings from legacy core paths to plugin-owned config paths:
+- `tools.web.x_search.*` -> `plugins.entries.xai.config.xSearch.*`
+- `tools.web.fetch.firecrawl.*` -> `plugins.entries.firecrawl.config.webFetch.*`
+
+**Fix:**
+```bash
+# Run migration for legacy settings
+openclaw doctor --fix
+
+# Re-validate config and restart
+openclaw config validate
+openclaw gateway restart
+
+# Verify migrated values
+openclaw config get plugins.entries.xai.config
+openclaw config get plugins.entries.firecrawl.config
 ```
 
 ### Zalo Personal Issues (v2026.3.2)
