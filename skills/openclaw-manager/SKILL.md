@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.31+** for the latest trusted-proxy auth hardening, background task/flow controls, Qwen Model Studio migration behavior, and install-time dangerous-code fail-closed protections. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for current stable task/flow reliability, `/tasks` and cron tool-allowlist operations, provider-default parameter controls, and the latest xAI/Firecrawl config migration support. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.31)
+## Breaking Changes to Watch For (v2026.3.x-v2026.4.2)
 
 These changes affect new and existing installations:
 
@@ -55,6 +55,9 @@ These changes affect new and existing installations:
 13. **Dangerous install findings now fail closed** (v2026.3.31) — plugin installs and gateway-backed skill dependency installs with built-in dangerous-code `critical` findings now block by default unless explicitly overridden.
 14. **Trusted-proxy auth tightened** (v2026.3.31) — mixed shared-token configs are rejected, and local-direct fallback now requires the configured gateway token instead of implicit same-host authentication.
 15. **`nodes.run` shell wrapper removed** (v2026.3.31) — node-shell execution should use `exec host=node`; keep node-specific behavior on `nodes invoke` and dedicated node actions.
+16. **xAI `x_search` config moved to plugin-owned paths** (v2026.4.2) — migrate `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`, and move API key wiring to `plugins.entries.xai.config.webSearch.apiKey` / `XAI_API_KEY`; run `openclaw doctor --fix` after upgrade.
+17. **Firecrawl `web_fetch` config moved to plugin-owned paths** (v2026.4.2) — migrate `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to migrate legacy keys.
+18. **Host exec default policy changed to no-prompt mode** (v2026.4.2) — gateway/node host exec defaults now request full security with approvals off by default; set `agents.defaults.tools.exec.security` explicitly (`"ask"` or `"deny"` for shared/untrusted gateways).
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -88,6 +91,20 @@ These are recent operationally important additions in the latest stable releases
 8. **Current-conversation ACP bind support expands** (v2026.3.28) — Discord, BlueBubbles, and iMessage support `/acp spawn ... --bind here` workflows.
 9. **Plugin approval hook enrichment** (v2026.3.28) — async `requireApproval` in `before_tool_call` lets plugins pause tool execution and request explicit approval.
 10. **Matrix draft streaming** (v2026.3.31) — partial Matrix replies can update the same message in place instead of emitting chunk-per-message noise.
+
+## Notable Additions in v2026.4.1-v2026.4.2
+
+These are current stable-line operational additions:
+
+1. **Chat-native task board** (v2026.4.1) — `/tasks` surfaces session background work and recent task details directly in chat.
+2. **Per-cron job tool allowlists** (v2026.4.1) — `openclaw cron add|edit --tools ...` limits available tools per scheduled job.
+3. **Global provider parameter defaults** (v2026.4.1) — `agents.defaults.params` now acts as first-class provider parameter defaults.
+4. **Bundled SearXNG web search provider** (v2026.4.1) — native `web_search` provider option for self-hosted search surfaces.
+5. **Bedrock Guardrails support** (v2026.4.1) — bundled Bedrock provider now supports Guardrails controls.
+6. **Task Flow substrate restoration** (v2026.4.2) — managed-vs-mirrored sync and durable flow state tracking improve background orchestration operations.
+7. **Managed child-task spawning with sticky cancel intent** (v2026.4.2) — task flow cancellation behavior is more predictable while active child tasks settle.
+8. **Plugin `before_agent_reply` hook** (v2026.4.2) — plugins can short-circuit model replies with synthetic responses after inline actions.
+9. **Task Flow runtime seam for plugins** (v2026.4.2) — `api.runtime.taskFlow` enables managed flow orchestration from trusted plugin layers.
 
 ## Notable Additions in v2026.3.11-v2026.3.12
 
@@ -195,7 +212,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.31+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -251,6 +268,21 @@ openclaw cron list
 openclaw cron add --name "Job" --cron "0 8 * * *" --message "Task"
 openclaw cron enable <id>
 openclaw cron run <id>  # Test run
+```
+
+### Create Cron Jobs with Tool Allowlists (v2026.4.1+)
+```bash
+# Allow only a constrained tool set for this scheduled job
+openclaw cron add \
+  --name "Daily Search Digest" \
+  --cron "0 8 * * 1-5" \
+  --tools '["web_search","web_fetch"]' \
+  --message "Collect top security headlines and summarize key changes"
+```
+
+### View Background Tasks in Chat (v2026.4.1+)
+```text
+/tasks
 ```
 
 ### Back Up Before Risky Changes (v2026.3.8+)

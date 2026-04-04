@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.31` stable note: current stable is published as `v2026.3.31` and CLI version output should report `2026.3.31`.
+`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
 
 ### Device Management
 ```bash
@@ -101,12 +101,18 @@ openclaw flows show <id>     # Show flow details and linked tasks
 openclaw flows cancel <id>   # Cancel an active flow
 ```
 
+### Chat Task Board (v2026.4.1+)
+```text
+/tasks                        # Show background tasks for current session
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
   --name "Job Name" \
   --cron "0 8 * * *" \        # Cron expression (or --every/--at)
   --tz "America/New_York" \   # Timezone
+  --tools '["web_search"]' \  # Per-job tool allowlist (v2026.4.1+)
   --message "Task prompt" \   # What to do
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
@@ -168,6 +174,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.2+` migration note: run `openclaw doctor --fix` after upgrade to migrate legacy xAI `x_search` keys from `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*` (API key at `plugins.entries.xai.config.webSearch.apiKey` / `XAI_API_KEY`) and Firecrawl `web_fetch` keys from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`.
 
 ### Agents
 ```bash
@@ -335,6 +343,9 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
 
+# Global provider parameter defaults (v2026.4.1+)
+openclaw config set agents.defaults.params.temperature 0.2
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -362,6 +373,10 @@ openclaw config set skills.load.watch true
 openclaw config set plugins.enabled true
 openclaw config set plugins.allow '["voice-call"]'
 openclaw config set plugins.slots.memory "memory-core"
+
+# v2026.4.2+ migration targets (plugin-owned paths)
+openclaw config set plugins.entries.xai.config.xSearch.enabled true
+openclaw config set plugins.entries.firecrawl.config.webFetch.enabled true
 ```
 
 ## Health Endpoints (v2026.3.1+)
@@ -388,6 +403,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `XAI_API_KEY` | API key used by the bundled xAI plugin `x_search` auth path (v2026.4.2+ migration target) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

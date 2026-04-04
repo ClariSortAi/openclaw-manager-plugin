@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.31+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.2+**.
 
 ### Known Critical Vulnerabilities
 
@@ -103,6 +103,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Handshake brute-force protection | Keeps shared-auth rate limiting active during WebSocket handshake attempts even with fake device-token candidates | v2026.3.31 |
 | Exec environment sanitization expansion | Blocks additional proxy/TLS/Docker/Python package index env override vectors in approved host exec paths | v2026.3.31 |
 | ACP dangerous-tool approvals | Replaces ACP dangerous-tool-name override behavior with semantic approval classes so indirect exec/control tools still require explicit approval | v2026.3.31 |
+| xAI `x_search` config migration | Moves legacy `tools.web.x_search.*` to plugin-owned `plugins.entries.xai.config.xSearch.*` and centralizes web-search auth under `plugins.entries.xai.config.webSearch.apiKey` / `XAI_API_KEY`; migrate with `openclaw doctor --fix` | v2026.4.2 |
+| Firecrawl `web_fetch` config migration | Moves legacy `tools.web.fetch.firecrawl.*` to plugin-owned `plugins.entries.firecrawl.config.webFetch.*`; migrate with `openclaw doctor --fix` | v2026.4.2 |
+| Host exec default-policy shift | Host exec defaults now prefer no-prompt full-security policy unless overridden; shared/untrusted gateways should explicitly pin `tools.exec.security` to `ask` or `deny` | v2026.4.2 |
+| Shared webhook secret compare hardening | Replaces ad hoc webhook secret checks across multiple channels with a shared timing-safe helper and rejects empty BlueBubbles auth tokens | v2026.4.2 |
+| Additional host env override blocking | Blocks extra runtime/package/compiler/config environment pivots that could redirect trusted toolchains or credential/config lookups during approved host exec | v2026.4.2 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -383,10 +388,11 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.31+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.2+ for latest auth, migration, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
+- [ ] If upgrading to v2026.4.2+, run `openclaw doctor --fix` and verify xAI/Firecrawl config migration from legacy core key paths to plugin-owned config paths
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -437,6 +443,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Only trusted plugins installed (they run in-process with full privileges)
 - [ ] Plugin allowlist configured via `plugins.allow`
 - [ ] Install-time dangerous-code findings are reviewed; avoid bypassing fail-closed safety overrides unless risk is explicitly accepted (v2026.3.31+)
+- [ ] Plugin hooks (including `before_agent_reply`) are trusted-only and reviewed for synthetic-reply abuse risk before enabling in multi-user environments (v2026.4.2+)
 - [ ] Aware of ClawHavoc supply chain attack: 1,184+ malicious skills confirmed, 2,419 removed from ClawHub
 - [ ] ClawHub VirusTotal integration active (automatic scanning since Feb 2026)
 
@@ -547,7 +554,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.31+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.2+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
