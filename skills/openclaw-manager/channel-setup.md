@@ -94,11 +94,12 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24 and approvals in v2026.3.31)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24 and approvals in v2026.3.31+)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
+As of v2026.4.2, approval routing behavior is further hardened so initiator surface, approver inference, and native target delivery are decoupled cleanly; if approvals stop appearing where expected, verify channel-native approvals plus approver routing config after upgrade.
 
 ---
 

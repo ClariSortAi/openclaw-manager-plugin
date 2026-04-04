@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.31+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.31+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.31+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.4.2+**.
 
 ## Common Issues
 
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+)
+# Upgrade to current stable (v2026.4.2+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -610,7 +610,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -804,6 +804,87 @@ openclaw backup create --only-config
 ```bash
 # Disable ACP dispatch if not wanted
 openclaw config set acp.dispatch.enabled false
+openclaw gateway restart
+```
+
+### Task & Flow Issues (v2026.4.1+ / v2026.4.2+)
+
+#### `/tasks` Shows No Items Even Though Work Is Running
+**Symptoms:** `/tasks` returns little or no data while long-running/background work is expected.
+
+**Cause:** Older builds can lack chat-native task board support or have weaker task registry synchronization behavior.
+
+**Fix:**
+```bash
+# Upgrade to current stable for chat task board + task-flow reliability updates
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify flow/task visibility from CLI
+openclaw flows list
+openclaw flows show <flow-id>
+```
+
+#### Task Flow State Seems Stale or Cancel Doesn't Settle
+**Symptoms:** Flow records look stuck, or cancelled parent flows do not settle cleanly when children are still active.
+
+**Cause:** v2026.4.2 restores the Task Flow substrate with managed/mirrored sync and sticky cancel intent semantics for child-task completion.
+
+**Fix:**
+```bash
+# Upgrade first
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Inspect then cancel with flow primitives
+openclaw flows list
+openclaw flows cancel <flow-id>
+openclaw flows show <flow-id>
+```
+
+### Config Migration Issues (v2026.4.2)
+
+#### `x_search` Stops Working After Upgrade
+**Symptoms:** Web search via xAI fails, or `tools.web.x_search.*` keys are reported invalid/ignored.
+
+**Cause:** v2026.4.2 moved `x_search` config from core keys to plugin-owned paths.
+
+**Fix:**
+```bash
+# Migrate legacy keys automatically
+openclaw doctor --fix
+
+# Verify plugin-owned config path
+openclaw config get plugins.entries.xai.config.xSearch
+openclaw config get plugins.entries.xai.config.webSearch.apiKey
+```
+
+Use `XAI_API_KEY` or `plugins.entries.xai.config.webSearch.apiKey` for xAI web search auth.
+
+#### Firecrawl `web_fetch` Settings Ignored After Upgrade
+**Symptoms:** Firecrawl-backed `web_fetch` behavior no longer follows existing config, or old `tools.web.fetch.firecrawl.*` keys fail validation.
+
+**Cause:** v2026.4.2 moved Firecrawl fetch settings into plugin-owned config paths and fetch-provider boundaries.
+
+**Fix:**
+```bash
+# Migrate legacy keys
+openclaw doctor --fix
+
+# Verify new Firecrawl plugin config path
+openclaw config get plugins.entries.firecrawl.config.webFetch
+```
+
+#### Exec Prompts Disappear on Host/Gateway Runs
+**Symptoms:** Expected exec approval prompts no longer appear for host/gateway or node-host execution.
+
+**Cause:** v2026.4.2 shifts host exec defaults toward no-prompt mode unless you set a stricter explicit policy.
+
+**Fix:**
+```bash
+# Enforce explicit approval or denial policy
+openclaw config set agents.defaults.tools.exec.security "ask"
+# or
+openclaw config set agents.defaults.tools.exec.security "deny"
+
 openclaw gateway restart
 ```
 

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.1` and `v2026.4.2`, including chat-native `/tasks`, per-cron `--tools` allowlists, global provider defaults via `agents.defaults.params`, and updated Task Flow operational guidance.
+- Added docs coverage for `v2026.4.2` breaking config migrations from core keys to plugin-owned paths for xAI `x_search` (`tools.web.x_search.*` -> `plugins.entries.xai.config.xSearch.*`, auth via `plugins.entries.xai.config.webSearch.apiKey` / `XAI_API_KEY`) and Firecrawl `web_fetch` (`tools.web.fetch.firecrawl.*` -> `plugins.entries.firecrawl.config.webFetch.*`), with `openclaw doctor --fix` migration workflow.
+- Added troubleshooting and security guidance for `v2026.4.2` host-exec default-policy shift (no-prompt host mode unless explicitly constrained), including explicit recommendation to pin `agents.defaults.tools.exec.security` to `"ask"` or `"deny"` for shared gateways.
+- Added CLI and operations notes for current stable task/flow reliability updates and plugin hook expansion (`before_agent_reply`, `api.runtime.taskFlow`) in `v2026.4.2`.
 - Added release-alignment coverage for upstream stable `v2026.3.28` and `v2026.3.31`, including new breaking-change guidance for Qwen Portal OAuth removal, very old config auto-migration removal, MiniMax legacy model-id removals (M2/M2.1/M2.5/VL-01), trusted-proxy auth tightening, and install-time dangerous-code fail-closed behavior.
 - Added CLI reference coverage for `openclaw config schema` and `openclaw flows list|show|cancel` task-flow controls introduced in the latest stable line.
 - Added troubleshooting coverage for trusted-proxy auth breakage after upgrade, legacy-key validation failures after migration removal, and fail-closed install scan behavior requiring explicit override decisions.
@@ -44,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across plugin docs from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated plugin metadata/version badges for this release alignment (`1.3.5`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated model-provider references from MiniMax M2.5 wording to the current M2.7 catalog guidance where applicable.
 - Updated README/version metadata for this docs release alignment (`1.3.4`).
