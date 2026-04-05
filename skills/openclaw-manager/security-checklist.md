@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.3.31+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.2+**.
 
 ### Known Critical Vulnerabilities
 
@@ -103,6 +103,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Handshake brute-force protection | Keeps shared-auth rate limiting active during WebSocket handshake attempts even with fake device-token candidates | v2026.3.31 |
 | Exec environment sanitization expansion | Blocks additional proxy/TLS/Docker/Python package index env override vectors in approved host exec paths | v2026.3.31 |
 | ACP dangerous-tool approvals | Replaces ACP dangerous-tool-name override behavior with semantic approval classes so indirect exec/control tools still require explicit approval | v2026.3.31 |
+| Webhook secret comparison hardening | Replaces ad-hoc webhook secret comparisons with shared constant-time comparison helpers across BlueBubbles, Feishu, Mattermost, Telegram, Twilio, and Zalo | v2026.4.2 |
+| Exec environment override hardening | Blocks additional host env override pivots for package roots, runtimes, compiler include paths, and credential/config locations | v2026.4.2 |
+| Dotenv interpreter pin protection | Prevents workspace `.env` overrides of pinned Python interpreter env vars used by trusted helper paths | v2026.4.2 |
+| Provider endpoint policy centralization | Consolidates native-vs-proxy classification, auth/header shaping, and TLS transport policy across provider HTTP/stream/websocket paths | v2026.4.2 |
+| Session kill scope enforcement | Requires operator scopes and pre-lookup authorization for session-kill HTTP paths | v2026.4.2 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -383,10 +388,12 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.3.31+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.2+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
+- [ ] If upgrading to v2026.4.2+, run `openclaw doctor --fix` to migrate legacy `tools.web.x_search.*` and `tools.web.fetch.firecrawl.*` keys to plugin-owned paths
+- [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -547,7 +554,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.3.31+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.2+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

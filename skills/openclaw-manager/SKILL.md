@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.3.31+** for the latest trusted-proxy auth hardening, background task/flow controls, Qwen Model Studio migration behavior, and install-time dangerous-code fail-closed protections. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest provider-web config migration fixes, cron/tooling controls, task-flow recovery improvements, and transport hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x, including v2026.3.31)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.2)
 
 These changes affect new and existing installations:
 
@@ -55,6 +55,19 @@ These changes affect new and existing installations:
 13. **Dangerous install findings now fail closed** (v2026.3.31) — plugin installs and gateway-backed skill dependency installs with built-in dangerous-code `critical` findings now block by default unless explicitly overridden.
 14. **Trusted-proxy auth tightened** (v2026.3.31) — mixed shared-token configs are rejected, and local-direct fallback now requires the configured gateway token instead of implicit same-host authentication.
 15. **`nodes.run` shell wrapper removed** (v2026.3.31) — node-shell execution should use `exec host=node`; keep node-specific behavior on `nodes invoke` and dedicated node actions.
+16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
+17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
+18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
+
+## Notable Additions in v2026.4.1-v2026.4.2
+
+These are recent operationally important additions in the latest stable releases:
+
+1. **Chat-native `/tasks` board** (v2026.4.1) — users can inspect session background work and recent task status directly from chat.
+2. **Per-job cron tool allowlists** (v2026.4.1) — cron jobs can scope available tools via `--tools`, reducing blast radius for scheduled automations.
+3. **Task Flow substrate restoration + recovery controls** (v2026.4.2) — managed/mirrored flow sync modes and improved inspection/recovery behavior are exposed via `openclaw flows`.
+4. **Bundled SearXNG web-search provider plugin** (v2026.4.1) — adds configurable self-hosted search backend support for `web_search`.
+5. **Bedrock Guardrails integration** (v2026.4.1) — bundled Bedrock provider now supports guardrails policy wiring for moderated deployments.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -195,7 +208,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.3.31+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
