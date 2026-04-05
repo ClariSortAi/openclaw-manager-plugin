@@ -655,11 +655,11 @@ openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
 
 **Fix:**
 ```bash
-# Recreate/edit with explicit tool scope
-openclaw cron edit <id> --tools web_search,web_fetch
+# Recreate with explicit tool scope
+openclaw cron add --name "Scoped Job" --cron "0 8 * * *" --message "Task" --tools web_search,web_fetch
 
 # Validate by running once
-openclaw cron run <id>
+openclaw cron run <new-id>
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
