@@ -1,7 +1,7 @@
 {
   "name": "openclaw-manager",
   "description": "Intelligent OpenClaw (formerly ClawdBot) installation, configuration, and management assistant. Guides users through fresh installs, 23+ channel configurations (Slack, WhatsApp, Telegram, Discord, BlueBubbles, Signal, Google Chat, Teams, Matrix, Feishu/Lark, LINE, and more), troubleshooting, security hardening, tools profiles, SecretRef secrets management, PDF tool, Docker/K8s health probes, and multi-provider model setup. If you can use Claude Code, you can use OpenClaw.",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "author": {
     "name": "Jason Rivard",
     "url": "https://github.com/ClariSortAi"

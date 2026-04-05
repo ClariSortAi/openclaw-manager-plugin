@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.3.31` stable note: current stable is published as `v2026.3.31` and CLI version output should report `2026.3.31`.
+`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
 
 ### Device Management
 ```bash
@@ -94,12 +94,21 @@ openclaw doctor --fix
 openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Task"
 ```
 
-### Background Task Flows (v2026.3.31+)
+`v2026.4.1+` cron tool-allowlist note:
+
+```bash
+# Restrict a cron job to specific tools only
+openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
+```
+
+### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
 openclaw flows list          # List background task flows
 openclaw flows show <id>     # Show flow details and linked tasks
 openclaw flows cancel <id>   # Cancel an active flow
 ```
+
+`v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
 ### Cron Add Options
 ```bash
@@ -323,8 +332,14 @@ openclaw config set agents.defaults.tools.profile "coding"
 # Options: "messaging" (no coding tools), "coding", "full" (no restrictions)
 
 # Tool execution security (v2026.3.2+)
+# v2026.4.2+: host exec defaults changed; pin this explicitly for production
 openclaw config set agents.defaults.tools.exec.security "ask"
 # Options: "allow", "ask" (approval workflow), "deny"
+
+# v2026.4.2+: migrate plugin-owned web provider config paths
+openclaw doctor --fix
+openclaw config get plugins.entries.xai.config.xSearch
+openclaw config get plugins.entries.firecrawl.config.webFetch
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false

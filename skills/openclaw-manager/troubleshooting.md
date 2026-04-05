@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.3.31+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.3.31+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes and install/auth reliability improvements, upgrade to **v2026.3.31+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
 
 ## Common Issues
 
@@ -466,12 +466,43 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+)
+# Upgrade to current stable (v2026.4.2+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
 openclaw plugins uninstall <plugin-id>
 openclaw plugins uninstall clawhub:<package>
+```
+
+#### `x_search` Stops Working After Upgrade
+**Symptoms:** xAI web search integration fails or `x_search` settings appear ignored after upgrading to v2026.4.2+.
+
+**Cause:** v2026.4.2 migrates xAI search config from legacy core paths to plugin-owned paths.
+
+**Fix:**
+```bash
+# Rewrite legacy keys and validate
+openclaw doctor --fix
+openclaw config validate
+
+# Confirm migrated path
+openclaw config get plugins.entries.xai.config.xSearch
+openclaw config get plugins.entries.xai.config.webSearch.apiKey
+```
+
+#### `web_fetch` Firecrawl Settings No Longer Apply
+**Symptoms:** Firecrawl-backed `web_fetch` behavior changes or legacy `tools.web.fetch.firecrawl.*` settings no longer take effect.
+
+**Cause:** v2026.4.2 moves Firecrawl fetch config into the Firecrawl plugin-owned config tree.
+
+**Fix:**
+```bash
+# Run migration helper first
+openclaw doctor --fix
+openclaw config validate
+
+# Verify new config path
+openclaw config get plugins.entries.firecrawl.config.webFetch
 ```
 
 #### Container-Targeted CLI Command Runs Against the Wrong OpenClaw Instance
@@ -610,11 +641,25 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.3.31+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
 openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
+```
+
+#### Cron Job Can Access More Tools Than Intended
+**Symptoms:** Scheduled jobs can call tools that should not be available for that automation.
+
+**Cause:** Job-level tool scoping was not configured; v2026.4.1+ adds per-job tool allowlists.
+
+**Fix:**
+```bash
+# Recreate/edit with explicit tool scope
+openclaw cron edit <id> --tools web_search,web_fetch
+
+# Validate by running once
+openclaw cron run <id>
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
@@ -855,6 +900,24 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 # First choice: do not override; audit package source and try a safer alternative.
 # If you fully trust the source and accept risk, rerun with explicit dangerous override flags.
 openclaw plugins install <spec>
+```
+
+#### Background Task Flow Appears Stuck or Orphaned
+**Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
+
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restores and hardens Task Flow state tracking and recovery behavior.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Inspect flow/task state directly
+openclaw flows list
+openclaw flows show <flow-id>
+
+# Cancel and resubmit if needed
+openclaw flows cancel <flow-id>
 ```
 
 ### Zalo Personal Issues (v2026.3.2)
