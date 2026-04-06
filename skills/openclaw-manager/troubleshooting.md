@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.5+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.5+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, config-alias migration coverage, and latest security/runtime hardening, upgrade to **v2026.4.5+**.
 
 ## Common Issues
 
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.5+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +641,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.5+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -808,6 +808,24 @@ openclaw config unset <legacy.path>
 openclaw config validate
 openclaw gateway restart
 ```
+
+#### Config Validation Fails on Legacy Alias Keys After Upgrade
+**Symptoms:** `openclaw config validate` fails with paths such as `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, `hooks.internal.handlers`, or channel/group/room `allow` toggles.
+
+**Cause:** v2026.4.5 removes legacy public alias keys from the canonical schema. Existing configs still need one-time migration to canonical paths.
+
+**Fix:**
+```bash
+# Apply release migration rewrites
+openclaw doctor --fix
+
+# Confirm remaining invalid paths and clean up manually if needed
+openclaw config validate --json
+openclaw config validate
+openclaw gateway restart
+```
+
+If validation still fails, unset the flagged legacy alias keys and reapply the canonical key paths directly.
 
 #### Signal Group Keys Rejected as Invalid Config
 **Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.

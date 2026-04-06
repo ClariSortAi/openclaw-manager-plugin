@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.5` stable note: current stable is published as `v2026.4.5` and CLI version output should report `2026.4.5`.
 
 ### Device Management
 ```bash
@@ -157,6 +157,7 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install --force <spec>  # Replace existing plugin/hook-pack target in-place (v2026.4.5+)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
@@ -293,6 +294,8 @@ openclaw config set gateway.mdns.mode minimal
 openclaw config get channels.slack
 openclaw config set channels.slack.botToken "xoxb-..."
 openclaw config set channels.whatsapp.dmPolicy pairing
+# v2026.4.5+: filter supplemental context passthrough per channel
+openclaw config set channels.slack.contextVisibility "allowlist"
 
 # Agent settings
 openclaw config get agents.defaults.model

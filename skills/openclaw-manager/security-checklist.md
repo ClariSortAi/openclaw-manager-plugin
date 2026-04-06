@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.2+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.5+**.
 
 ### Known Critical Vulnerabilities
 
@@ -108,6 +108,9 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Dotenv interpreter pin protection | Prevents workspace `.env` overrides of pinned Python interpreter env vars used by trusted helper paths | v2026.4.2 |
 | Provider endpoint policy centralization | Consolidates native-vs-proxy classification, auth/header shaping, and TLS transport policy across provider HTTP/stream/websocket paths | v2026.4.2 |
 | Session kill scope enforcement | Requires operator scopes and pre-lookup authorization for session-kill HTTP paths | v2026.4.2 |
+| Tool allowlist fail-closed controls | Preserves restrictive plugin-only tool allowlists, requires owner access for `/allowlist add|remove`, and fails closed when `before_tool_call` hooks crash | v2026.4.5 |
+| Browser SSRF redirect bypass hardening | Blocks browser SSRF redirect bypass paths earlier in request handling | v2026.4.5 |
+| Device and plugin-route scope tightening | Restricts paired-device token/scope escalation paths and keeps plugin route fallback scopes write-limited unless trusted-proxy callers explicitly declare narrower scopes | v2026.4.5 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -388,11 +391,12 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.2+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.5+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
 - [ ] If upgrading to v2026.4.2+, run `openclaw doctor --fix` to migrate legacy `tools.web.x_search.*` and `tools.web.fetch.firecrawl.*` keys to plugin-owned paths
+- [ ] If upgrading to v2026.4.5+, run `openclaw doctor --fix` and remove legacy alias keys (`talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, `hooks.internal.handlers`, and channel/group/room `allow` toggles)
 - [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
@@ -554,7 +558,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.2+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.5+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

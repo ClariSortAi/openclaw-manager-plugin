@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest provider-web config migration fixes, cron/tooling controls, task-flow recovery improvements, and transport hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.5+** for the latest config-alias migration coverage, tooling/media-generation updates, and security hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.2)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.5)
 
 These changes affect new and existing installations:
 
@@ -58,10 +58,21 @@ These changes affect new and existing installations:
 16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
 17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
+19. **Legacy public config aliases removed** (v2026.4.5) — old aliases like `talk.voiceId` / `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, `hooks.internal.handlers`, and channel/group/room `allow` toggles are removed from canonical schema. Run `openclaw doctor --fix` after upgrade and move to canonical keys (use `enabled` toggles where applicable).
+
+## Notable Additions in v2026.4.5
+
+These are recent operationally important additions in the current stable release:
+
+1. **Built-in `video_generate` tool** — agents can generate videos directly through configured providers and return generated media in replies.
+2. **Built-in `music_generate` tool** — adds native music generation support with async completion handling and follow-up delivery.
+3. **Plugin replace workflow** — `openclaw plugins install --force` can replace existing plugin and hook-pack targets without using dangerous-code override flags.
+4. **Per-channel `contextVisibility` controls** — channel context passthrough can be set to `all`, `allowlist`, or `allowlist_quote` to better constrain supplemental quote/thread/history visibility.
+5. **Bundled provider expansion** — adds bundled Qwen, Fireworks AI, and StepFun providers, plus additional bundled search/TTS integrations.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
-These are recent operationally important additions in the latest stable releases:
+These are operationally important additions from the prior stable cycle:
 
 1. **Chat-native `/tasks` board** (v2026.4.1) — users can inspect session background work and recent task status directly from chat.
 2. **Per-job cron tool allowlists** (v2026.4.1) — cron jobs can scope available tools via `--tools`, reducing blast radius for scheduled automations.
@@ -208,7 +219,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.5+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
