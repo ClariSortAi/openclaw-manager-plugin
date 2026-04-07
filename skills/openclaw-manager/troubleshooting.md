@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.5+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.5+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes (including config-alias migrations, newer security hardening, and media-tool/runtime updates), upgrade to **v2026.4.5+**.
 
 ## Common Issues
 
@@ -171,6 +171,21 @@ openclaw status --deep
 ```
 
 **Note:** This is not a bug -- Anthropic blocked OAuth access for OpenClaw as a policy decision. The only supported method is direct API keys.
+
+#### Legacy `anthropic:claude-cli` Backend State Causes Post-Upgrade Warnings
+**Symptoms:** `openclaw doctor` or config validation surfaces legacy backend warnings after upgrading to v2026.4.5+, especially around Claude CLI backend state.
+
+**Cause:** v2026.4.5 removes the Claude CLI backend from new onboarding/runtime defaults. Older installations may still carry stale backend config.
+
+**Fix:**
+```bash
+# Repair stale backend references
+openclaw doctor --fix
+openclaw config validate
+
+# Keep Anthropic on direct API-key auth
+openclaw models auth setup-token --provider anthropic
+```
 
 #### OAuth Token Refresh Failed (Non-Anthropic Providers)
 **Symptoms:** Token expired errors for non-Anthropic providers
@@ -466,7 +481,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.5+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +656,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.5+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -806,6 +821,21 @@ openclaw config validate --json
 # Remove or rewrite stale keys manually, then re-validate
 openclaw config unset <legacy.path>
 openclaw config validate
+openclaw gateway restart
+```
+
+#### Canonical Alias Migration Errors After v2026.4.5 Upgrade
+**Symptoms:** `openclaw config validate` fails on keys like `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, or old channel/group/room `allow` toggles.
+
+**Cause:** v2026.4.5 removes legacy public alias paths from the canonical schema. Existing configs need migration to canonical public keys.
+
+**Fix:**
+```bash
+# Rewrite deprecated aliases to canonical paths
+openclaw doctor --fix
+
+# Re-check for remaining invalid keys
+openclaw config validate --json
 openclaw gateway restart
 ```
 

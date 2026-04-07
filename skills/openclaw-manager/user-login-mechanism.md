@@ -121,7 +121,7 @@ openclaw channels login --account secondary
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
 `v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
-`v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
+`v2026.4.5+` note: after upgrade, run `openclaw doctor --fix` to migrate legacy web-provider paths (`tools.web.x_search.*`, `tools.web.fetch.firecrawl.*`), rewrite removed public config aliases, and clean stale `anthropic:claude-cli` backend state.
 
 **Process:**
 1. Run the command
@@ -199,6 +199,8 @@ openclaw models auth setup-token --provider anthropic
 2. Navigate to API Keys
 3. Create a new key
 4. Copy and paste when prompted by `openclaw models auth setup-token`
+
+`v2026.4.5+` note: Claude CLI backend onboarding for Anthropic was removed from new setup flows; keep provider auth on direct API keys and use `openclaw doctor --fix` to repair/remove old backend residue after upgrades.
 
 ### Other Providers
 
