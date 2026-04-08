@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.2+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.8+**.
 
 ### Known Critical Vulnerabilities
 
@@ -108,6 +108,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Dotenv interpreter pin protection | Prevents workspace `.env` overrides of pinned Python interpreter env vars used by trusted helper paths | v2026.4.2 |
 | Provider endpoint policy centralization | Consolidates native-vs-proxy classification, auth/header shaping, and TLS transport policy across provider HTTP/stream/websocket paths | v2026.4.2 |
 | Session kill scope enforcement | Requires operator scopes and pre-lookup authorization for session-kill HTTP paths | v2026.4.2 |
+| Owner-gated allowlist mutations | Requires owner authorization for `/allowlist add` and `/allowlist remove`, preventing non-owner policy rewrites | v2026.4.5 / v2026.4.7 |
+| Extended host env sanitization | Blocks additional Java/Rust/Cargo/Git/Kubernetes/cloud credential/config override vectors in host exec paths | v2026.4.7 |
+| Redirect body/header stripping on cross-origin 307/308 | Drops bodies and body-describing headers by default on cross-origin redirect hops to reduce secret-bearing SSRF pivots | v2026.4.7 |
+| Browser SSRF redirect classification hardening | Treats main-frame `document` redirects as navigations even when tooling misses navigation flags, preserving private-network blocks | v2026.4.7 |
+| Shared-token/password socket invalidation on secret rotation | Existing authenticated WebSocket sessions are invalidated when gateway token/password rotates | v2026.4.7 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -388,11 +393,12 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.2+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.8+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
 - [ ] If upgrading to v2026.4.2+, run `openclaw doctor --fix` to migrate legacy `tools.web.x_search.*` and `tools.web.fetch.firecrawl.*` keys to plugin-owned paths
+- [ ] If using `plugins.allow`, verify required bundled capability plugins are still effective after upgrade and test media/transcription paths end-to-end (v2026.4.7 allowlist merge fix)
 - [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
@@ -554,7 +560,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.2+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.8+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

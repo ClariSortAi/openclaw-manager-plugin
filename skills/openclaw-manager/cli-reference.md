@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.8` stable note: current stable is published as `v2026.4.8` and CLI version output should report `2026.4.8`.
 
 ### Device Management
 ```bash
@@ -63,6 +63,11 @@ openclaw devices list        # List pending and paired devices
 openclaw devices approve <id>  # Approve device
 openclaw devices reject <id>   # Reject device
 openclaw devices revoke <id>   # Revoke device access
+```
+
+### Inference Hub (v2026.4.7+)
+```bash
+openclaw infer --help        # Provider-backed inference workflows hub
 ```
 
 ### Cron Jobs
@@ -101,7 +106,7 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
 
-### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
+### Background Task Flows (v2026.3.31+, expanded in v2026.4.2 and v2026.4.7)
 ```bash
 openclaw flows list          # List background task flows
 openclaw flows show <id>     # Show flow details and linked tasks
@@ -109,6 +114,8 @@ openclaw flows cancel <id>   # Cancel an active flow
 ```
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
+
+`v2026.4.7+` sessions note: persisted compaction checkpoints and session branch/restore tooling improve operator recovery when compaction is too aggressive.
 
 ### Cron Add Options
 ```bash
@@ -158,6 +165,7 @@ openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
+openclaw plugins install --force <spec>  # Replace existing plugin/hook-pack target (v2026.4.5+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
@@ -177,6 +185,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.5+` plugin note: `openclaw plugins install --force <spec>` replaces existing plugin/hook-pack targets without relying on dangerous-code override flags.
 
 ### Agents
 ```bash
@@ -340,6 +350,18 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.5+: migrate legacy public config aliases to canonical paths
+openclaw doctor --fix
+openclaw config validate
+
+# v2026.4.7+: tighten Slack thread behavior in busy channels
+openclaw config set channels.slack.thread.requireExplicitMention true
+openclaw config set channels.slack.contextVisibility "allowlist"
+
+# v2026.4.7+: system-prompt and compaction provider controls
+openclaw config set agents.defaults.systemPromptOverride "You are concise and action-oriented."
+openclaw config set agents.defaults.compaction.provider "default"
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false

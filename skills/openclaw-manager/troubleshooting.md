@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.8+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes across config migrations, infer/media workflows, and bundled channel/plugin packaging compatibility, upgrade to **v2026.4.8+**.
 
 ## Common Issues
 
@@ -445,6 +445,21 @@ openclaw doctor --fix
 openclaw gateway restart
 ```
 
+#### Gateway Startup Fails with Missing `dist/extensions/.../src/*` Imports
+**Symptoms:** Gateway startup fails on bundled channels/plugins with import errors pointing to missing `dist/extensions/<plugin>/src/*` files.
+
+**Cause:** Pre-v2026.4.8 packaging/compatibility mismatches could leave installed npm builds expecting source-path artifacts that are not shipped.
+
+**Fix:**
+```bash
+# Upgrade to v2026.4.8+ and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# If needed, re-run doctor for post-upgrade cleanup
+openclaw doctor --fix
+```
+
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
@@ -466,7 +481,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.8+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -503,6 +518,20 @@ openclaw config validate
 
 # Verify new config path
 openclaw config get plugins.entries.firecrawl.config.webFetch
+```
+
+#### `web_search` or `web_fetch` Fails with `TypeError: fetch failed`
+**Symptoms:** Search/fetch tools intermittently fail with transport errors after runtime updates.
+
+**Cause:** Older builds could hit HTTP/2 negotiation regressions in the guarded fetch dispatcher path.
+
+**Fix:**
+```bash
+# Upgrade to current stable (v2026.4.7+ includes dispatcher fix)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-test tool paths
+openclaw status --deep
 ```
 
 #### Container-Targeted CLI Command Runs Against the Wrong OpenClaw Instance
@@ -805,6 +834,19 @@ openclaw config validate --json
 
 # Remove or rewrite stale keys manually, then re-validate
 openclaw config unset <legacy.path>
+openclaw config validate
+openclaw gateway restart
+```
+
+#### Deprecated Public Config Aliases Break Validation After Upgrade
+**Symptoms:** Config validation/startup fails on alias keys such as `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, or legacy channel/group/room `allow` toggles.
+
+**Cause:** v2026.4.5 removes these as canonical public config paths and expects normalized keys.
+
+**Fix:**
+```bash
+# Apply automatic alias migrations, then validate
+openclaw doctor --fix
 openclaw config validate
 openclaw gateway restart
 ```

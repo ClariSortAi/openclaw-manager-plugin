@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest provider-web config migration fixes, cron/tooling controls, task-flow recovery improvements, and transport hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.8+** for the latest release-line fixes covering config alias migrations, infer/media workflow expansion, bundled-channel packaging compatibility, and additional auth/transport hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.2)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.8)
 
 These changes affect new and existing installations:
 
@@ -58,6 +58,7 @@ These changes affect new and existing installations:
 16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
 17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
+19. **Legacy public config aliases removed** (v2026.4.5) — deprecated aliases like `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, and legacy channel/group/room `allow` toggles are no longer canonical public config paths; run `openclaw doctor --fix` and validate config after upgrades.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -68,6 +69,17 @@ These are recent operationally important additions in the latest stable releases
 3. **Task Flow substrate restoration + recovery controls** (v2026.4.2) — managed/mirrored flow sync modes and improved inspection/recovery behavior are exposed via `openclaw flows`.
 4. **Bundled SearXNG web-search provider plugin** (v2026.4.1) — adds configurable self-hosted search backend support for `web_search`.
 5. **Bedrock Guardrails integration** (v2026.4.1) — bundled Bedrock provider now supports guardrails policy wiring for moderated deployments.
+
+## Notable Additions in v2026.4.5-v2026.4.8
+
+These are high-impact additions from the current stable line:
+
+1. **Inference command hub** (v2026.4.7) — `openclaw infer ...` adds a first-class CLI path for provider-backed inference workflows.
+2. **Built-in media generation expansion** (v2026.4.5, enhanced in v2026.4.7) — `music_generate` and `video_generate` are available with bundled providers and stronger provider fallback behavior.
+3. **Webhook ingress plugin for automation** (v2026.4.7) — bundled webhook routes can trigger bound TaskFlow workflows from external systems.
+4. **Plugin install replacement path** (v2026.4.5) — `openclaw plugins install --force <spec>` supports controlled replacement of existing plugin/hook-pack targets.
+5. **Session compaction checkpoints + restore UX** (v2026.4.7) — operators can inspect/recover pre-compaction state through sessions tooling.
+6. **Bundled channel/plugin packaging repair** (v2026.4.8) — fixes startup failures tied to missing packaged sidecars and compatibility metadata mismatches.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -208,7 +220,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.8+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
