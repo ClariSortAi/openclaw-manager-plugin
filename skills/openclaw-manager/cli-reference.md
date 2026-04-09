@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.9` stable note: current stable is published as `v2026.4.9` and CLI version output should report `2026.4.9`.
 
 ### Device Management
 ```bash
@@ -157,6 +157,7 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install --force <spec>  # Replace existing plugin target without dangerous override flag (v2026.4.5+)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
@@ -177,6 +178,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.8+` packaged-runtime note: missing bundled `dist/extensions/*` runtime sidecar startup failures in npm/global installs are fixed in current stable.
 
 ### Agents
 ```bash
@@ -239,6 +242,12 @@ openclaw onboard             # Full onboarding wizard
 openclaw onboard --install-daemon  # With systemd service
 openclaw reset               # Reset config/state (keeps CLI)
 openclaw uninstall           # Full uninstall
+```
+
+### Inference Hub (v2026.4.7+)
+```bash
+openclaw infer               # Provider-backed inference hub for model/media/web/embedding tasks
+openclaw infer --help        # List infer modes and flags available in your runtime
 ```
 
 ### Backup & Recovery (v2026.3.8+)
@@ -340,6 +349,9 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.5+: migrate removed legacy public config aliases to canonical paths
+openclaw doctor --fix
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false

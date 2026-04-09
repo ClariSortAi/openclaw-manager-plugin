@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.9+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.9+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, infer/media tooling, packaged-runtime reliability, and expanded security hardening, upgrade to **v2026.4.9+**.
 
 ## Common Issues
 
@@ -433,7 +433,7 @@ openclaw gateway restart
 #### Bundled Plugin Runtime Missing After Global Install
 **Symptoms:** Channels/plugins such as WhatsApp or Matrix fail to boot with missing runtime files after a package-manager/global install.
 
-**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars.
+**Cause:** Some builds before v2026.3.23 and packaging regressions fixed in v2026.4.8 could publish incomplete bundled plugin runtime sidecars.
 
 **Fix:**
 ```bash
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.9+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +641,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.9+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -809,6 +809,22 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+#### Config Validation Fails on Removed Legacy Public Alias Keys
+**Symptoms:** `openclaw config validate` reports invalid keys such as legacy `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, or old channel/group `allow` toggles.
+
+**Cause:** v2026.4.5 removes these legacy public aliases from the active schema in favor of canonical paths.
+
+**Fix:**
+```bash
+# Upgrade and run schema migrations
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+
+# Re-validate and restart
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Signal Group Keys Rejected as Invalid Config
 **Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.
 
@@ -905,7 +921,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restores and hardens Task Flow state tracking and recovery behavior.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 started the restoration and newer stable builds continue hardening flow/task recovery behavior.
 
 **Fix:**
 ```bash
