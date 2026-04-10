@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.9` stable note: current stable is published as `v2026.4.9` and CLI version output should report `2026.4.9`.
 
 ### Device Management
 ```bash
@@ -178,6 +178,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
 
+`v2026.4.8+` packaging note: bundled channels/providers/plugins now load packaged runtime sidecars from release artifacts; if startup fails with missing `dist/extensions/*/src/*` imports, upgrade and rerun `openclaw doctor --fix`.
+
 ### Agents
 ```bash
 openclaw agents list         # List configured agents
@@ -247,6 +249,12 @@ openclaw backup create                 # Create local state backup archive
 openclaw backup create --only-config   # Backup only configuration files
 openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
+```
+
+### Infer Workflows (v2026.4.7+)
+```bash
+openclaw infer --help                  # Show inference workflow commands
+openclaw infer <workflow> [options]    # Run provider-backed infer task (model/media/web/embedding)
 ```
 
 ### Other Commands
@@ -340,6 +348,11 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.5+: legacy public alias cleanup after upgrade
+# Example retired aliases include talk.voiceId/talk.apiKey and agents.*.sandbox.perSession
+openclaw doctor --fix
+openclaw config validate
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false

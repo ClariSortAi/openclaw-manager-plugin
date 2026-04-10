@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.9+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.9+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes (including `infer` command hub, packaged sidecar reliability, and latest transport/security hardening), upgrade to **v2026.4.9+**.
 
 ## Common Issues
 
@@ -217,6 +217,24 @@ openclaw status --deep
 - `groups:history`, `im:history`, `mpim:history`
 - `users:read`, `app_mentions:read`
 - `reactions:read`, `reactions:write`
+
+#### Slack Socket Mode Fails Behind Proxy
+**Symptoms:** Slack channel disconnects or fails to connect in proxy-only environments.
+
+**Cause:** Older builds had incomplete proxy handling for Slack Socket Mode websocket transport and related media fetch behavior.
+
+**Fix:**
+```bash
+# Upgrade to current stable first
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Ensure proxy env vars are set for the service/session
+export HTTPS_PROXY="http://proxy.example.com:3128"
+export NO_PROXY="127.0.0.1,localhost"
+
+openclaw gateway restart
+openclaw channels status
+```
 
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
@@ -445,6 +463,22 @@ openclaw doctor --fix
 openclaw gateway restart
 ```
 
+#### Bundled Channels/Plugins Fail with `dist/extensions/*/src/*` Import Errors
+**Symptoms:** Gateway startup fails after update with errors referencing missing packaged paths under `dist/extensions/.../src/...`.
+
+**Cause:** Some pre-v2026.4.8 packaging builds could ship incomplete sidecar wiring for bundled channels/providers/plugins.
+
+**Fix:**
+```bash
+# Move to a stable build with sidecar packaging fixes
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-validate/migrate config and restart
+openclaw doctor --fix
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
@@ -466,7 +500,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.9+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -591,6 +625,20 @@ openclaw skills install <skill-slug>
 openclaw skills update --all
 ```
 
+#### `openclaw infer` Command Not Found
+**Symptoms:** `openclaw infer ...` returns unknown command errors.
+
+**Cause:** The `infer` command hub was introduced in v2026.4.7.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify infer surface is available
+openclaw infer --help
+```
+
 #### `openclaw skills update` Fails with `Invalid skill slug`
 **Symptoms:** Updates fail on older installed skills with `Invalid skill slug` errors.
 
@@ -641,7 +689,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.9+ includes timezone fix lineage from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -809,6 +857,21 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+#### Legacy Public Config Aliases Fail Validation
+**Symptoms:** After upgrading to v2026.4.5+, config validation fails on keys such as `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, or `browser.ssrfPolicy.allowPrivateNetwork`.
+
+**Cause:** v2026.4.5 removed these legacy public aliases from the canonical schema.
+
+**Fix:**
+```bash
+# Apply built-in migration rewrites first
+openclaw doctor --fix
+
+# Confirm no stale alias paths remain
+openclaw config validate --json
+openclaw gateway restart
+```
+
 #### Signal Group Keys Rejected as Invalid Config
 **Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.
 
@@ -905,7 +968,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restores and hardens Task Flow state tracking and recovery behavior.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 started the recovery hardening and newer 2026.4.x stable releases continue reliability fixes.
 
 **Fix:**
 ```bash

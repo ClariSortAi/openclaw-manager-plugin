@@ -122,6 +122,8 @@ openclaw channels login --account secondary
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
 `v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
+`v2026.4.5+` note: run `openclaw doctor --fix` and `openclaw config validate` to migrate retired config aliases (for example `talk.voiceId`, `talk.apiKey`, and `agents.*.sandbox.perSession`) to canonical schema paths.
+`v2026.4.7+` note: rotating gateway shared-token/password auth invalidates existing authenticated WebSocket sessions; expect reconnect/re-auth after token or password changes.
 
 **Process:**
 1. Run the command

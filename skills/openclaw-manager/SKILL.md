@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest provider-web config migration fixes, cron/tooling controls, task-flow recovery improvements, and transport hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.9+** for current stable improvements, including `infer` workflows, packaged runtime sidecar fixes, and the latest SSRF/env hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.2)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.9)
 
 These changes affect new and existing installations:
 
@@ -58,6 +58,17 @@ These changes affect new and existing installations:
 16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
 17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
+19. **Legacy public config aliases removed from canonical schema** (v2026.4.5) — aliases such as `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, and `browser.ssrfPolicy.allowPrivateNetwork` should be migrated to canonical public paths; run `openclaw doctor --fix` after upgrades.
+
+## Notable Additions in v2026.4.5-v2026.4.9
+
+These are recent operationally important additions in the current stable line:
+
+1. **Unified inference hub** (v2026.4.7) — `openclaw infer ...` adds a first-class CLI surface for provider-backed text/media/web/embedding inference.
+2. **Expanded media generation stack** (v2026.4.5+) — built-in `music_generate` and `video_generate` tooling plus richer provider fallback/remapping across image/music/video generation.
+3. **Webhook ingress plugin for automation** (v2026.4.7) — bundled webhook ingress can trigger bound TaskFlows via per-route shared-secret endpoints.
+4. **Packaged runtime sidecar reliability fixes** (v2026.4.8-v2026.4.9) — npm installs no longer depend on missing `dist/extensions/*/src/*` paths for bundled channels/plugins.
+5. **Slack transport/threading hardening** (v2026.4.7-v2026.4.9) — improved Socket Mode proxy support, explicit thread-mention controls, and safer Slack media redirect auth handling.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -208,7 +219,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.9+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
