@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.10+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.10+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, `openclaw infer` / `openclaw exec-policy` command coverage, packaged channel runtime reliability fixes, and latest transport hardening, upgrade to **v2026.4.10+**.
 
 ## Common Issues
 
@@ -466,7 +466,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.10+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +641,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.10+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -918,6 +918,49 @@ openclaw flows show <flow-id>
 
 # Cancel and resubmit if needed
 openclaw flows cancel <flow-id>
+```
+
+#### Config Validate Fails on Removed Legacy Alias Keys
+**Symptoms:** After upgrading to v2026.4.5+, `openclaw config validate` fails on keys such as `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, or `browser.ssrfPolicy.allowPrivateNetwork`.
+
+**Cause:** v2026.4.5 removes legacy public alias keys from canonical config validation (with migration support via doctor).
+
+**Fix:**
+```bash
+# Rewrite legacy aliases to canonical config paths
+openclaw doctor --fix
+
+# Confirm no stale aliases remain
+openclaw config validate
+openclaw gateway restart
+```
+
+#### `openclaw infer` Command Not Found
+**Symptoms:** `unknown command "infer"` or equivalent CLI error.
+
+**Cause:** `openclaw infer` is introduced in v2026.4.7.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify infer hub availability
+openclaw infer --help
+```
+
+#### `openclaw exec-policy` Command Not Found
+**Symptoms:** `unknown command "exec-policy"` or equivalent CLI error.
+
+**Cause:** `openclaw exec-policy` is introduced in v2026.4.10.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify local exec policy controls
+openclaw exec-policy show
 ```
 
 ### Zalo Personal Issues (v2026.3.2)

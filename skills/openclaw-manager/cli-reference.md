@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.10` stable note: current stable is published as `v2026.4.10` and CLI version output should report `2026.4.10`.
 
 ### Device Management
 ```bash
@@ -109,6 +109,23 @@ openclaw flows cancel <id>   # Cancel an active flow
 ```
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
+
+### Inference Hub (v2026.4.7+)
+```bash
+openclaw infer --help        # Show infer subcommands and options
+openclaw infer <subcommand>  # Run one-off provider-backed inference tasks
+```
+
+Use this hub for direct inference workflows across text/model prompts, media generation, web-assisted inference, and embedding-related tasks without switching to a full chat/session workflow.
+
+### Exec Policy (v2026.4.10+)
+```bash
+openclaw exec-policy show                 # Display effective local exec policy sync state
+openclaw exec-policy preset <preset>      # Apply a named local exec policy preset
+openclaw exec-policy set <key> <value>    # Set a specific exec-policy field
+```
+
+Use `openclaw exec-policy --help` to inspect supported keys/presets for your runtime version.
 
 ### Cron Add Options
 ```bash
@@ -340,6 +357,10 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.5+: remove legacy alias keys and rewrite to canonical paths
+openclaw doctor --fix
+openclaw config validate
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
