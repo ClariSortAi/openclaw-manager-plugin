@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.11` stable note: current stable is published as `v2026.4.11` and CLI version output should report `2026.4.11`.
 
 ### Device Management
 ```bash
@@ -109,6 +109,22 @@ openclaw flows cancel <id>   # Cancel an active flow
 ```
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
+
+### Task Recovery (v2026.4.10+)
+```bash
+openclaw tasks cancel <task-id>   # Cancel a stuck background task
+```
+
+`v2026.4.10+` recovery note: `openclaw tasks cancel` can now terminate tasks that never reached a normal terminal state.
+
+### Exec Policy Controls (v2026.4.10+)
+```bash
+openclaw exec-policy show                  # Display effective local exec policy
+openclaw exec-policy preset <preset-name>  # Apply a built-in exec policy preset
+openclaw exec-policy set <key> <value>     # Set/override local policy fields
+```
+
+`v2026.4.10+` exec-policy note: these commands synchronize requested `tools.exec.*` behavior with local approvals policy files for safer operator control.
 
 ### Cron Add Options
 ```bash
@@ -252,12 +268,15 @@ openclaw backup verify <path>          # Verify backup archive manifest/payload
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
+openclaw infer               # Inference command hub for model/media/web/embedding tasks (v2026.4.7+)
 openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic  # Direct API key setup
 ```
+
+`v2026.4.10+` model-routing note: `codex/gpt-*` model refs now use the bundled Codex provider/auth path, while `openai/gpt-*` stays on the OpenAI provider path. Re-authenticate whichever provider family you select after upgrades.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -335,6 +354,9 @@ openclaw config set agents.defaults.tools.profile "coding"
 # v2026.4.2+: host exec defaults changed; pin this explicitly for production
 openclaw config set agents.defaults.tools.exec.security "ask"
 # Options: "allow", "ask" (approval workflow), "deny"
+
+# v2026.4.10+: allow trusted private-network OpenAI-compatible provider endpoints explicitly (opt-in)
+openclaw config set models.providers.<provider-id>.request.allowPrivateNetwork true
 
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix

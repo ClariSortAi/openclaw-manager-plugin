@@ -100,6 +100,7 @@ OpenClaw can apply opt-in interactive reply directives in shared Slack delivery 
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
+As of v2026.4.9-v2026.4.11, Slack media/download and thread-routing fixes improve attachment reliability and keep follow-up status/reply delivery pinned to the originating thread in mixed relay scenarios.
 
 ---
 
