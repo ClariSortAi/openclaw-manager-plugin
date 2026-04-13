@@ -94,12 +94,13 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24 and approvals in v2026.3.31-v2026.4.2)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded through v2026.4.12)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
+As of v2026.4.8-v2026.4.9, proxy-only deployments have improved Socket Mode and media-download handling (`HTTP(S)_PROXY`/`NO_PROXY` aware WebSocket path and safer same-origin redirect token behavior).
 
 ---
 
@@ -360,6 +361,7 @@ openclaw gateway restart
 
 As of v2026.1.15, Microsoft Teams is a **plugin-only** channel via `@openclaw/msteams`.
 In v2026.3.24+, the Teams plugin adopts the official Teams SDK with improved 1:1 streaming UX, prompt-starter welcome cards, typing/status signals, and support for message edit/delete delivery flows.
+In v2026.4.10-v2026.4.11, Teams support expands with pin/unpin/read/react actions, reaction listing, improved Graph pagination, and delegated OAuth setup for reaction sends.
 
 ### Setup Steps
 
@@ -674,7 +676,7 @@ openclaw channels status
 - Requires event subscription configuration in the Feishu developer console
 - Group chat support follows the same `groupPolicy` pattern as other channels
 
-### Feishu Improvements (v2026.3.x)
+### Feishu Improvements (v2026.3.x-v2026.4.12)
 - Reaction notifications and typing backoff fixes (v2026.3.1)
 - Rich-text parsing enhancements and media type corrections (v2026.3.1)
 - Multi-account routing with mention validation (v2026.3.1)
@@ -682,6 +684,8 @@ openclaw channels status
 - TTS/voice bubbles, Opus audio as `msg_type: "audio"` (v2026.3.1)
 - Webhook ingress rate-limiting with stale-window pruning (v2026.3.1)
 - Multi-app mention routing validation (v2026.3.2)
+- Standardized OpenClaw AI-agent registration and request user-agent behavior for cleaner Feishu-side identification (v2026.4.10)
+- Smoother setup reliability and document-comment session context/reaction/typing improvements (v2026.4.11-v2026.4.12)
 
 ---
 

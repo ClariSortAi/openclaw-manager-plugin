@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.2+** for the latest provider-web config migration fixes, cron/tooling controls, task-flow recovery improvements, and transport hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.12+** for the latest startup hardening, exec approval-policy controls, infer/ops command coverage, and memory/plugin runtime reliability fixes. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.2)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.12)
 
 These changes affect new and existing installations:
 
@@ -58,8 +58,22 @@ These changes affect new and existing installations:
 16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
 17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
+19. **Legacy public config aliases removed** (v2026.4.5) — older alias keys (for example `talk.voiceId`, legacy sandbox/browser toggles, and channel/group `allow` booleans) now fail strict validation; run `openclaw doctor --fix` and then `openclaw config validate`.
+20. **Codex provider routing split** (v2026.4.10) — use `codex/gpt-*` when you want Codex-managed auth/native threads; keep `openai/gpt-*` on the normal OpenAI route.
+21. **Default/example gateway credentials are rejected** (v2026.4.12) — copied placeholder token/password values now fail startup; set a real random token or password before restart.
+22. **Exec approval baselines tightened again** (v2026.4.12) — busybox/toybox and shell-wrapper assignment injection paths are blocked in safe-bin flows; stale permissive assumptions in old approval files may break until policy is refreshed.
 
-## Notable Additions in v2026.4.1-v2026.4.2
+## Notable Additions in v2026.4.5-v2026.4.12
+
+These are recent operationally important additions in the latest stable releases:
+
+1. **`openclaw infer` command hub** (v2026.4.7) — first-class CLI entrypoint for model/media/web/embedding inference workflows.
+2. **`openclaw exec-policy` command family** (v2026.4.10) — `show|preset|set` helps sync and harden local exec approval policy with `tools.exec.*` config.
+3. **Optional Active Memory plugin** (v2026.4.10+, improved in v2026.4.12) — runs a memory-focused pre-reply sub-agent for preference/context recall without manual memory prompts.
+4. **Bundled LM Studio provider support** (v2026.4.12) — local/self-hosted OpenAI-compatible model onboarding and discovery support is now first-class.
+5. **Manifest-scoped plugin loading hardening** (v2026.4.12) — startup/runtime activation narrows to declared plugin needs, improving trust-boundary behavior and reliability.
+
+## Historical Additions in v2026.4.1-v2026.4.2
 
 These are recent operationally important additions in the latest stable releases:
 
@@ -157,10 +171,17 @@ openclaw gateway status --require-rpc
 # Validate config before restart
 openclaw config validate
 
-# Automated fixes
+# Run provider/config alias migrations after major upgrades
 openclaw doctor --fix
 
-# Security audit
+# Inspect and pin local exec approval policy (v2026.4.10+)
+openclaw exec-policy show
+openclaw exec-policy preset conservative
+
+# Quick provider/media inference probe (v2026.4.7+)
+openclaw infer chat --prompt "Reply with OK"
+
+# Automated fixes
 openclaw security audit --deep
 
 # Docker/K8s health probes (v2026.3.1+)
@@ -208,7 +229,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.2+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.12+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

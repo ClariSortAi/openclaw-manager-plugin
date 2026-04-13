@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.5` through `v2026.4.12`, including breaking-change guidance for legacy config-alias removal (`openclaw doctor --fix` + `openclaw config validate`) and startup fail-closed behavior for placeholder gateway credentials.
+- Added CLI reference coverage for the `openclaw infer ...` command hub (v2026.4.7) and `openclaw exec-policy show|preset|set` workflow (v2026.4.10), plus `models.providers.*.request.allowPrivateNetwork` config guidance for trusted self-hosted OpenAI-compatible endpoints.
+- Added troubleshooting coverage for missing `openclaw infer`/`openclaw exec-policy` commands on older runtimes, v2026.4.5 alias-removal validation failures, and v2026.4.12 placeholder-credential startup rejection.
+- Added security-checklist hardening notes for v2026.4.7-v2026.4.12 fetch/body redirect stripping, expanded browser SSRF checks, workspace dotenv control-var blocking, tightened exec safe-bin/approver validation, and gateway example-credential fail-closed startup behavior.
 - Added release-alignment coverage for upstream stable `v2026.4.1` and `v2026.4.2`, including new breaking-change guidance for xAI `x_search` and Firecrawl `web_fetch` config-path migrations to plugin-owned keys, plus explicit `openclaw doctor --fix` migration workflow references.
 - Added CLI reference coverage for `openclaw cron add --tools ...` per-job tool allowlists (v2026.4.1) and expanded task-flow operational notes for `openclaw flows ...` recovery workflows in v2026.4.2.
 - Added troubleshooting coverage for post-upgrade `x_search` and Firecrawl `web_fetch` regressions caused by legacy config paths, including direct verification commands for migrated `plugins.entries.*` config locations.
@@ -50,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.2+` to `v2026.4.12+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.6`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.5`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.

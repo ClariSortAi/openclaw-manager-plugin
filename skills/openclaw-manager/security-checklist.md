@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.2+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.12+**.
 
 ### Known Critical Vulnerabilities
 
@@ -108,6 +108,12 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Dotenv interpreter pin protection | Prevents workspace `.env` overrides of pinned Python interpreter env vars used by trusted helper paths | v2026.4.2 |
 | Provider endpoint policy centralization | Consolidates native-vs-proxy classification, auth/header shaping, and TLS transport policy across provider HTTP/stream/websocket paths | v2026.4.2 |
 | Session kill scope enforcement | Requires operator scopes and pre-lookup authorization for session-kill HTTP paths | v2026.4.2 |
+| Fetch redirect body stripping | Drops request bodies and body-describing headers on cross-origin `307/308` redirects by default to reduce SSRF secret exfiltration pivots | v2026.4.7 |
+| Browser redirect SSRF hardening | Treats interaction-driven redirect hops as navigations under strict private-network policy so blocked destinations cannot be reached via click/evaluate indirection | v2026.4.7-v2026.4.10 |
+| Workspace dotenv control-var lockdown | Blocks runtime-control and browser-control override env vars from untrusted workspace `.env` sources | v2026.4.9 |
+| Exec policy mutation hardening | Blocks model-facing config writes that alter critical exec approval paths and expands dangerous host env denylisting | v2026.4.7 |
+| Exec safe-bin and approver validation tightening | Removes busybox/toybox interpreter shortcuts, blocks shell wrapper assignment injection, and rejects empty explicit approver authorization lists | v2026.4.12 |
+| Gateway credential placeholder fail-closed | Startup now rejects copied example token/password values from `.env.example` to prevent known-secret deployments | v2026.4.12 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -388,12 +394,15 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.2+ for latest auth, install-flow, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.12+ for latest auth, install-flow, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
 - [ ] If upgrading to v2026.4.2+, run `openclaw doctor --fix` to migrate legacy `tools.web.x_search.*` and `tools.web.fetch.firecrawl.*` keys to plugin-owned paths
+- [ ] If upgrading to v2026.4.5+, run `openclaw doctor --fix` and `openclaw config validate` to rewrite removed legacy public config aliases
 - [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
+- [ ] Local exec approvals are reviewed and pinned with `openclaw exec-policy show` / `openclaw exec-policy preset ...` (v2026.4.10+)
+- [ ] Gateway token/password is not left at a copied example placeholder value (v2026.4.12+ startup now rejects these)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -554,7 +563,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.2+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.12+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

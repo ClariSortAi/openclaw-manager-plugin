@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.12` stable note: current stable is published as `v2026.4.12` and CLI version output should report `2026.4.12`.
 
 ### Device Management
 ```bash
@@ -110,6 +110,21 @@ openclaw flows cancel <id>   # Cancel an active flow
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
+### Infer Hub (v2026.4.7+)
+```bash
+openclaw infer --help        # Inference command hub help
+openclaw infer chat --prompt "Reply with OK"
+openclaw infer image --prompt "Minimal geometric logo"
+openclaw infer embedding --text "test vector"
+```
+
+### Exec Policy (v2026.4.10+)
+```bash
+openclaw exec-policy show                    # Show current local exec approval policy
+openclaw exec-policy preset conservative     # Apply a safer preset
+openclaw exec-policy set strictInlineEval true  # Set explicit policy values
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -158,6 +173,7 @@ openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
+openclaw plugins install --force <spec>  # Replace existing target without dangerous override (v2026.4.5+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
@@ -171,6 +187,8 @@ openclaw plugins doctor        # Check plugin health
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
+
+`v2026.4.5+` replacement note: `openclaw plugins install --force <spec>` can replace an already-installed plugin/hook-pack target without using dangerous install overrides.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
 
@@ -340,6 +358,13 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.10+: inspect/sync local exec approval policy state
+openclaw exec-policy show
+openclaw exec-policy preset conservative
+
+# v2026.4.10+: trusted self-hosted OpenAI-compatible endpoint override
+openclaw config set models.providers.openai-compatible.request.allowPrivateNetwork true
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false

@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.12+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.12+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider/config migration coverage, exec-policy controls, and runtime hardening improvements, upgrade to **v2026.4.12+**.
 
 ## Common Issues
 
@@ -109,6 +109,20 @@ openclaw gateway restart
 ```bash
 openclaw config set gateway.auth.mode token
 openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+openclaw gateway restart
+```
+
+#### Gateway Startup Fails with Placeholder Credential Value
+**Symptoms:** Startup fails after upgrade with an error about default/example gateway credentials.
+
+**Cause:** v2026.4.12+ rejects copied placeholder token/password values from `.env.example` as a fail-closed security guard.
+
+**Fix:**
+```bash
+# Set a real random token or password value
+openclaw config set gateway.auth.mode token
+openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+openclaw config validate
 openclaw gateway restart
 ```
 
@@ -466,7 +480,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.12+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -558,6 +572,34 @@ openclaw doctor --fix
 openclaw status
 ```
 
+#### `openclaw infer` Command Not Found
+**Symptoms:** `unknown command "infer"` when following inference examples.
+
+**Cause:** `openclaw infer` was introduced in v2026.4.7.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify infer hub is available
+openclaw infer --help
+```
+
+#### `openclaw exec-policy` Command Not Found
+**Symptoms:** `unknown command "exec-policy"` or policy commands unavailable.
+
+**Cause:** `openclaw exec-policy` command family was introduced in v2026.4.10.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify policy surface
+openclaw exec-policy show
+```
+
 ### Skill Issues
 
 #### ClawHub Skill Not Working
@@ -641,7 +683,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.12+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -806,6 +848,21 @@ openclaw config validate --json
 # Remove or rewrite stale keys manually, then re-validate
 openclaw config unset <legacy.path>
 openclaw config validate
+openclaw gateway restart
+```
+
+#### Validation Fails After v2026.4.5 with Removed Alias Keys
+**Symptoms:** `openclaw config validate` reports unknown keys like legacy `talk.voiceId`, old sandbox/browser alias fields, or removed channel/group `allow` toggles.
+
+**Cause:** v2026.4.5 removes legacy public alias keys from strict config validation.
+
+**Fix:**
+```bash
+# Rewrite removable aliases
+openclaw doctor --fix
+
+# Validate and inspect any remaining bad paths
+openclaw config validate --json
 openclaw gateway restart
 ```
 

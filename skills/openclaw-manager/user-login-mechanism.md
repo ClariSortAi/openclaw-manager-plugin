@@ -122,6 +122,8 @@ openclaw channels login --account secondary
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
 `v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
+`v2026.4.5+` note: legacy public config aliases were removed from strict validation; run `openclaw doctor --fix` and `openclaw config validate` if startup fails with unknown-key errors.
+`v2026.4.12+` note: copied example gateway credentials are now rejected at startup; set a real random token/password before restart.
 
 **Process:**
 1. Run the command
@@ -430,6 +432,7 @@ With `per-account-channel-peer`, you can link identities across channels so the 
    - Store tokens securely (env vars, secrets manager)
    - Use `loopback` binding unless remote access needed
    - Use Tailscale for secure remote access
+   - Review and pin local exec approvals with `openclaw exec-policy show` / `openclaw exec-policy preset ...` (v2026.4.10+)
 
 2. **Channel Access:**
    - Use `pairing` policy (default) for DMs
