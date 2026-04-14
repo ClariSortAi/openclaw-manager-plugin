@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.5` through `v2026.4.12`, including the `v2026.4.5` legacy-public-config-alias removals and migration guidance to canonical schema paths.
+- Added core-skill and CLI reference coverage for `openclaw infer ...` (v2026.4.7), `openclaw exec-policy show|preset|set` (v2026.4.10), and `openclaw plugins install --force <spec>` (v2026.4.5+).
+- Added post-`v2026.4.2` model/runtime coverage for bundled Codex (`codex/gpt-*`), bundled LM Studio provider workflows, and optional Active Memory plugin operational guidance.
+- Added troubleshooting coverage for new upgrade-time failures in current stable: startup rejection of placeholder gateway credentials (`v2026.4.12+`) and invalid-config errors caused by removed legacy public aliases (`v2026.4.5+`).
+- Added security-checklist hardening notes for `v2026.4.7`-`v2026.4.12`, including owner-only allowlist mutation enforcement, auth-secret rotation WebSocket invalidation, `.env` runtime-control blocking, browser SSRF redirect rechecks, and shell/approval hardening fixes.
+- Added Slack channel setup guidance for `channels.slack.thread.requireExplicitMention` (v2026.4.7+).
 - Added release-alignment coverage for upstream stable `v2026.4.1` and `v2026.4.2`, including new breaking-change guidance for xAI `x_search` and Firecrawl `web_fetch` config-path migrations to plugin-owned keys, plus explicit `openclaw doctor --fix` migration workflow references.
 - Added CLI reference coverage for `openclaw cron add --tools ...` per-job tool allowlists (v2026.4.1) and expanded task-flow operational notes for `openclaw flows ...` recovery workflows in v2026.4.2.
 - Added troubleshooting coverage for post-upgrade `x_search` and Firecrawl `web_fetch` regressions caused by legacy config paths, including direct verification commands for migrated `plugins.entries.*` config locations.
@@ -50,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.2+` to `v2026.4.12+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.6`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.5`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.24+` to `v2026.3.31+` while preserving minimum safe baseline at `v2026.3.1`.

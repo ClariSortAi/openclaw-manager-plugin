@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.12+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.12+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, task/cron reliability improvements, and latest security hardening, upgrade to **v2026.4.12+**.
 
 ## Common Issues
 
@@ -196,6 +196,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 # Re-save token, then verify deep status
 openclaw models auth setup-token --provider openai
 openclaw status --deep
+```
+
+#### Gateway Refuses Startup Because Credentials Are Placeholder Values
+**Symptoms:** Startup fails after upgrade with auth/credential validation errors even though `gateway.auth.token` or `gateway.auth.password` appears set.
+
+**Cause:** v2026.4.12+ rejects known placeholder/default example credentials to prevent insecure deployments with publicly known secrets.
+
+**Fix:**
+```bash
+# Set fresh secrets (use one auth mode)
+openclaw config set gateway.auth.mode token
+openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+
+openclaw config validate
+openclaw gateway restart
 ```
 
 ### Channel Issues
@@ -466,7 +481,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.12+)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +656,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.12+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -805,6 +820,22 @@ openclaw config validate --json
 
 # Remove or rewrite stale keys manually, then re-validate
 openclaw config unset <legacy.path>
+openclaw config validate
+openclaw gateway restart
+```
+
+#### Config Validation Fails on Removed Legacy Public Aliases
+**Symptoms:** `openclaw config validate --json` fails after upgrading with errors on keys like `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, or legacy channel/group/room `allow` toggles.
+
+**Cause:** v2026.4.5 removed these legacy aliases from the public config schema.
+
+**Fix:**
+```bash
+# Run migration helper and inspect remaining invalid paths
+openclaw doctor --fix
+openclaw config validate --json
+
+# Rewrite any remaining keys to canonical paths, then restart
 openclaw config validate
 openclaw gateway restart
 ```

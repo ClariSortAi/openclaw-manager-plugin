@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.12` stable note: current stable is published as `v2026.4.12` and CLI version output should report `2026.4.12`.
 
 ### Device Management
 ```bash
@@ -63,6 +63,21 @@ openclaw devices list        # List pending and paired devices
 openclaw devices approve <id>  # Approve device
 openclaw devices reject <id>   # Reject device
 openclaw devices revoke <id>   # Revoke device access
+```
+
+### Inference Hub (v2026.4.7+)
+```bash
+openclaw infer --help        # Provider-backed inference command hub
+openclaw infer model --help  # Model inference helpers
+openclaw infer media --help  # Media generation/transcription helpers
+openclaw infer web --help    # Web search/fetch inference helpers
+```
+
+### Exec Policy Controls (v2026.4.10+)
+```bash
+openclaw exec-policy show               # Show effective local exec policy
+openclaw exec-policy preset secure      # Apply a named local policy preset
+openclaw exec-policy set ask            # Set explicit policy mode
 ```
 
 ### Cron Jobs
@@ -120,7 +135,7 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai-codex/gpt-5.4  # Model override
+  --model codex/gpt-5.4  # Model override
 ```
 
 ### Skills
@@ -157,6 +172,7 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install --force <spec>  # Replace existing plugin/hook-pack target (v2026.4.5+)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
@@ -177,6 +193,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.5+` config-compat note: legacy public aliases (for example `talk.voiceId`, `talk.apiKey`, `agents.*.sandbox.perSession`, `browser.ssrfPolicy.allowPrivateNetwork`, and legacy `*.allow` toggles) were removed from the public schema; use canonical config paths and run `openclaw doctor --fix` after upgrade.
 
 ### Agents
 ```bash
@@ -292,6 +310,7 @@ openclaw config set gateway.mdns.mode minimal
 # Channel settings
 openclaw config get channels.slack
 openclaw config set channels.slack.botToken "xoxb-..."
+openclaw config set channels.slack.thread.requireExplicitMention true  # v2026.4.7+ (thread replies still require explicit @mention)
 openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
@@ -340,6 +359,10 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
+
+# v2026.4.5+: detect/repair removed legacy public aliases
+openclaw config validate --json
+openclaw doctor --fix
 
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
