@@ -94,12 +94,13 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24 and approvals in v2026.3.31-v2026.4.2)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24, v2026.3.31-v2026.4.2, and v2026.4.14)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
+As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 
 ---
 
@@ -360,6 +361,7 @@ openclaw gateway restart
 
 As of v2026.1.15, Microsoft Teams is a **plugin-only** channel via `@openclaw/msteams`.
 In v2026.3.24+, the Teams plugin adopts the official Teams SDK with improved 1:1 streaming UX, prompt-starter welcome cards, typing/status signals, and support for message edit/delete delivery flows.
+In v2026.4.14, Teams SSO signin invokes enforce sender allowlist checks; verify `allowFrom` entries and identity mapping if signin events begin failing after upgrade.
 
 ### Setup Steps
 

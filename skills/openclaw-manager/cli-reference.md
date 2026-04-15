@@ -55,7 +55,14 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.2` stable note: current stable is published as `v2026.4.2` and CLI version output should report `2026.4.2`.
+`v2026.4.14` stable note: current stable is published as `v2026.4.14` and CLI version output should report `2026.4.14`.
+
+### Exec Policy (v2026.4.12+)
+```bash
+openclaw exec-policy show      # Show effective local exec approvals/policy sync state
+openclaw exec-policy preset    # Apply a built-in exec policy preset locally
+openclaw exec-policy set       # Set explicit local exec policy values
+```
 
 ### Device Management
 ```bash
@@ -335,6 +342,9 @@ openclaw config set agents.defaults.tools.profile "coding"
 # v2026.4.2+: host exec defaults changed; pin this explicitly for production
 openclaw config set agents.defaults.tools.exec.security "ask"
 # Options: "allow", "ask" (approval workflow), "deny"
+
+# v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
+openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix

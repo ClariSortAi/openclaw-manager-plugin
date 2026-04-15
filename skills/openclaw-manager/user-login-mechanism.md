@@ -122,6 +122,7 @@ openclaw channels login --account secondary
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
 `v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
+`v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 
 **Process:**
 1. Run the command
