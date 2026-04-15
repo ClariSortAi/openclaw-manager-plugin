@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.2+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.14+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.2+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.14+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, and task/cron reliability improvements, upgrade to **v2026.4.2+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, Slack-interaction allowlist hardening, and task/cron reliability improvements, upgrade to **v2026.4.14+**.
 
 ## Common Issues
 
@@ -218,6 +218,24 @@ openclaw status --deep
 - `users:read`, `app_mentions:read`
 - `reactions:read`, `reactions:write`
 
+#### Slack: Interactive Buttons/Modals Stop Working After Upgrade
+**Symptoms:** Message replies work, but button actions or modal submissions are ignored/denied.
+
+**Cause:** v2026.4.14 applies stricter Slack interactive-event authorization by enforcing global owner `allowFrom` behavior plus sender-id/channel-type cross-checks.
+
+**Fix:**
+```bash
+# Confirm explicit allowlist/pairing expectations
+openclaw config get channels.slack.allowFrom
+openclaw pairing list
+
+# Validate and reload after any access-control updates
+openclaw config validate
+openclaw gateway restart
+```
+
+If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
+
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
 
@@ -281,6 +299,21 @@ openclaw channels status
 ```
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
+
+#### Telegram Forum Topics Show Numeric IDs Instead of Human Names
+**Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.
+
+**Cause:** Builds before v2026.4.14 did not persist learned Telegram forum topic names to the session sidecar store.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Re-check forum-topic behavior
+openclaw channels status
+```
 
 #### iMessage: Not Working (Migrate to BlueBubbles)
 **Symptoms:** iMessage channel not receiving messages
@@ -466,7 +499,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+)
+# Upgrade to current stable (v2026.4.14+; includes v2026.4.2 migrations)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -641,7 +674,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.2+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.14+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -838,6 +871,20 @@ openclaw status
 openclaw backup create --only-config
 ```
 
+#### `openclaw exec-policy` Command Not Found
+**Symptoms:** `unknown command "exec-policy"` when trying to inspect or sync local exec policy.
+
+**Cause:** `openclaw exec-policy show|preset|set` was added in v2026.4.12.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run command
+openclaw exec-policy show
+```
+
 ### ACP Dispatch Issues (v2026.3.2+)
 
 #### Unexpected ACP Behavior
@@ -874,6 +921,21 @@ openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 ```
 
+#### PDF/Image Tool Rejects a Valid Ollama Vision Model as "Unknown"
+**Symptoms:** Image/PDF tool calls fail model lookup even though the configured Ollama model exists and works in normal chat turns.
+
+**Cause:** Older builds could skip model-ref normalization in media-tool lookup paths. v2026.4.14 fixes this mismatch.
+
+**Fix:**
+```bash
+# Upgrade and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Re-check normalized model ref
+openclaw config get agents.defaults.pdfModel
+```
+
 ### Plugin SDK Breaking Change (v2026.3.2)
 
 #### Plugin Error: "registerHttpHandler is not a function"
@@ -905,7 +967,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restores and hardens Task Flow state tracking and recovery behavior.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.14) continue that hardening.
 
 **Fix:**
 ```bash
