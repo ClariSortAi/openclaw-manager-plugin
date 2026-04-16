@@ -115,6 +115,9 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Hook wake trust downgrade | Forces owner downgrade for untrusted `hook:wake` system events to prevent privilege confusion in wake hooks | v2026.4.14 |
 | Teams SSO sender allowlist checks | Enforces sender allowlist policy on Teams SSO signin invokes | v2026.4.14 |
 | Config snapshot alias redaction | Redacts `sourceConfig` and `runtimeConfig` aliases in config snapshot redaction paths | v2026.4.14 |
+| Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
+| Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
+| Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical

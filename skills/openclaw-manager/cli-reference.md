@@ -263,7 +263,9 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
-openclaw models auth setup-token --provider anthropic  # Direct API key setup
+openclaw models auth setup-token --provider anthropic      # Direct API key setup
+openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
+openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
