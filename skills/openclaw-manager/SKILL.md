@@ -78,9 +78,22 @@ These are operationally important additions and hardening updates in newer stabl
 1. **`openclaw exec-policy` local command surface** (v2026.4.12) — use `show`, `preset`, and `set` to keep `tools.exec.*` settings synchronized with local approvals policy files.
 2. **Per-provider private-network request control** (v2026.4.12) — `models.providers.*.request.allowPrivateNetwork` gives explicit opt-in for trusted self-hosted OpenAI-compatible endpoints.
 3. **Optional Active Memory plugin** (v2026.4.12) — adds a memory-recall pre-reply sub-agent path for ongoing conversations.
-4. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
-5. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
-6. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
+4. **Bundled LM Studio provider** (v2026.4.12) — local/self-hosted OpenAI-compatible models via LM Studio, including onboarding, runtime model discovery, stream preload, and memory-search embeddings.
+5. **Bundled OpenAI Codex provider** (v2026.4.12) — `openai-codex/gpt-*` models use Codex-managed auth, native threads, and model discovery; `openai/gpt-*` remains on the standard OpenAI provider path.
+6. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
+7. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
+8. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
+
+## Notable in v2026.4.15-beta.1 (beta)
+
+These features are available in the current beta release and are not yet in a stable build. Run `openclaw update --channel beta` to opt in.
+
+1. **Model Auth status card** — Control UI/Overview adds an OAuth token health panel (`models.authStatus` gateway method, cached 60 s) with attention callouts for expiring or expired provider tokens.
+2. **LanceDB cloud storage** — `memory-lancedb` now supports remote object storage (S3, GCS, etc.) for durable memory indexes instead of local disk only.
+3. **GitHub Copilot embedding provider** — memory search gains a GitHub Copilot embedding backend; plugin authors can reuse the transport helper.
+4. **Local-model lean mode** (experimental) — set `agents.defaults.experimental.localModelLean: true` to drop heavyweight default tools (`browser`, `cron`, `message`) and reduce prompt size for weaker local-model setups without affecting the normal path.
+5. **Exec approval secrets redaction** — approval prompts now strip credential material before rendering, preventing secret leakage through inline approval review.
+6. **QMD `memory_get` path restriction** — the QMD memory backend rejects reads of arbitrary workspace markdown paths and only allows canonical memory files (`MEMORY.md`, `memory.md`, `DREAMS.md`, `dreams.md`, `memory/**`) plus active indexed QMD workspace documents.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -481,6 +494,12 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex (v2026.4.12+ — Codex-managed auth and native threads; models: openai-codex/gpt-5.4)
+openclaw models auth setup-token --provider openai-codex
+
+# LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
+openclaw models auth setup-token --provider lmstudio
 ```
 
 ## Error Patterns

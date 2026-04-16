@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added **LM Studio bundled provider** documentation (v2026.4.12): `openclaw models auth setup-token --provider lmstudio` entry in SKILL.md model providers section and CLI reference; added to Notable Additions for v2026.4.12-v2026.4.14.
+- Added **OpenAI Codex bundled provider** documentation (v2026.4.12): `openclaw models auth setup-token --provider openai-codex` setup guidance in SKILL.md and CLI reference; noted that `openai-codex/gpt-*` uses Codex-managed auth while `openai/gpt-*` stays on the standard OpenAI path.
+- Added v2026.4.12 security hardening entries to `security-checklist.md`: busybox/toybox exec interpreter removal, empty approver list bypass prevention, and shell-wrapper detection broadening.
+- Added **`Notable in v2026.4.15-beta.1`** section to SKILL.md covering: Model Auth status card, LanceDB cloud storage support, GitHub Copilot embedding provider, experimental `localModelLean` flag, exec approval secrets redaction, and QMD `memory_get` canonical-path restriction.
 - Added release-alignment coverage for upstream stable `v2026.4.12` and `v2026.4.14`, including new guidance for `openclaw exec-policy` workflows, per-provider private-network request controls, Slack interactive allowlist enforcement, and model-facing gateway config safety guardrails.
 - Added troubleshooting guidance for post-upgrade Slack interactive authorization failures, missing `openclaw exec-policy` command support on pre-v2026.4.12 installs, Telegram forum-topic name persistence behavior, and Ollama vision model normalization issues in PDF/image tool paths.
 - Added security-checklist hardening entries for v2026.4.14 interaction allowlist enforcement, model-facing dangerous-flag gating, attachment canonical-path fail-closed behavior, expanded browser SSRF route enforcement, Teams SSO allowlist checks, and config snapshot alias redaction.
