@@ -115,6 +115,7 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Hook wake trust downgrade | Forces owner downgrade for untrusted `hook:wake` system events to prevent privilege confusion in wake hooks | v2026.4.14 |
 | Teams SSO sender allowlist checks | Enforces sender allowlist policy on Teams SSO signin invokes | v2026.4.14 |
 | Config snapshot alias redaction | Redacts `sourceConfig` and `runtimeConfig` aliases in config snapshot redaction paths | v2026.4.14 |
+| Gateway HTTP auth token hot-rotation | Resolves active bearer credentials per request for HTTP and upgrade paths so rotated gateway tokens apply immediately without restart | v2026.4.14 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical

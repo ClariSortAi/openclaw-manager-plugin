@@ -236,6 +236,24 @@ openclaw gateway restart
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
 
+#### Gateway HTTP Routes Still Accept Old Token After Rotation
+**Symptoms:** You rotate `gateway.auth.token` (or reload secrets) but HTTP routes such as `/v1/*`, `/tools/invoke`, plugin HTTP routes, or upgrade paths still accept the previous bearer token until restart.
+
+**Cause:** Older builds cached HTTP/upgrade auth bearer values and only fully applied rotation on restart. v2026.4.14 resolves bearer auth per request.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Rotate token (or reload SecretRefs) and validate config
+openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+openclaw config validate
+
+# Optionally verify no stale token paths remain by testing protected routes
+openclaw gateway status
+```
+
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
 
@@ -883,6 +901,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run command
 openclaw exec-policy show
+```
+
+#### `openai-codex/gpt-5.4-pro` Not Available in Model Listings Yet
+**Symptoms:** You expect GPT-5.4 Pro support but `models list` or catalog surfaces do not show it on older installs.
+
+**Cause:** v2026.4.14 adds forward-compat catalog support and visibility for newer Codex GPT-5.4 variants before upstream registries fully converge.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Refresh and inspect model availability
+openclaw models list
+openclaw status --deep
 ```
 
 ### ACP Dispatch Issues (v2026.3.2+)

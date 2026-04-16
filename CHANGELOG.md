@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.14` Codex model-catalog updates, including canonical alias guidance (`openai-codex/gpt-5.4-codex` -> `openai-codex/gpt-5.4`) and forward-compat references for `openai-codex/gpt-5.4-pro`.
+- Added troubleshooting guidance for post-rotation gateway bearer-token behavior on HTTP and upgrade routes, including upgrade validation workflow for immediate token-rotation enforcement in `v2026.4.14+`.
+- Added security-checklist hardening entry documenting per-request gateway HTTP auth-token resolution in `v2026.4.14` (token rotation via config/secrets reload applies without restart).
 - Added release-alignment coverage for upstream stable `v2026.4.12` and `v2026.4.14`, including new guidance for `openclaw exec-policy` workflows, per-provider private-network request controls, Slack interactive allowlist enforcement, and model-facing gateway config safety guardrails.
 - Added troubleshooting guidance for post-upgrade Slack interactive authorization failures, missing `openclaw exec-policy` command support on pre-v2026.4.12 installs, Telegram forum-topic name persistence behavior, and Ollama vision model normalization issues in PDF/image tool paths.
 - Added security-checklist hardening entries for v2026.4.14 interaction allowlist enforcement, model-facing dangerous-flag gating, attachment canonical-path fail-closed behavior, expanded browser SSRF route enforcement, Teams SSO allowlist checks, and config snapshot alias redaction.
@@ -54,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated README/version metadata for this docs release alignment (`1.3.7`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.2+` to `v2026.4.14+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.6`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.

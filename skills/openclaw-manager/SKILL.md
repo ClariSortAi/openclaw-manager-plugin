@@ -78,9 +78,11 @@ These are operationally important additions and hardening updates in newer stabl
 1. **`openclaw exec-policy` local command surface** (v2026.4.12) — use `show`, `preset`, and `set` to keep `tools.exec.*` settings synchronized with local approvals policy files.
 2. **Per-provider private-network request control** (v2026.4.12) — `models.providers.*.request.allowPrivateNetwork` gives explicit opt-in for trusted self-hosted OpenAI-compatible endpoints.
 3. **Optional Active Memory plugin** (v2026.4.12) — adds a memory-recall pre-reply sub-agent path for ongoing conversations.
-4. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
-5. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
-6. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
+4. **Codex GPT-5.4 catalog resilience** (v2026.4.14) — forward-compat model support (including `openai-codex/gpt-5.4-pro`) and catalog fixes reduce breakage when upstream model registries lag.
+5. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
+6. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
+7. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
+8. **Immediate HTTP auth-token rotation enforcement** (v2026.4.14) — HTTP and upgrade auth paths resolve active bearer credentials per request, so token rotation via config/secrets reload no longer waits for restart.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 

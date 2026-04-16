@@ -57,6 +57,8 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.4.14` stable note: current stable is published as `v2026.4.14` and CLI version output should report `2026.4.14`.
 
+`v2026.4.14+` Codex model note: `openai-codex/gpt-5.4-codex` is canonicalized to `openai-codex/gpt-5.4`, and forward-compat support includes `openai-codex/gpt-5.4-pro` for early access before upstream catalogs fully converge.
+
 ### Exec Policy (v2026.4.12+)
 ```bash
 openclaw exec-policy show      # Show effective local exec approvals/policy sync state
@@ -345,6 +347,10 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
+
+# v2026.4.14+: Codex model alias/canonicalization behavior
+openclaw config set agents.defaults.model "openai-codex/gpt-5.4"
+openclaw config set agents.defaults.model "openai-codex/gpt-5.4-pro"
 
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
