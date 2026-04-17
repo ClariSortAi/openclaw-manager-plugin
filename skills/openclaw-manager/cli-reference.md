@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.14` stable note: current stable is published as `v2026.4.14` and CLI version output should report `2026.4.14`.
+`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -361,6 +361,10 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
+
+# Local-model lean defaults (v2026.4.15+, experimental)
+openclaw config set agents.defaults.experimental.localModelLean true
+# Set false to restore normal default-tool behavior
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500

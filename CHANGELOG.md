@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
+- Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
+- Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
 - Added **LM Studio bundled provider** documentation (v2026.4.12): `openclaw models auth setup-token --provider lmstudio` entry in SKILL.md model providers section and CLI reference; added to Notable Additions for v2026.4.12-v2026.4.14.
 - Added **OpenAI Codex bundled provider** documentation (v2026.4.12): `openclaw models auth setup-token --provider openai-codex` setup guidance in SKILL.md and CLI reference; noted that `openai-codex/gpt-*` uses Codex-managed auth while `openai/gpt-*` stays on the standard OpenAI path.
 - Added v2026.4.12 security hardening entries to `security-checklist.md`: busybox/toybox exec interpreter removal, empty approver list bypass prevention, and shell-wrapper detection broadening.
@@ -58,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
+- Updated README/version metadata for this docs release alignment (`1.3.7`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.2+` to `v2026.4.14+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.6`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.

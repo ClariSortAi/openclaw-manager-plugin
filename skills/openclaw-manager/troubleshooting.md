@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.14+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.14+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, Slack-interaction allowlist hardening, and task/cron reliability improvements, upgrade to **v2026.4.14+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
 
 ## Common Issues
 
@@ -196,6 +196,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 # Re-save token, then verify deep status
 openclaw models auth setup-token --provider openai
 openclaw status --deep
+```
+
+#### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
+**Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
+
+**Cause:** Older builds cached resolved HTTP bearer auth instead of resolving the active token per request.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Reload secrets/config and verify auth surfaces
+openclaw secrets reload
+openclaw gateway status
 ```
 
 ### Channel Issues
@@ -499,7 +514,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.14+; includes v2026.4.2 migrations)
+# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -593,6 +608,21 @@ openclaw status
 
 ### Skill Issues
 
+#### Repeated `Tool <name> not found` Loops After Skills Config Changes
+**Symptoms:** After changing `skills.*` config (for example disabling a bundled skill), sessions repeatedly emit `Tool <name> not found` or unknown-tool retry loops.
+
+**Cause:** Older builds could keep stale `skillsSnapshot` state in active sessions and lacked default unknown-tool stream guard behavior.
+
+**Fix:**
+```bash
+# Upgrade to current stable line
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart gateway and start a fresh session
+openclaw gateway restart
+openclaw status --all
+```
+
 #### ClawHub Skill Not Working
 **Symptoms:** Installed ClawHub skill not available
 
@@ -674,7 +704,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.14+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -936,6 +966,21 @@ openclaw gateway restart
 openclaw config get agents.defaults.pdfModel
 ```
 
+#### Ollama Chat Model IDs with `ollama/` Prefix Return 404
+**Symptoms:** Normal chat turns fail against Ollama when model ids are configured like `ollama/qwen3:14b-q8_0`.
+
+**Cause:** Older builds could forward the `ollama/` provider prefix into Ollama chat requests instead of normalizing to the model id expected by the Ollama API.
+
+**Fix:**
+```bash
+# Upgrade and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Verify configured model id
+openclaw config get agents.defaults.model
+```
+
 ### Plugin SDK Breaking Change (v2026.3.2)
 
 #### Plugin Error: "registerHttpHandler is not a function"
@@ -967,7 +1012,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.14) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
 
 **Fix:**
 ```bash
