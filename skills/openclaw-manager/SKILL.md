@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.14+** for the latest Slack interaction allowlist enforcement, model-facing config hardening, and channel/provider reliability fixes. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.14)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
 
 These changes affect new and existing installations:
 
@@ -84,16 +84,18 @@ These are operationally important additions and hardening updates in newer stabl
 7. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
 8. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
 
-## Notable in v2026.4.15-beta.1 (beta)
+## Notable Additions in v2026.4.15
 
-These features are available in the current beta release and are not yet in a stable build. Run `openclaw update --channel beta` to opt in.
+These are operationally important additions and reliability/security fixes in the latest stable release:
 
-1. **Model Auth status card** — Control UI/Overview adds an OAuth token health panel (`models.authStatus` gateway method, cached 60 s) with attention callouts for expiring or expired provider tokens.
-2. **LanceDB cloud storage** — `memory-lancedb` now supports remote object storage (S3, GCS, etc.) for durable memory indexes instead of local disk only.
-3. **GitHub Copilot embedding provider** — memory search gains a GitHub Copilot embedding backend; plugin authors can reuse the transport helper.
-4. **Local-model lean mode** (experimental) — set `agents.defaults.experimental.localModelLean: true` to drop heavyweight default tools (`browser`, `cron`, `message`) and reduce prompt size for weaker local-model setups without affecting the normal path.
-5. **Exec approval secrets redaction** — approval prompts now strip credential material before rendering, preventing secret leakage through inline approval review.
-6. **QMD `memory_get` path restriction** — the QMD memory backend rejects reads of arbitrary workspace markdown paths and only allows canonical memory files (`MEMORY.md`, `memory.md`, `DREAMS.md`, `dreams.md`, `memory/**`) plus active indexed QMD workspace documents.
+1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
+2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
+3. **Model Auth status card** — Control UI/Overview adds OAuth token health and provider-pressure visibility (`models.authStatus`, cached 60 s) for expiring/expired token detection.
+4. **LanceDB cloud storage support** — `memory-lancedb` can now store durable indexes on remote object storage, not just local disk.
+5. **GitHub Copilot embeddings for memory search** — memory search supports a Copilot embedding backend with shared transport helpers.
+6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
+7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
+8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -234,7 +236,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.14+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
