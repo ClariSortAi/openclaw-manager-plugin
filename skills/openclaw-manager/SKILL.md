@@ -97,6 +97,17 @@ These are operationally important additions and reliability/security fixes in th
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
 
+## Notable in v2026.4.19-beta.1-v2026.4.19-beta.2 (pre-release)
+
+These are high-impact fixes in the current pre-release line. Treat them as beta-only guidance until `v2026.4.19` is published as stable:
+
+1. **OpenAI-compatible streaming usage accounting fixed** — streaming requests now always send `stream_options.include_usage`, so local/custom OpenAI-compatible backends no longer report false `0%` context usage.
+2. **Session usage continuity hardening** — `/status` and `openclaw sessions` preserve carried-forward token totals when providers omit usage metadata.
+3. **Nested lane fairness fix** — long-running nested-agent work is scoped per target session, reducing cross-session head-of-line blocking.
+4. **Cross-agent channel-account routing fix** — sub-agent spawns now route through the target agent's bound channel account instead of inheriting the caller's account in shared/multi-account setups.
+5. **Telegram callback watermark recovery** — permanent callback edit failures are treated as completed updates, preventing stale pagination actions from blocking newer updates.
+6. **Remote CDP diagnostics/allowlist improvements** — WSL-to-Windows Chrome endpoints no longer appear falsely offline under strict defaults, with clearer CDP health-phase diagnostics.
+
 ## Notable Additions in v2026.3.22-v2026.3.24
 
 These are recent operationally important additions in current stable releases:

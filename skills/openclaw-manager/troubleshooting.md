@@ -44,6 +44,8 @@ openclaw gateway restart
 
 If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
 
+If you are testing the current pre-release line (**v2026.4.19-beta.1+**), you also get fixes for streaming usage accounting on OpenAI-compatible backends, cross-session nested-lane fairness, Telegram callback watermark recovery, and stricter remote CDP diagnostics.
+
 ## Common Issues
 
 ### Gateway Issues
@@ -72,6 +74,22 @@ openclaw gateway status --require-rpc
 openclaw doctor --fix
 openclaw gateway restart
 openclaw gateway status --require-rpc
+```
+
+#### Nested-Agent Work in One Session Blocks Other Sessions
+**Symptoms:** A long-running nested/sub-agent workflow in one session appears to delay unrelated sessions across the same gateway.
+
+**Cause:** Older builds could let nested-lane scheduling create cross-session head-of-line blocking.
+
+**Fix:**
+```bash
+# Upgrade to the latest pre-release/stable line that includes nested-lane session scoping
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-check flow/session health after restart
+openclaw gateway restart
+openclaw status --all
+openclaw flows list
 ```
 
 #### Port 18789 Already in Use
@@ -327,6 +345,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway restart
 
 # Re-check forum-topic behavior
+openclaw channels status
+```
+
+#### Telegram Callback Buttons Stop Updating Newer Messages
+**Symptoms:** Older callback-pagination button edits fail and newer Telegram updates stop advancing normally.
+
+**Cause:** Older builds could leave the Telegram callback update watermark wedged when permanent edit errors occurred.
+
+**Fix:**
+```bash
+# Upgrade to a build that includes callback watermark recovery
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Verify updates continue flowing
 openclaw channels status
 ```
 
@@ -812,6 +845,22 @@ openclaw config set session.maintenance.maxDiskBytes 1073741824
 openclaw config set session.maintenance.highWaterBytes 858993459
 ```
 
+#### `/status` or `openclaw sessions` Shows `0%` Usage on OpenAI-Compatible Backends
+**Symptoms:** Session usage appears as unknown/`0%` during or after streamed turns even though prompts are large.
+
+**Cause:** Older builds could omit streaming usage-report options or drop carried-forward usage totals when providers returned incomplete metadata.
+
+**Fix:**
+```bash
+# Upgrade to latest pre-release/stable line with usage-accounting fixes
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Re-check usage surfaces
+openclaw status
+openclaw sessions list
+```
+
 ### Tools Profile Issues (v2026.3.2+)
 
 #### Agent Can't Run Commands / "Tools Not Available"
@@ -927,6 +976,23 @@ openclaw exec-policy show
 # Disable ACP dispatch if not wanted
 openclaw config set acp.dispatch.enabled false
 openclaw gateway restart
+```
+
+### Browser / CDP Issues
+
+#### Remote Chrome CDP Endpoint Looks Offline Under Strict Defaults (WSL -> Windows)
+**Symptoms:** Browser/CDP health checks fail for a configured remote profile host even though Chrome DevTools is reachable.
+
+**Cause:** Older builds could over-restrict CDP host checks or provide unclear diagnostics around the failed readiness phase.
+
+**Fix:**
+```bash
+# Upgrade to latest pre-release/stable line
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Re-run diagnostics after upgrade
+openclaw status --deep
 ```
 
 ### PDF Tool Issues (v2026.3.2+)
