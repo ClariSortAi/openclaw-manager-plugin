@@ -305,7 +305,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,7 +356,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +370,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 

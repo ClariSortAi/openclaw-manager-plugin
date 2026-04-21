@@ -97,6 +97,10 @@ These are operationally important additions and reliability/security fixes in th
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
 
+## Release Watch (Current Prerelease)
+
+The latest upstream prerelease is **v2026.4.19-beta.2**. It adds streamed usage reporting parity for OpenAI-compatible backends, improves nested-lane session isolation, and keeps carried-forward token usage visible in status output when providers omit usage metadata. Treat this as a preview track until stable.
+
 ## Notable Additions in v2026.3.22-v2026.3.24
 
 These are recent operationally important additions in current stable releases:
@@ -362,14 +366,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level

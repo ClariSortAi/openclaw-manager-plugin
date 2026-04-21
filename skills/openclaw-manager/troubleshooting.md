@@ -944,7 +944,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50

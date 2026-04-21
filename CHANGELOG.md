@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-sync coverage for the latest release page state (`v2026.4.15` stable, `v2026.4.19-beta.2` prerelease watch) and refreshed documentation defaults to keep Anthropic model examples aligned with 4.7 aliases.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated stale Anthropic model examples from 4.6 to 4.7 across `openclaw-manager` and onboarding docs (SKILL, CLI reference, troubleshooting, security examples, journey templates, and feature matrix).
+- Updated SKILL release highlights with an explicit prerelease watch note for `v2026.4.19-beta.2` covering streaming usage reporting and nested-lane session-scope fixes (no stable-target recommendation change).
+- Updated README/version metadata for this release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
