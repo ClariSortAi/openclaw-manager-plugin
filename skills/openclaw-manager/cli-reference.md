@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.21` stable note: current stable is published as `v2026.4.21` and CLI version output should report `2026.4.21`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -107,6 +107,8 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 # Restrict a cron job to specific tools only
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
+
+`v2026.4.20+` cron state note: scheduler runtime execution state is stored in `jobs-state.json`, while job definitions remain in `jobs.json`. For git-tracked cron configs, commit `jobs.json` and ignore runtime-state churn.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -184,6 +186,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.21+` repair note: `openclaw doctor --fix` now repairs missing bundled plugin runtime dependencies more reliably in packaged installs.
 
 ### Agents
 ```bash
@@ -302,6 +306,11 @@ openclaw config set gateway.mdns.mode minimal
 openclaw config get channels.slack
 openclaw config set channels.slack.botToken "xoxb-..."
 openclaw config set channels.whatsapp.dmPolicy pairing
+
+# Owner-command policy (v2026.4.21+ hardening)
+openclaw config get commands.enforceOwnerForCommands
+openclaw config get commands.ownerAllowFrom
+openclaw config set commands.ownerAllowFrom '["U12345678"]'
 
 # Agent settings
 openclaw config get agents.defaults.model

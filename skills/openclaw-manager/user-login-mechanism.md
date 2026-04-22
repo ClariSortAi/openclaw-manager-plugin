@@ -124,6 +124,7 @@ openclaw channels login --account secondary
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
+`v2026.4.21+` note: owner-enforced commands now require explicit owner identity matches (`commands.ownerAllowFrom`/owner candidates), and no longer rely on wildcard/empty-owner fallback behavior.
 
 **Process:**
 1. Run the command

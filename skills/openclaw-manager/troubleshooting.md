@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.21+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.21+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, owner-command authorization hardening, bundled plugin-runtime self-repair, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.21+**.
 
 ## Common Issues
 
@@ -251,6 +251,20 @@ openclaw gateway restart
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
 
+#### Slack: Runtime Replies Land Outside Intended Thread
+**Symptoms:** Runtime or automation sends in Slack appear in the parent channel instead of the expected thread, even when `threadTs` is provided.
+
+**Cause:** Builds before v2026.4.21 could drop thread-alias handling on generic runtime outbound sends.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run the threaded send path and verify response routing
+openclaw status --all
+```
+
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
 
@@ -445,6 +459,19 @@ openclaw plugins enable <plugin-id>
 openclaw gateway restart
 ```
 
+#### Packaged Install Missing Bundled Channel/Provider Runtime Dependencies
+**Symptoms:** Packaged/npm installs fail to load bundled channels/providers because extension runtime dependencies are missing.
+
+**Cause:** Older repair paths could miss extension-owned runtime dependencies.
+
+**Fix:**
+```bash
+# On v2026.4.21+, doctor repair can restore bundled runtime deps
+openclaw doctor --fix
+openclaw plugins doctor
+openclaw gateway restart
+```
+
 #### Plugin Conflict (Slot Error)
 **Symptoms:** Error about conflicting plugins in same slot
 
@@ -514,7 +541,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.21+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,7 +731,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.21+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1012,7 +1039,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.21) continue that hardening.
 
 **Fix:**
 ```bash
@@ -1037,6 +1064,25 @@ openclaw flows cancel <flow-id>
 **Fix:**
 ```bash
 openclaw channels login --channel zalouser
+```
+
+### Command Authorization Issues
+
+#### Owner-Enforced Commands Denied for Previously Working Senders
+**Symptoms:** Commands that used to run under permissive channel policy now return owner/authorization failures after upgrade.
+
+**Cause:** v2026.4.21 requires explicit owner identity for owner-enforced commands; wildcard `allowFrom` and empty owner-candidate fallbacks no longer satisfy owner authorization.
+
+**Fix:**
+```bash
+# Review command-owner enforcement and channel allowlists
+openclaw config get commands.enforceOwnerForCommands
+openclaw config get commands.ownerAllowFrom
+openclaw config get channels.slack.allowFrom
+
+# Validate and reload
+openclaw config validate
+openclaw gateway restart
 ```
 
 ### Service Issues (systemd)
