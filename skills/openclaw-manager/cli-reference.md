@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.21` stable note: current stable is published as `v2026.4.21` and CLI version output should report `2026.4.21`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash

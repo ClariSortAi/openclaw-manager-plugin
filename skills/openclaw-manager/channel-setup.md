@@ -150,6 +150,28 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 
+`v2026.4.20+` per-chat system prompt: forward per-group and per-direct `systemPrompt` config into inbound context `GroupSystemPrompt` so configured per-chat behavioral instructions are injected on every turn. Supports `"*"` wildcard fallback and account-scoped overrides. Account maps fully replace root maps (no deep merge):
+
+```json
+{
+  "channels": {
+    "whatsapp": {
+      "accounts": {
+        "default": {
+          "groups": {
+            "*": { "systemPrompt": "You are a helpful assistant in this group." },
+            "1234567890@g.us": { "systemPrompt": "Focus on technical support for this group." }
+          },
+          "direct": {
+            "*": { "systemPrompt": "You are a personal assistant." }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
 ```bash
@@ -226,6 +248,18 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+
+`v2026.4.20+` `allowFrom` must use numeric user IDs (not `@username` handles). Use `from.id` from Telegram's `getUpdates` API or have the user send a message and check logs to discover their numeric ID:
+
+```bash
+openclaw config set channels.telegram.allowFrom '["123456789"]'
+```
+
+`v2026.4.20+` polling watchdog: the default stall threshold is raised from 90s to 120s. For agents doing long-running work, increase further:
+
+```bash
+openclaw config set channels.telegram.pollingStallThresholdMs 180000
+```
 
 ---
 
@@ -329,6 +363,26 @@ openclaw gateway restart
 - Group chat management (create, rename, add/remove members)
 - No Full Disk Access requirement (uses BlueBubbles API instead of chat.db)
 - Better reliability and reconnection handling
+
+`v2026.4.20+` send timeout: the default outbound send timeout is raised from 10s to 30s. Configure per-account with `channels.bluebubbles.sendTimeoutMs` for macOS 26 setups where Private API iMessage sends may stall longer:
+
+```bash
+openclaw config set channels.bluebubbles.sendTimeoutMs 60000
+```
+
+`v2026.4.20+` per-group system prompt: forward per-group `systemPrompt` config into inbound context `GroupSystemPrompt` with `"*"` wildcard fallback:
+
+```json
+{
+  "channels": {
+    "bluebubbles": {
+      "groups": {
+        "*": { "systemPrompt": "You are a helpful assistant in this group." }
+      }
+    }
+  }
+}
+```
 
 ---
 

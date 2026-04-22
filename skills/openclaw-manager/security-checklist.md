@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.21+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,13 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| Auth/commands owner-command permissive-fallback closed | Requires owner identity (an owner-candidate match or internal `operator.admin`) for owner-enforced commands; closes permissive fallback through wildcard `allowFrom` or empty owner-candidate lists when `enforceOwnerForCommands=true` — set `commands.ownerAllowFrom` explicitly if relying on owner-command restrictions | v2026.4.21 |
+| Workspace dotenv `OPENCLAW_*` key blocking | Blocks all `OPENCLAW_*` keys from untrusted workspace `.env` files so workspace-local env loading fails closed for new runtime-control variables | v2026.4.20 |
+| Paired-device scope restriction | Non-admin paired-device sessions (device-token auth) restricted to their own pairing list, approve, and reject actions — prevents cross-device enumeration and pairing manipulation; admin and shared-secret operator sessions retain full visibility | v2026.4.20 |
+| WebSocket broadcast scope-gating | Chat, agent, and tool-result broadcast frames now require `operator.read` (or higher) so pairing-scoped and node-role sessions no longer passively receive session chat content and tool results | v2026.4.20 |
+| Agent gateway tool config mutation guard expansion | Model-driven `config.patch` and `config.apply` blocked from rewriting operator-trusted paths (sandbox, plugin trust, gateway auth/TLS, hook routing, SSRF policy, MCP servers, workspace filesystem hardening) and from bypassing the guard via per-agent overrides under `agents.list[]` | v2026.4.20 |
+| QQ Bot SSRF guard | SSRF protection added to QQ Bot direct-upload URL paths (`uploadC2CMedia`, `uploadGroupMedia`) | v2026.4.20 |
+| Gateway `allowRequestSessionKey` enforcement expansion | Template-rendered mapping `sessionKey` values now go through the `allowRequestSessionKey` gate, closing a path for template-injected session key overrides | v2026.4.20 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +410,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.21+ for latest auth/command hardening, WebSocket broadcast scope-gating, and paired-device scope restrictions)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -572,7 +579,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.21+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

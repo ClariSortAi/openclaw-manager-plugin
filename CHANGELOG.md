@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.21` and `v2026.4.20`, including auth/command owner-enforcement hardening, WhatsApp and BlueBubbles per-group/per-direct `systemPrompt` config, Moonshot/Kimi K2.6 default, cron `jobs-state.json` persistence split, BlueBubbles configurable `sendTimeoutMs`, and Telegram configurable polling watchdog threshold.
+- Added security-checklist hardening entries for `v2026.4.20-v2026.4.21`: auth/commands owner permissive-fallback closed, workspace dotenv `OPENCLAW_*` blocking, paired-device scope restriction, WebSocket broadcast scope-gating, agent gateway tool config mutation guard expansion, QQ Bot SSRF guard, and `allowRequestSessionKey` template enforcement.
+- Added channel-setup coverage for WhatsApp and BlueBubbles per-group/per-direct `systemPrompt` configuration (v2026.4.20), BlueBubbles `sendTimeoutMs` tuning guidance, and Telegram numeric `allowFrom` ID requirement with `pollingStallThresholdMs` config.
+
+### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.21+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
