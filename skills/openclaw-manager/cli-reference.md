@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.21` stable note: current stable is published as `v2026.4.21` and CLI version output should report `2026.4.21`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -353,6 +353,11 @@ openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
 
+# v2026.4.20+: BlueBubbles configurable send timeout (default 30s; macOS 26 Tahoe may need higher)
+openclaw config set channels.bluebubbles.sendTimeoutMs 60000
+# Per-account override
+openclaw config set channels.bluebubbles.accounts.<id>.sendTimeoutMs 60000
+
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
@@ -468,6 +473,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Skill Workshop | bundled | Captures reusable workflow corrections as workspace skills with auto-apply and safety quarantine (v2026.4.21+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

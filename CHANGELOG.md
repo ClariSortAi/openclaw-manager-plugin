@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.21` and `v2026.4.20`, including a new Notable Additions section for v2026.4.20-v2026.4.21 in SKILL.md covering: owner-enforced command identity hardening, Skill Workshop bundled plugin, BlueBubbles configurable send timeout, workspace `OPENCLAW_*` env key protection, extended gateway tool config mutation guard, WebSocket broadcast scope gating, device pairing scope restriction, cron `jobs-state.json` split, forwarded-header reverse-proxy protection, and Telegram group model picker authorization.
+- Added Skill Workshop bundled plugin entry (`v2026.4.21+`) to CLI reference Other Plugins table.
+- Added `channels.bluebubbles.sendTimeoutMs` configurable timeout documentation to cli-reference.md and channel-setup.md (v2026.4.20+), with macOS 26 Tahoe troubleshooting guidance in troubleshooting.md.
+- Added WhatsApp `replyToMode` native reply-quoting note to channel-setup.md (v2026.4.20+).
+- Added eleven new security-checklist hardening entries for v2026.4.20-v2026.4.21: workspace env key protection, device pairing scope restriction, extended gateway tool config mutation guard, WebSocket broadcast scope gating, forwarded-header reverse-proxy protection, QQBot SSRF guard, Telegram group model picker auth, and owner-enforced command identity hardening.
+- Added two new Version & Patches security checklist items: `enforceOwnerForCommands` + `commands.ownerAllowFrom` requirement (v2026.4.21+), and workspace `.env` `OPENCLAW_*` key blocking awareness (v2026.4.20+).
+
+### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.21+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated stable version note in cli-reference.md from `v2026.4.15` to `v2026.4.21`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.

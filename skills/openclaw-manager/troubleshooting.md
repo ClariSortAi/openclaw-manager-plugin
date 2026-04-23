@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, task/cron/tool-loop reliability improvements, and the latest security hardening (WebSocket scope gating, workspace env key protection, extended config mutation guards), upgrade to **v2026.4.21+**.
 
 ## Common Issues
 
@@ -314,6 +314,26 @@ openclaw channels status
 ```
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
+
+#### BlueBubbles: Messages Lost or Sent After Extreme Delay (macOS 26 Tahoe)
+**Symptoms:** Outbound messages silently dropped, no error in logs, or messages only deliver after 30+ second stalls on macOS 26 Tahoe.
+
+**Cause:** On macOS 26 setups using Private API iMessage, sends can stall for 60+ seconds. Older builds timed out at 10 s and silently dropped the message.
+
+**Fix:**
+```bash
+# Upgrade to v2026.4.20+ (raises default from 10s to 30s)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# If 30s is still insufficient, raise the timeout further
+openclaw config set channels.bluebubbles.sendTimeoutMs 60000
+
+# Restart and test
+openclaw gateway restart
+openclaw channels status
+```
+
+Health check probes, chat lookups, and other operations keep the shorter 10 s default.
 
 #### Telegram Forum Topics Show Numeric IDs Instead of Human Names
 **Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.

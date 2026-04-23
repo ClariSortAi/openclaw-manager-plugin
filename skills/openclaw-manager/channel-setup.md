@@ -150,6 +150,8 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 
+`v2026.4.20+` reply quoting note: configurable native reply quoting is available via `channels.whatsapp.replyToMode` for WhatsApp conversations.
+
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
 ```bash
@@ -323,6 +325,18 @@ openclaw gateway restart
   }
 }
 ```
+
+### Reliability Notes (v2026.4.20+)
+
+The default outbound text send timeout was raised from 10 s to 30 s to prevent silent message drops on macOS 26 Tahoe when Private API iMessage sends stall. If your setup needs a longer timeout:
+
+```bash
+openclaw config set channels.bluebubbles.sendTimeoutMs 60000  # 60 s
+# Per-account override
+openclaw config set channels.bluebubbles.accounts.<id>.sendTimeoutMs 60000
+```
+
+Health check probes, chat lookups, and other non-send operations keep the shorter 10 s default.
 
 ### Advantages Over Legacy iMessage
 - Full feature support: edit, unsend, tapback reactions, message effects
