@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.21+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.21+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, owner-command identity hardening, cron state-file reliability updates, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.21+**.
 
 ## Common Issues
 
@@ -142,6 +142,24 @@ openclaw config set gateway.auth.mode trusted-proxy
 
 # If local direct access is still required, pass the configured token explicitly
 openclaw config get gateway.auth.token
+openclaw gateway restart
+```
+
+#### Owner-Only Commands Suddenly Denied After Upgrade
+**Symptoms:** Commands that depend on owner enforcement (for example admin-only command flows) now reject non-admin senders who previously worked under wildcard `allowFrom` behavior.
+
+**Cause:** v2026.4.21 tightens owner-command checks. With `enforceOwnerForCommands=true`, wildcard `allowFrom` or empty owner-candidate lists no longer satisfy owner identity checks.
+
+**Fix:**
+```bash
+# Verify owner-enforcement and explicit owner list
+openclaw config get commands.enforceOwnerForCommands
+openclaw config get commands.ownerAllowFrom
+
+# Add explicit owner ids if needed
+openclaw config set commands.ownerAllowFrom '["U12345678"]'
+
+openclaw config validate
 openclaw gateway restart
 ```
 
@@ -250,6 +268,20 @@ openclaw gateway restart
 ```
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
+
+#### Slack: Runtime Replies Lose Thread Context
+**Symptoms:** Runtime-sent Slack messages intended for a thread post into the parent channel instead.
+
+**Cause:** Older builds could drop thread alias handling on outbound runtime sends even when `threadTs` was provided.
+
+**Fix:**
+```bash
+# Upgrade to current stable (includes thread alias preservation fixes)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and retest thread-targeted runtime sends
+openclaw gateway restart
+```
 
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
@@ -514,7 +546,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.21+; includes migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,11 +736,26 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.21+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
 openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
+```
+
+#### Cron `jobs.json` Keeps Changing Between Runs
+**Symptoms:** Git-tracked cron definitions show unexpected diffs after cron executions even when job definitions were not edited.
+
+**Cause:** Older expectations assumed runtime execution state lived in `jobs.json`. In v2026.4.20+, runtime state is split into `jobs-state.json`.
+
+**Fix:**
+```bash
+# Upgrade and run doctor migration
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+
+# Track jobs.json as declarative config and exclude jobs-state.json from config-sync workflows
+openclaw cron list
 ```
 
 #### Cron Job Can Access More Tools Than Intended
@@ -1012,7 +1059,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.21) continue that hardening.
 
 **Fix:**
 ```bash

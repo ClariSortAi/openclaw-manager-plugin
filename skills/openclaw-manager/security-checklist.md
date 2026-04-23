@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.21+**.
 
 ### Known Critical Vulnerabilities
 
@@ -120,6 +120,8 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | MCP loopback auth/origin hardening | Uses constant-time bearer comparison on `/mcp` and rejects non-loopback browser-origin requests before auth evaluation | v2026.4.15 |
 | QMD `memory_get` canonical path restrictions | Rejects arbitrary workspace markdown reads and only allows canonical memory files plus active indexed QMD documents | v2026.4.15 |
 | Webchat media path hardening | Enforces local-root containment and rejects remote-host `file://` media embedding paths | v2026.4.15 |
+| Workspace dotenv runtime-control blocking | Blocks all untrusted workspace `.env` `OPENCLAW_*` keys so newly introduced runtime-control env vars cannot be inherited silently | v2026.4.20 |
+| Owner-enforced command identity tightening | Requires true owner identity (`operator.admin` or owner-candidate match) for owner-enforced commands; wildcard `allowFrom`/empty candidates no longer satisfy owner checks | v2026.4.21 |
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
@@ -403,7 +405,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.21+ for latest owner-command identity, dotenv runtime-control, auth, interaction-allowlist, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -412,6 +414,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
+- [ ] If `enforceOwnerForCommands=true`, validate explicit owner identity mappings (`commands.ownerAllowFrom`, owner candidates, or admin scopes); wildcard `allowFrom` is no longer a sufficient fallback in v2026.4.21+
+- [ ] If you rely on workspace `.env`, ensure no required runtime-control values depend on `OPENCLAW_*` keys from untrusted workspace files (blocked in v2026.4.20+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -572,7 +576,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.21+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

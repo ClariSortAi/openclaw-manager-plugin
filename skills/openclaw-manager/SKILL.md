@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.21+** for the latest owner-command identity hardening, cron runtime state split reliability, and packaged plugin runtime dependency recovery improvements. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.21)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,8 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Cron runtime state moved out of `jobs.json`** (v2026.4.20) — execution state is now persisted in `jobs-state.json`; keep `jobs.json` as declarative job definitions when using git-tracked cron configs.
+22. **Owner-enforced command checks no longer accept permissive fallback owners** (v2026.4.21) — when `enforceOwnerForCommands=true`, wildcard `allowFrom` or empty owner-candidate lists no longer count as owner identity; use explicit owner mapping or `commands.ownerAllowFrom`.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -83,6 +85,18 @@ These are operationally important additions and hardening updates in newer stabl
 6. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
 7. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
 8. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
+
+## Notable Additions in v2026.4.20-v2026.4.21
+
+These are operationally important additions and hardening updates in current stable releases:
+
+1. **Cron state file split** (v2026.4.20) — runtime scheduler state now persists in `jobs-state.json` so `jobs.json` can remain stable for git-tracked declarative cron specs.
+2. **Moonshot/Kimi defaults refresh** (v2026.4.20) — bundled Moonshot setup, web search, and media-understanding paths now default to `kimi-k2.6` (while retaining `kimi-k2.5` compatibility options).
+3. **Onboarding wizard UX reliability refresh** (v2026.4.20) — setup disclaimer readability, initial model-catalog loading feedback, and provider API-key prompt clarity are improved.
+4. **Packaged plugin runtime self-repair via doctor paths** (v2026.4.21) — `openclaw doctor --fix` can now recover missing bundled channel/provider runtime dependencies without broad core dependency installs.
+5. **OpenAI image generation defaults updated** (v2026.4.21) — bundled image-generation defaults now target `gpt-image-2` and advertise newer 2K/4K size hints in tooling/docs metadata.
+6. **Slack thread alias preservation in outbound runtime sends** (v2026.4.21) — runtime sends that include `threadTs` now stay in the intended thread more consistently.
+7. **Owner-command enforcement hardening** (v2026.4.21) — owner-enforced commands now require true owner identity (`operator.admin` or owner-candidate match), preventing permissive wildcard fallback from granting owner-only command execution.
 
 ## Notable Additions in v2026.4.15
 
@@ -236,7 +250,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.21+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

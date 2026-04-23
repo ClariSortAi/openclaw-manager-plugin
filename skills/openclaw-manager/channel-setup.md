@@ -102,6 +102,7 @@ As of v2026.3.31, exec approval prompts can be routed natively in Slack with app
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.21, outbound runtime sends preserve `threadTs` thread aliases more reliably, so thread-targeted automations no longer drift into parent channels.
 
 ---
 
