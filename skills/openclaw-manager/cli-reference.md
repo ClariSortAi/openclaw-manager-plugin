@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.22` stable note: current stable is published as `v2026.4.22` and CLI version output should report `2026.4.22`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -107,6 +107,8 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 # Restrict a cron job to specific tools only
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
+
+`v2026.4.20+` cron state-storage note: scheduler runtime state is now persisted in `jobs-state.json`, while `jobs.json` remains the canonical job-definition file for review/version-control workflows.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -185,6 +187,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
 
+`v2026.4.22+` OpenAI Codex auth note: onboarding no longer imports `~/.codex`; use OpenClaw-managed browser/device login for `openai-codex`.
+
 ### Agents
 ```bash
 openclaw agents list         # List configured agents
@@ -262,6 +266,7 @@ openclaw dashboard           # Open Control UI
 openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
+openclaw models add <provider> <model-id>  # Register model in-chat without restart (v2026.4.22+)
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
@@ -305,7 +310,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,7 +361,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +375,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 

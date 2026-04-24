@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.22+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.22)
 
 These changes affect new and existing installations:
 
@@ -60,10 +60,24 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Cron runtime state moved out of job definitions** (v2026.4.20) — scheduler runtime metadata now lives in a separate `jobs-state.json`; keep `jobs.json` as the source-controlled definitions file.
+22. **Owner-enforced commands require actual owner identity** (v2026.4.21) — permissive wildcard channel `allowFrom` and empty owner-candidate fallbacks no longer satisfy owner-only command checks when owner enforcement is enabled.
+23. **OpenAI Codex onboarding no longer imports `~/.codex` auth** (v2026.4.22) — use browser/device login flows managed by OpenClaw; do not rely on local Codex CLI OAuth material being copied automatically.
+
+## Notable Additions in v2026.4.20-v2026.4.22
+
+These are operationally important additions in the current stable line:
+
+1. **Cron definition/runtime split** (v2026.4.20) — persisted run-state moved to `jobs-state.json`, reducing noisy churn in `jobs.json` when cron jobs execute.
+2. **Chat model registration without restart** (v2026.4.22) — `/models add <provider> <modelId>` lets operators register models from chat and use them immediately.
+3. **xAI media stack expansion** (v2026.4.22) — bundled xAI provider now supports image generation/editing, TTS, STT, and realtime Voice Call transcription paths.
+4. **Provider/channel plugin setup smoothing** (v2026.4.22) — onboarding can auto-install missing bundled provider/channel plugins during first-run setup.
+5. **OpenAI Responses native web search routing** (v2026.4.22) — direct OpenAI Responses models automatically use OpenAI-native `web_search` when no managed provider is pinned.
+6. **Local terminal embedded mode** (v2026.4.22) — TUI can run in local embedded mode without a gateway while preserving plugin approval gates.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
-These are recent operationally important additions in the latest stable releases:
+These are recent operationally important additions in those stable releases:
 
 1. **Chat-native `/tasks` board** (v2026.4.1) — users can inspect session background work and recent task status directly from chat.
 2. **Per-job cron tool allowlists** (v2026.4.1) — cron jobs can scope available tools via `--tools`, reducing blast radius for scheduled automations.
@@ -86,7 +100,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes introduced in that stable milestone:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -117,7 +131,7 @@ These are recent operationally important additions in current stable releases:
 
 ## Notable Additions in v2026.3.28-v2026.3.31
 
-These are recent operationally important additions in the latest stable releases:
+These are recent operationally important additions in those stable releases:
 
 1. **Task-flow control surface** (v2026.3.31) — `openclaw flows list|show|cancel` adds first-class visibility/control over detached background work.
 2. **`openclaw config schema`** (v2026.3.28) — prints the generated JSON schema for `openclaw.json`, which helps CI/config-lint workflows.
@@ -236,7 +250,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.22+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +376,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level

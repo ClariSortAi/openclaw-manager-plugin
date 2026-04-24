@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.22+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.22+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.22+**.
 
 ## Common Issues
 
@@ -142,6 +142,23 @@ openclaw config set gateway.auth.mode trusted-proxy
 
 # If local direct access is still required, pass the configured token explicitly
 openclaw config get gateway.auth.token
+openclaw gateway restart
+```
+
+#### Owner-Enforced Commands Are Suddenly Denied
+**Symptoms:** Owner-only commands (for example `/config`, `/debug`, or other owner-enforced command paths) start rejecting previously accepted senders after upgrade.
+
+**Cause:** v2026.4.21 requires real owner identity for owner-enforced commands; permissive wildcard `allowFrom` or empty owner-candidate fallback no longer grants access by itself.
+
+**Fix:**
+```bash
+# Confirm command ownership policy and owner allowlist behavior
+openclaw config get commands.enforceOwnerForCommands
+openclaw config get commands.ownerAllowFrom
+openclaw pairing list
+
+# After policy changes
+openclaw config validate
 openclaw gateway restart
 ```
 
@@ -481,7 +498,7 @@ openclaw gateway restart
 #### Bundled Plugin Runtime Missing After Global Install
 **Symptoms:** Channels/plugins such as WhatsApp or Matrix fail to boot with missing runtime files after a package-manager/global install.
 
-**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars.
+**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars; v2026.4.21 further hardens `openclaw doctor` repair paths for bundled plugin runtime dependencies.
 
 **Fix:**
 ```bash
@@ -514,7 +531,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.22+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,11 +721,25 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.22+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
 openclaw cron edit <id> --at "2026-04-01T09:00:00" --tz "America/New_York"
+```
+
+#### Cron Definitions Keep Getting Runtime-Noise Diffs
+**Symptoms:** Cron tracking workflows show frequent unexpected diffs, or operators accidentally edit runtime-state data while reviewing job definitions.
+
+**Cause:** v2026.4.20 split persisted runtime execution data into `jobs-state.json`; only `jobs.json` should be treated as canonical job definitions.
+
+**Fix:**
+```bash
+# Review job definitions, not runtime state
+openclaw cron list
+openclaw cron runs
+
+# If using Git-backed config snapshots, ignore jobs-state runtime files
 ```
 
 #### Cron Job Can Access More Tools Than Intended
@@ -944,7 +975,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1043,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.22) continue that hardening.
 
 **Fix:**
 ```bash

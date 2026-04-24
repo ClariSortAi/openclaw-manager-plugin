@@ -124,6 +124,8 @@ openclaw channels login --account secondary
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
+`v2026.4.21+` note: owner-enforced command paths now require an owner identity match (or `operator.admin` scope); permissive wildcard `allowFrom` fallback no longer grants owner command access.
+`v2026.4.22+` note: OpenAI Codex onboarding no longer imports local `~/.codex` auth material; use OpenClaw-managed browser/device login flows.
 
 **Process:**
 1. Run the command
@@ -222,6 +224,9 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex (v2026.4.12+; v2026.4.22+ uses browser/device login only)
+openclaw models auth setup-token --provider openai-codex
 ```
 
 ### Verifying Model Authentication

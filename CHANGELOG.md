@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20`, `v2026.4.21`, and `v2026.4.22` across core docs, including cron `jobs-state.json` state-split guidance, `/models add <provider> <modelId>` operator workflow coverage, and new xAI media-stack/provider onboarding highlights.
+- Added troubleshooting guidance for v2026.4.21+ owner-enforced command identity tightening and v2026.4.20 cron definition/runtime state-file split behavior.
+- Added security-checklist hardening entries for v2026.4.21-v2026.4.22 owner-command identity enforcement, pinned-plugin integrity drift fail-closed updates, OpenShell symlink/descriptor read hardening, Control UI config bootstrap auth gating, and workspace `.env` endpoint-override restrictions.
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.22+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated current Anthropic model examples from 4.6 to 4.7 across core and onboarding docs where guidance reflects the active stable model defaults.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
