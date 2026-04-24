@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.22+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,23 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| WebSocket broadcast scope gating | Chat, agent, and tool-result event frames require `operator.read` (or higher) scope; pairing-scoped and node-role sessions no longer passively receive session chat content | v2026.4.20 |
+| Device pairing list restriction | Non-admin paired-device sessions are restricted to managing their own pairing entries only; admin and shared-secret sessions retain full visibility | v2026.4.20 |
+| Gateway config mutation guard expansion | Model-driven `config.patch`/`config.apply` cannot rewrite sandbox, plugin trust, gateway auth/TLS, hook routing/tokens, SSRF policy, MCP servers, or workspace filesystem settings, even via per-agent sub-paths | v2026.4.20 |
+| `OPENCLAW_*` workspace env override blocking | All `OPENCLAW_*` keys are blocked from untrusted workspace `.env` files, failing closed for new runtime-control variables | v2026.4.20 |
+| Owner-only command identity enforcement | `enforceOwnerForCommands` requires a verified owner identity match; wildcard `allowFrom` or an empty `commands.ownerAllowFrom` is no longer sufficient to reach owner-only commands | v2026.4.21 |
+| Teams cross-bot token replay prevention | Bot Framework audience tokens must name the configured Teams app via verified `appid` or `azp`, blocking cross-bot token replay on the global audience | v2026.4.22 |
+| Android cleartext gateway restrictions | Cleartext (`ws://`) gateway connections on Android are restricted to loopback; private-LAN and link-local endpoints fail closed unless TLS is enabled | v2026.4.22 |
+| Mobile pairing cleartext host restriction | Cleartext mobile pairing requires private-IP or loopback host; `.local` and dotless hostnames are no longer treated as safe cleartext pairing endpoints | v2026.4.22 |
+| WhatsApp contact/vCard injection prevention | Contact, vCard, and location structured-object free text is kept out of the inline message body and rendered through fenced untrusted metadata JSON | v2026.4.22 |
+| Group chat name/participant injection prevention | Channel-sourced group names and participant labels are kept out of inline group system prompts and rendered through fenced untrusted metadata JSON | v2026.4.22 |
+| MCP/ACPX owner-only tool escalation prevention | The ACPX OpenClaw tools bridge no longer lists or invokes owner-only tools (such as `cron`) for non-owner MCP callers | v2026.4.22 |
+| OpenShell sandbox symlink hardening | File reads are pinned to an already-opened descriptor and ancestor symlinks are re-checked, blocking parent symlink swap attacks that could redirect in-sandbox reads outside the allowed mount root | v2026.4.22 |
+| Control UI unauthenticated config endpoint prevention | `/__openclaw/control-ui-config.json` requires authentication when `gateway.auth` is enabled, blocking unauthenticated bootstrap metadata reads | v2026.4.22 |
+| Workspace `.env` endpoint override blocking | Matrix, Mattermost, IRC, and Synology endpoint settings are blocked from workspace `.env` overrides so cloned workspaces cannot redirect connector traffic | v2026.4.22 |
+| Reverse-proxy forwarded-header pairing locality | Any forwarded-header evidence (`Forwarded`, `X-Forwarded-*`, `X-Real-IP`) is treated as proxied traffic, so reverse-proxy topologies cannot use the loopback shared-secret auto-pairing path | v2026.4.22 |
+| Approval auto-enable prevention | Explicit chat exec-approval enablement is required; approval clients are no longer auto-enabled just because approvers resolve from config or owner allowlists | v2026.4.22 |
+| Discord slash-command channel policy bypass prevention | Native slash-command channel policy cannot bypass configured owner or member restrictions; channel-policy fallback is preserved only when no stricter access rule exists | v2026.4.22 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +420,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.22+ for latest auth, interaction-allowlist, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -412,6 +429,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
+- [ ] If using Teams, verify Bot Framework audience tokens name the configured app id (cross-bot token replay prevented in v2026.4.22)
+- [ ] `enforceOwnerForCommands` requires explicit `commands.ownerAllowFrom` to be set; relying on wildcard `allowFrom` no longer grants owner command access (v2026.4.21+)
+- [ ] Workspace `.env` files do not contain `OPENCLAW_*` overrides or endpoint overrides for Matrix/Mattermost/IRC/Synology (blocked in v2026.4.20+/v2026.4.22+)
+- [ ] Non-admin paired-device sessions cannot enumerate or manage other devices' pairing entries (enforced in v2026.4.20+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -572,7 +593,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.22+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

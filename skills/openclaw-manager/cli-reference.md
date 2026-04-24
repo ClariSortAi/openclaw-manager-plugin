@@ -33,6 +33,8 @@ openclaw config validate     # Validate config before gateway restart (v2026.3.2
 openclaw config validate --json  # Machine-readable validation output
 openclaw config file         # Print active config file path (v2026.3.1+)
 openclaw config schema       # Print generated JSON schema for openclaw.json (v2026.3.28+)
+openclaw config set --merge <path> <value>   # Additive update — merges into existing map without replacement (v2026.4.22+)
+openclaw config set --replace <path> <value> # Full replacement — intentionally overwrites an existing map (v2026.4.22+)
 ```
 
 ### Channel Management
@@ -107,6 +109,8 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 # Restrict a cron job to specific tools only
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
+
+`v2026.4.20+` cron state note: Runtime execution state is stored in `jobs-state.json` (separate from `jobs.json`), so `jobs.json` contains only job definitions and is safe to track in git.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -266,6 +270,7 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider tencent        # Tencent Cloud / hy3-preview (v2026.4.22+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -457,6 +462,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
+| WeCom | external (see onboarding catalog) | Enterprise WeChat (v2026.4.22+; official bundled external plugin, integrity-pinned; discover via `openclaw configure`) |
 | Zalo | `@openclaw/zalo` | Zalo Official Account |
 | Zalo Personal | `@openclaw/zalouser` | Zalo personal (rebuilt in v2026.3.2 — native JS, no external CLI) |
 

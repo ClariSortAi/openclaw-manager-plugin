@@ -163,6 +163,37 @@ openclaw channels login --account secondary
 openclaw config set channels.whatsapp.accounts.secondary.allowFrom '["+15559876543"]'
 ```
 
+### Per-Group and Per-Direct System Prompts (v2026.4.22+)
+
+Inject group-specific or direct-chat specific behavioral instructions on every turn:
+
+```json
+{
+  "channels": {
+    "whatsapp": {
+      "groups": {
+        "*": { "systemPrompt": "You are a helpful assistant. Keep replies concise." },
+        "+15551234567@g.us": { "systemPrompt": "This is a work group. Always be professional." }
+      },
+      "direct": {
+        "*": { "systemPrompt": "Personal assistant mode." }
+      }
+    }
+  }
+}
+```
+
+`"*"` sets a default for all groups or directs. Account-scoped overrides are supported under `channels.whatsapp.accounts.<id>.groups` and `.direct`. Account maps fully replace root maps (no deep merge).
+
+### Reply Quoting (v2026.4.22+)
+
+Control native WhatsApp reply quoting with `replyToMode`:
+
+```bash
+openclaw config set channels.whatsapp.replyToMode "always"
+# Options: "always" (quote the message being replied to), "never", or provider default
+```
+
 ---
 
 ## Telegram
@@ -628,6 +659,35 @@ Twitch chat integration via the `@openclaw/twitch` plugin.
 openclaw plugins install @openclaw/twitch
 openclaw gateway restart
 ```
+
+---
+
+## WeCom / Enterprise WeChat (Plugin Required, v2026.4.22+)
+
+WeCom (Enterprise WeChat) is supported via an official external channel plugin, integrity-pinned by OpenClaw. It appears in the setup wizard's external channel catalog.
+
+### Setup Steps
+
+1. **Discover via onboarding (recommended)**
+```bash
+openclaw configure
+# Select WeCom / Enterprise WeChat from the external channel catalog
+```
+
+2. **Configure per the plugin's setup instructions**
+```bash
+openclaw plugins info wecom
+openclaw gateway restart
+```
+
+3. **Verify**
+```bash
+openclaw channels status
+```
+
+### Notes
+- WeCom requires an Enterprise WeChat developer account and a Self-Built Application
+- The official plugin source is integrity-pinned; use the onboarding catalog for the authoritative install
 
 ---
 

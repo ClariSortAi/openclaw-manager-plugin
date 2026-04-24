@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20`, `v2026.4.21`, and `v2026.4.22`, including new Notable Additions section in SKILL.md covering xAI image/TTS/STT support, Tencent Cloud bundled provider, WeCom channel in onboarding catalog, TUI local embedded mode, `/models add` chat command, WhatsApp per-group/direct system prompts and reply quoting, onboarding auto-install of missing plugins, cron jobs-state.json state split, session maintenance auto-enforcement, Moonshot/Kimi K2.6 default, and BlueBubbles per-group system prompts.
+- Added **WeCom (Enterprise WeChat)** channel documentation: new entry in Plugin Channels table (cli-reference.md), dedicated setup section in channel-setup.md, and channel mention in SKILL.md capabilities.
+- Added **Tencent Cloud** provider documentation: `openclaw models auth setup-token --provider tencent` in SKILL.md and cli-reference.md.
+- Added WhatsApp per-group/direct `systemPrompt` config and `replyToMode` configuration examples to channel-setup.md (v2026.4.22).
+- Added `v2026.4.20+` cron state split note to cli-reference.md documenting `jobs-state.json` separation from `jobs.json`.
+- Added `config set --merge` / `--replace` flags to cli-reference.md Configuration section (v2026.4.22).
+- Added 15 new security hardening entries to security-checklist.md for v2026.4.20-v2026.4.22: WebSocket broadcast scope gating, device pairing list restriction, gateway config mutation guard expansion, `OPENCLAW_*` env override blocking, owner-only command identity enforcement, Teams cross-bot token replay prevention, Android cleartext gateway restrictions, mobile pairing cleartext host restriction, WhatsApp contact/vCard injection prevention, group chat name/participant injection prevention, MCP/ACPX owner-only tool escalation prevention, OpenShell sandbox symlink hardening, Control UI unauthenticated config endpoint prevention, workspace `.env` endpoint override blocking, reverse-proxy forwarded-header pairing locality, and approval auto-enable prevention.
+- Added 4 new hardening checklist items to security-checklist.md for v2026.4.20-v2026.4.22.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.22+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
