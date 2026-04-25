@@ -23,6 +23,8 @@ openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
 
+`v2026.4.23+` diagnostics note: current stable can export support-ready diagnostics with sanitized logs, status, health, config, and stability snapshots for bug reports. Prefer this export path over manually copying raw logs/config when sharing issue data.
+
 ### Configuration
 ```bash
 openclaw configure           # Interactive configuration wizard
@@ -55,7 +57,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.23` stable note: current stable is published as `v2026.4.23` and CLI version output should report `2026.4.23`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -127,7 +129,7 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai-codex/gpt-5.4  # Model override
+  --model openai-codex/gpt-5.5  # Model override
 ```
 
 ### Skills
@@ -222,6 +224,12 @@ openclaw memory index        # Reindex memory files
 openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
+`v2026.4.23+` memory note: local embedding hosts can tune `memorySearch.local.contextSize` (default 4096) for constrained machines.
+
+```bash
+openclaw config set memorySearch.local.contextSize 4096
+```
+
 ### Security
 ```bash
 openclaw security audit          # Basic security audit
@@ -264,7 +272,7 @@ openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
-openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
+openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.5)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
 
@@ -283,6 +291,16 @@ openclaw status --all
 openclaw acp --provenance off          # Disable ACP ingress provenance metadata
 openclaw acp --provenance meta         # Include provenance metadata only
 openclaw acp --provenance meta+receipt # Include metadata + visible receipt text
+```
+
+### Matrix
+```bash
+openclaw matrix verify self  # Establish full cross-signing self-device trust (v2026.4.24 beta)
+```
+
+### Browser (v2026.4.24 beta)
+```bash
+openclaw browser click-coords  # Click viewport coordinates in managed/existing-session automation
 ```
 
 ## Configuration Paths
@@ -305,7 +323,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,21 +374,31 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
 
-# Local-model lean defaults (v2026.4.15+, experimental)
+# Local-model lean defaults (v2026.4.23+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+
+# Local embedding context size (v2026.4.23+)
+openclaw config set memorySearch.local.contextSize 4096
+
+# Disable workspace bootstrap file injection for prompt-owned agents (v2026.4.24 beta)
+openclaw config set agents.defaults.contextInjection "never"
+
+# Browser automation budget / per-profile headless overrides (v2026.4.24 beta)
+openclaw config set browser.actionTimeoutMs 60000
+openclaw config set browser.profiles.work.headless true
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 

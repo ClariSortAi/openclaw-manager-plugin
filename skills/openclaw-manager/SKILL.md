@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.23+** for the latest provider/media updates, diagnostics export, session/cron reliability, and security hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -22,7 +22,7 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 5. **Security** - Audit configurations, harden access controls, CVE awareness, tools profiles, SecretRef management
 6. **Automation** - Set up cron jobs, Gmail webhooks, scheduled tasks
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
-8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
+8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI/OpenAI Codex, OpenRouter, xAI/Grok, MiniMax, Tencent, Vercel AI, LM Studio), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
 10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
 11. **Backup & Recovery** - Create and verify local state backups before destructive changes (v2026.3.8+)
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.23)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,7 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Agent-driven gateway config edits are allowlisted** (v2026.4.23) — model-driven `gateway config.apply`/`config.patch` now fail closed to a narrow set of prompt/model/mention-gating paths; operator-trusted paths such as gateway auth/TLS, sandbox, hooks, MCP servers, plugin trust, and filesystem hardening require authenticated operator workflows.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -96,6 +97,28 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.23
+
+These are operationally important additions and hardening updates in the latest stable releases:
+
+1. **Image generation expansion** — OpenAI defaults move to `gpt-image-2`; OpenAI Codex OAuth and OpenRouter image models can drive `image_generate`, including reference-image edits and provider-specific output hints.
+2. **xAI and STT media coverage** — xAI adds image generation, TTS, STT, and realtime transcription; Voice Call streaming transcription expands to Deepgram, ElevenLabs, and Mistral.
+3. **Local TUI embedded mode** — terminal chats can run without a Gateway while preserving plugin approval gates.
+4. **Support diagnostics export** — gateway diagnostics can produce sanitized logs/status/health/config/stability snapshots for bug reports.
+5. **Provider/catalog refreshes** — Tencent Cloud is bundled; Amazon Bedrock Mantle supports Claude Opus 4.7; Moonshot defaults to Kimi K2.6; OpenAI-compatible local backends get better streaming usage accounting.
+6. **Session and memory tuning** — `sessions_list` gains mailbox-style filters; session maintenance prunes built-in caps by default; local embeddings expose `memorySearch.local.contextSize`.
+7. **Cron and delivery reliability** — cron runtime state moves to `jobs-state.json`; delivery preview/dedupe fixes reduce duplicate or skipped sends across Telegram and generic direct delivery.
+8. **Security hardening** — workspace `.env` blocks all `OPENCLAW_*` keys, Teams audience tokens must name the configured app, webhook SecretRefs re-resolve per request, paired-device scopes are constrained, and Gateway websocket broadcasts are scope-gated.
+
+## Prerelease Notes in v2026.4.24 Beta
+
+These prerelease notes are useful when testing beta builds, but do not replace the stable recommendation above:
+
+1. **Google Meet bundled participant plugin** — personal Google auth, Chrome/Twilio realtime sessions, attendance/artifact exports, and tab recovery tooling are introduced as a bundled plugin.
+2. **Browser and voice improvements** — `openclaw browser click-coords`, `browser.actionTimeoutMs`, per-profile `browser.profiles.<name>.headless`, realtime voice consult loops, `voicecall setup`, and `voicecall smoke` are in beta.
+3. **Model catalog and DeepSeek updates** — DeepSeek V4 Flash/Pro enter the bundled catalog and static/manifest-backed model rows make `openclaw models list` faster.
+4. **Plugin SDK migration** — bundled tool-result transforms must use `api.registerAgentToolResultMiddleware(...)` with `contracts.agentToolResultMiddleware`; the Pi-only `api.registerEmbeddedExtensionFactory(...)` compatibility path is removed.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +259,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.23+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +385,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
@@ -497,11 +520,17 @@ openclaw models auth setup-token --provider minimax
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)
 openclaw models auth setup-token --provider vercel-ai
 
-# OpenAI Codex (v2026.4.12+ — Codex-managed auth and native threads; models: openai-codex/gpt-5.4)
+# OpenAI Codex (v2026.4.12+ — Codex-managed auth and native threads; models: openai-codex/gpt-5.5)
 openclaw models auth setup-token --provider openai-codex
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# OpenRouter (image generation support expanded in v2026.4.23)
+openclaw models auth setup-token --provider openrouter
+
+# Tencent Cloud (bundled provider in v2026.4.22+)
+openclaw models auth setup-token --provider tencent
 ```
 
 ## Error Patterns

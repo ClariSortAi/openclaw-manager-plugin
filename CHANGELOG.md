@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20` through `v2026.4.23`, including image generation expansion, xAI/STT media support, local TUI embedded mode, diagnostics export, Tencent Cloud provider coverage, Kimi K2.6 defaults, session/memory tuning, cron reliability updates, and latest security hardening.
+- Added `v2026.4.24` beta callouts for Google Meet, browser coordinate-click/action-budget settings, Matrix self verification, DeepSeek V4 catalog entries, and the plugin SDK tool-result middleware migration.
+- Added CLI/config coverage for `openclaw matrix verify self`, `openclaw browser click-coords` beta, `memorySearch.local.contextSize`, `agents.defaults.contextInjection`, `browser.actionTimeoutMs`, and per-profile `browser.profiles.<name>.headless` beta settings.
+- Added troubleshooting coverage for OpenAI Codex OAuth model routing, packaged QuickStart WhatsApp setup, WebChat media retention, Slack MPIM progress noise, Teams cross-bot token replay protections, and webhook SecretRef hot reload.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.23+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
+- Updated Anthropic/Codex model examples from Claude Opus/Sonnet 4.6 and `openai-codex/gpt-5.4` to the newer Claude Opus/Sonnet 4.7 and `openai-codex/gpt-5.5` guidance.
+- Updated OpenAI Codex auth guidance to prefer browser login/device pairing over importing Codex CLI auth material.
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
@@ -84,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated recommendation language across skill, troubleshooting, and security documentation from v2026.3.12+ to v2026.3.13+ while preserving minimum safe baseline at v2026.3.1.
 - Updated Node.js minimum guidance from generic v22+ wording to **v22.16.0+** to match OpenClaw runtime guard expectations.
 - Clarified version messaging across docs that current stable `2026.3.13` is published on GitHub as tag `v2026.3.13-1`.
-- Updated cron command example model override from `openai-codex/gpt-5.2` to `openai-codex/gpt-5.4`.
+- Updated cron command example model override from `openai-codex/gpt-5.2` to `openai-codex/gpt-5.5`.
 
 ## [1.3.0] - 2026-03-03
 
@@ -98,7 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PDF tool**: First-class PDF analysis with Anthropic/Google providers, configurable `pdfModel`, `pdfMaxBytesMb`, `pdfMaxPages` (v2026.3.2+)
 - **SecretRef system**: `openclaw secrets plan/apply/audit` for managing 64 credential targets (v2026.3.2+)
 - **Session attachments**: Inline file support for `sessions_spawn` with base64/utf8 encoding (v2026.3.2+)
-- **Adaptive thinking**: Claude 4.6 defaults to `"adaptive"` thinking level (v2026.3.1+)
+- **Adaptive thinking**: Claude 4.7 defaults to `"adaptive"` thinking level (v2026.3.1+)
 - **Telegram streaming**: Default `partial` mode with `sendMessageDraft` live preview (v2026.3.2+)
 - **Telegram DM topics**: Per-DM topic configuration with topic-aware sessions (v2026.3.1+)
 - **Feishu v2026.3.x improvements**: Reaction notifications, rich-text parsing, multi-account routing, `feishu_doc` tool, voice/TTS, webhook rate-limiting
@@ -173,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Session isolation modes**: `main`, `per-channel-peer`, `per-account-channel-peer` with identity links
 - **Nested sub-agents**: `maxSpawnDepth` and `maxChildrenPerAgent` configuration (v2026.2.17)
 - **1M context window**: `params.context1m` for Anthropic models (v2026.2.17)
-- **Sonnet 4.6 model support**: Model selection guidance recommending Opus 4.6 for tool safety
+- **Sonnet 4.7 model support**: Model selection guidance recommending Opus 4.7 for tool safety
 - **Tailscale authentication**: `gateway.auth.allowTailscale` configuration details
 - **Sandbox scope options**: `agent`, `session`, `shared` scope documentation
 - **Workspace access levels**: `none`, `ro`, `rw` with mount paths

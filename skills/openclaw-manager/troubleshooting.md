@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.23+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.23+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider/media updates, diagnostics export, session/cron reliability, and security hardening, upgrade to **v2026.4.23+**.
 
 ## Common Issues
 
@@ -315,6 +315,18 @@ openclaw channels status
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
 
+#### Slack Group Rooms Show Verbose Tool Progress
+**Symptoms:** Slack group DMs or channels show internal "Working..." tool/plan progress that should stay quiet outside DMs.
+
+**Cause:** Older builds could classify MPIM group DMs too permissively and leak verbose progress traces into non-DM Slack surfaces. v2026.4.23 classifies MPIMs as group context and suppresses those traces.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
 #### Telegram Forum Topics Show Numeric IDs Instead of Human Names
 **Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.
 
@@ -493,6 +505,21 @@ openclaw doctor --fix
 openclaw gateway restart
 ```
 
+#### Packaged Plugin Dependencies Still Fail After Update
+**Symptoms:** Bundled channels/providers crash with missing package or plugin SDK resolution errors after npm/global updates, especially on Windows or copied-runtime installs.
+
+**Cause:** Builds before the current stable/beta line had several packaged runtime-dependency repair gaps. v2026.4.23 improves bundled plugin startup repair; v2026.4.24 beta further fixes Windows/copied-runtime mirrors.
+
+**Fix:**
+```bash
+# Prefer current stable first
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+If this persists on Windows/copy-based installs, review the latest v2026.4.24 beta notes before opting into a prerelease.
+
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
@@ -514,7 +541,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.23+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -590,6 +617,23 @@ node --version
 openclaw update
 openclaw status
 ```
+
+#### Support Bundle Needed for Bug Reports
+**Symptoms:** You need to share useful diagnostics without leaking raw secrets, transcripts, or full config.
+
+**Cause:** v2026.4.22+ adds payload-free stability recording and a sanitized diagnostics export for support workflows.
+
+**Fix:**
+```bash
+# Upgrade to current stable if the diagnostics export command is missing
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Check command help for local export options
+openclaw diagnostics --help
+openclaw status --all
+```
+
+Use the diagnostics export output for bug reports instead of pasting raw logs or `openclaw.json`.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -704,7 +748,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.23+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -944,7 +988,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1009,10 +1053,28 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 openclaw plugins install <spec>
 ```
 
+#### Image Generation or Vision Uses Wrong Model/Auth Route
+**Symptoms:** `image_generate` fails unexpectedly, OpenAI image generation asks for `OPENAI_API_KEY` despite Codex OAuth being configured, OpenRouter image models do not respond, or a text-only chat model drops attached images before image tools can inspect them.
+
+**Cause:** v2026.4.20-v2026.4.23 contains multiple image-generation and media-understanding fixes, including `gpt-image-2` defaults, OpenAI Codex OAuth routing, OpenRouter image support, configured image-model precedence, and WebChat media ref preservation.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Verify model/provider configuration
+openclaw models list
+openclaw status --deep
+```
+
+For trusted self-hosted image endpoints, keep using provider-scoped private-network opt-in rather than disabling SSRF protections globally.
+
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.23) continue task, session, and cron delivery hardening.
 
 **Fix:**
 ```bash
