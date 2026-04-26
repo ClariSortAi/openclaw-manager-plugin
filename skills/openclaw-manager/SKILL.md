@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.24+** for the latest plugin metadata, diagnostics, realtime media, browser automation, model/provider, and channel reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.24)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,10 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Cron runtime state is split from definitions** (v2026.4.20) — execution state moves to `jobs-state.json`; keep `jobs.json` for authored/git-tracked job definitions and let `openclaw doctor --fix` repair malformed ids.
+22. **Codex onboarding no longer imports CLI auth material** (v2026.4.22) — use browser login or device pairing for OpenAI Codex rather than expecting `~/.codex` OAuth material to be copied into OpenClaw auth stores.
+23. **Chat `/models add` is deprecated** (v2026.4.24) — use model auth/setup and config workflows instead of relying on chat-side model writes.
+24. **Plugin SDK tool-result transform compatibility removed** (v2026.4.24) — bundled tool-result rewrites must use `api.registerAgentToolResultMiddleware(...)` with declared `contracts.agentToolResultMiddleware` targets.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -96,6 +100,21 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.24
+
+These are operationally important additions and reliability/security fixes in the latest stable releases:
+
+1. **Cron state split and repair** (v2026.4.20) — cron runtime execution state now lives in `jobs-state.json`, while `jobs.json` remains stable for authored definitions; `openclaw doctor --fix` can repair malformed persisted job ids.
+2. **Diagnostics export and OTEL expansion** (v2026.4.22-v2026.4.24) — payload-free stability recording, support-ready diagnostics exports, and expanded low-cardinality OTEL spans cover runs, model calls, tool execution, exec processes, and logs.
+3. **OpenAI Codex auth and model routing updates** (v2026.4.22-v2026.4.24) — use browser/device-pairing auth, current `openai-codex/gpt-5.5` catalog behavior, and native Codex harness status/approval integration.
+4. **Plugin metadata/runtime dependency hardening** (v2026.4.24) — startup, doctor, setup, provider discovery, and model listing rely more on cold manifest/catalog metadata and external runtime-dependency repair for packaged installs.
+5. **Bundled Google Meet participant plugin** (v2026.4.24) — adds personal Google auth, Chrome/Twilio realtime sessions, paired-node Chrome support, artifact/attendance exports, and tab recovery tooling.
+6. **Realtime voice and TTS expansion** (v2026.4.22-v2026.4.24) — Talk, Voice Call, Google Meet, xAI, Gemini Live, Gradium, OpenRouter, and several STT/TTS providers gain broader realtime/media support.
+7. **Browser automation upgrades** (v2026.4.24) — coordinate clicks, `openclaw browser click-coords`, `browser.actionTimeoutMs`, per-profile headless/executable overrides, stable tab handles, and deeper browser doctor diagnostics improve host/browser-node operations.
+8. **Model/catalog changes** (v2026.4.22-v2026.4.24) — DeepSeek V4 Flash/Pro, Tencent Cloud, OpenAI image generation through Codex OAuth, OpenRouter image support, Kimi K2.6 defaults, and manifest-sourced model rows improve listing/onboarding without runtime imports.
+9. **Security hardening** (v2026.4.20-v2026.4.24) — new fixes cover workspace `.env` runtime-control blocking, device-pairing scope limits, owner-only MCP/tool access, Teams token audience checks, mobile cleartext pairing constraints, plugin setup path lookup, and SecretRef-backed webhook hot reload.
+10. **`v2026.4.25-beta.*` watch note** — prereleases add `/tts latest`, chat-scoped TTS controls, `openclaw plugins registry`, `openclaw browser start --headless`, richer OTEL/Prometheus diagnostics, and plugin cold-registry changes; treat as beta until a stable tag ships.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +255,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.24+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +381,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models default to adaptive thinking where supported. Override if needed:
 
 ```bash
 # Check current thinking level

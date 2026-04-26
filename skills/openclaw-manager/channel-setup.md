@@ -102,6 +102,7 @@ As of v2026.3.31, exec approval prompts can be routed natively in Slack with app
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.24, Slack outbound sends preserve thread aliases in runtime sends with `threadTs`, serialize rapid multi-message sends per target, and keep Slack bot tokens out of internal ordering/cache keys.
 
 ---
 
@@ -149,6 +150,8 @@ openclaw channels status
 ```
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.4.22+` configuration note: WhatsApp supports per-group and per-direct `systemPrompt` overrides, account-scoped `groups`/`direct` maps, and configurable native reply quoting via `replyToMode`.
+`v2026.4.24+` media/TTS note: outbound media normalization is shared across direct sends and auto-replies, voice-note intent is preserved through shared media payloads, and accepted voice notes can be transcribed before agent dispatch.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -279,6 +282,10 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+`v2026.4.22+` thread note: newly created Discord thread sessions are isolated by default; enable `channels.discord.thread.inheritParent` only when parent transcript inheritance is intended.
+
+`v2026.4.24+` voice note: `channels.discord.voice.model` can override the LLM used for voice channel responses while STT/TTS stay on their media settings.
 
 ---
 
@@ -517,6 +524,22 @@ openclaw config set channels.googlechat.enabled true
 openclaw config set channels.googlechat.dmPolicy pairing
 openclaw gateway restart
 ```
+
+---
+
+## Google Meet (Bundled Plugin, v2026.4.24+)
+
+Google Meet is available as a bundled participant plugin with personal Google auth, Chrome/Twilio realtime transports, paired-node Chrome support, artifact/attendance exports, and tab recovery tooling.
+
+```bash
+# Check OAuth and browser readiness before joining meetings
+openclaw googlemeet doctor --oauth
+
+# Recover an already-open Meet tab instead of opening a duplicate
+openclaw googlemeet recover-tab
+```
+
+Use paired browser nodes for VM/Parallels-style Chrome audio setups, and run doctor checks when manual login or permission blockers appear.
 
 ---
 

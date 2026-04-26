@@ -13,6 +13,8 @@ openclaw doctor --fix        # Auto-fix common problems
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
+`v2026.4.22+` diagnostics note: current stable builds record payload-free stability data by default and can produce support-ready diagnostics exports with sanitized logs, status, health, config, and stability snapshots.
+
 ### Gateway Management
 ```bash
 openclaw gateway             # Show gateway info
@@ -22,6 +24,8 @@ openclaw gateway restart     # Restart gateway
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
+
+`v2026.4.24+` status note: `gateway status` skips plugin loading on the read-only status path, so it is safer to use in automation before plugin runtime repair has completed.
 
 ### Configuration
 ```bash
@@ -55,7 +59,9 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.24` stable note: current stable is published as `v2026.4.24` and CLI version output should report `2026.4.24`. Newer `v2026.4.25-beta.*` tags are prereleases.
+
+`v2026.4.20+` pairing note: pairing and device-management errors include reason-specific remediation hints for scope, role, and metadata approval drift; `openclaw doctor --fix` surfaces pending repair steps.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -93,6 +99,8 @@ openclaw doctor --fix
 ```
 
 `v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in the current stable line. If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+
+`v2026.4.20+` cron state note: runtime execution state is split into `jobs-state.json` so `jobs.json` remains stable for authored/git-tracked job definitions. Run `openclaw doctor --fix` after upgrade if `cron list` reports malformed legacy job ids.
 
 `v2026.3.23+` cron note:
 
@@ -177,6 +185,10 @@ openclaw plugins doctor        # Check plugin health
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
+`v2026.4.24+` plugin note: startup, doctor, setup, provider discovery, and model listing increasingly use cold manifest/catalog metadata and external runtime-dependency repair. Prefer `openclaw plugins doctor` and `openclaw doctor --fix` before reinstalling packaged bundled plugins after an update.
+
+`v2026.4.25-beta.*` watch note: prereleases add `openclaw plugins registry` for persisted-registry inspection/refresh. Treat the command as beta-only until a stable release includes it.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -239,6 +251,8 @@ openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
 openclaw webhooks gmail run      # Run Gmail webhook listener
 ```
 
+`v2026.4.23+` security note: SecretRef-backed webhook route secrets are re-resolved on each request, so `openclaw secrets reload` revokes old webhook secrets without waiting for a gateway restart.
+
 ### Setup & Reset
 ```bash
 openclaw setup               # Initialize config and workspace
@@ -267,6 +281,23 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+### Browser Automation (v2026.4.24+)
+```bash
+openclaw browser doctor       # Diagnose managed/existing-session browser readiness
+openclaw browser click-coords # Click viewport coordinates from CLI/browser automation
+```
+
+`v2026.4.25-beta.*` watch note: prereleases add `openclaw browser start --headless` for one-shot managed browser launches without rewriting persisted browser config.
+
+### Voice Call / Google Meet (v2026.4.24+)
+```bash
+openclaw voicecall setup      # Configure Voice Call provider/runtime readiness
+openclaw voicecall smoke      # Dry-run readiness smoke test before live calls
+openclaw googlemeet doctor --oauth  # Check Google Meet OAuth/browser state
+```
+
+Google Meet is bundled as a participant plugin in `v2026.4.24+` with personal Google auth, Chrome/Twilio realtime transports, paired-node Chrome support, artifact/attendance exports, and tab recovery tooling.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -305,7 +336,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -370,7 +401,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -393,6 +424,14 @@ openclaw config set skills.load.watch true
 openclaw config set plugins.enabled true
 openclaw config set plugins.allow '["voice-call"]'
 openclaw config set plugins.slots.memory "memory-core"
+
+# v2026.4.24+: browser automation tuning
+openclaw config set browser.actionTimeoutMs 60000
+openclaw config set browser.profiles.openclaw.headless true
+openclaw config set browser.profiles.openclaw.executablePath "/path/to/chromium"
+
+# v2026.4.24+: disable workspace bootstrap injection for agent-owned prompt lifecycles
+openclaw config set agents.defaults.contextInjection "never"
 ```
 
 ## Health Endpoints (v2026.3.1+)
@@ -419,6 +458,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_CHILD_OOM_SCORE_ADJ` | Set to `0` to opt out of Linux child-process OOM score adjustment (v2026.4.22+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

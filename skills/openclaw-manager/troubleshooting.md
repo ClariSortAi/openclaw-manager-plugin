@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.24+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.24+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, plugin registry repair, diagnostics export, browser automation, realtime media, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.24+**.
 
 ## Common Issues
 
@@ -481,17 +481,36 @@ openclaw gateway restart
 #### Bundled Plugin Runtime Missing After Global Install
 **Symptoms:** Channels/plugins such as WhatsApp or Matrix fail to boot with missing runtime files after a package-manager/global install.
 
-**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars.
+**Cause:** Some builds before v2026.3.23 could publish incomplete bundled plugin runtime sidecars. Newer packaged installs also stage bundled plugin runtime dependencies externally, so interrupted updates may need registry/runtime repair rather than manual npm installs.
 
 **Fix:**
 ```bash
 # Upgrade to current stable
 curl -fsSL https://openclaw.ai/install.sh | bash
 
-# Re-run doctor and restart
+# Re-run doctor and restart; v2026.4.24+ repairs bundled runtime deps from doctor/update paths
 openclaw doctor --fix
+openclaw plugins doctor
 openclaw gateway restart
 ```
+
+#### Plugin List or Provider Discovery Looks Stale After Update
+**Symptoms:** `openclaw plugins list`, setup, provider discovery, or `models list` does not reflect installed plugins after an upgrade.
+
+**Cause:** v2026.4.24 moves more startup and read-only discovery paths to cold manifest/catalog metadata and persisted plugin indexes. A stale index or interrupted packaged dependency repair can make discovery look incomplete.
+
+**Fix:**
+```bash
+# Repair plugin index/runtime metadata first
+openclaw doctor --fix
+openclaw plugins doctor
+
+# Re-check lightweight discovery paths
+openclaw plugins list
+openclaw models list --all
+```
+
+If you are testing `v2026.4.25-beta.*`, `openclaw plugins registry --refresh` can inspect/refresh the persisted registry directly; treat that command as beta-only until a stable release includes it.
 
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
@@ -514,7 +533,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.24+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,7 +723,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.24+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -944,7 +963,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1009,10 +1028,22 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 openclaw plugins install <spec>
 ```
 
+#### Plugin Tool-Result Middleware Breaks After Upgrade
+**Symptoms:** Bundled plugin tool-result rewrites stop running, or plugin startup reports `registerEmbeddedExtensionFactory`/tool-result transform compatibility errors.
+
+**Cause:** v2026.4.24 removes the Pi-only `api.registerEmbeddedExtensionFactory(...)` compatibility path for tool-result transforms. Bundled transforms must use `api.registerAgentToolResultMiddleware(...)` with `contracts.agentToolResultMiddleware` declaring the targeted harnesses.
+
+**Fix:** Update the plugin SDK usage, then validate startup:
+```bash
+openclaw plugins doctor
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.24) continue that hardening.
 
 **Fix:**
 ```bash
