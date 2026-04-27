@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.24+** for the latest Google Meet integration, DeepSeek V4 catalog, WebRTC voice, and security hardening updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -60,6 +60,27 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Plugin SDK `registerEmbeddedExtensionFactory` removed** (v2026.4.24) — bundled tool-result transforms must migrate from `api.registerEmbeddedExtensionFactory(...)` to `api.registerAgentToolResultMiddleware(...)` with `contracts.agentToolResultMiddleware` declaring targeted harnesses.
+
+## Notable Additions in v2026.4.18-v2026.4.24
+
+These are operationally important additions in stable releases since v2026.4.15:
+
+1. **Google Meet bundled participant plugin** (v2026.4.24) — joins meetings with personal Google auth, runs Chrome/Twilio realtime sessions, supports paired-node Chrome, and exports artifacts/attendance; includes recovery tooling for already-open Meet tabs via `google_meet` tool.
+2. **DeepSeek V4 Flash and V4 Pro in bundled catalog** (v2026.4.24) — V4 Flash is the new onboarding model default; thinking/replay behavior is fixed for follow-up tool-call turns.
+3. **WebRTC realtime voice sessions in Control UI/Talk** (v2026.4.24) — browser-native voice backed by OpenAI Realtime with Gateway-minted ephemeral client secrets and `openclaw_agent_consult` handoff to the full OpenClaw agent for tool-backed answers.
+4. **xAI image generation, TTS, and STT** (v2026.4.22) — `grok-imagine-image`/`grok-imagine-image-pro` for images; six live xAI voices with MP3/WAV/PCM/G.711 output for TTS; `grok-stt` for audio transcription; xAI realtime transcription for Voice Call streaming.
+5. **Voice Call streaming transcription expansion** (v2026.4.22) — Deepgram, ElevenLabs, and Mistral join OpenAI and xAI as realtime STT options for Voice Call; ElevenLabs also gains Scribe v2 batch audio transcription.
+6. **TUI local embedded mode** (v2026.4.22) — `openclaw tui` can now run terminal chats without a running Gateway while keeping plugin approval gates enforced.
+7. **Auto-install missing plugins during onboarding** (v2026.4.22) — setup flows automatically install missing provider and channel plugins so first-run configuration no longer requires manual plugin recovery steps.
+8. **OpenAI native `web_search` for Responses models** (v2026.4.22) — when web search is enabled and no managed search provider is pinned, OpenAI Responses models use OpenAI's native `web_search` tool automatically; explicit providers like Brave retain the managed path.
+9. **Skill Workshop plugin** (v2026.4.21) — captures reusable workflow corrections as pending or auto-applied workspace skills, runs reviewer passes for completion bias, and quarantines unsafe proposals.
+10. **Image generation improvements** (v2026.4.23) — OpenAI `gpt-image-2` images now work via Codex OAuth without a separate `OPENAI_API_KEY`; OpenRouter gains image generation via `image_generate`; quality hints, output format, background, moderation, compression, and user hints are now passable through the `image_generate` tool.
+11. **Optional forked context for `sessions_spawn`** (v2026.4.23) — agents can let a child inherit the requester transcript via opt-in forked context; clean isolated sessions remain the default.
+12. **Configurable local embedding context size** (v2026.4.23) — `memorySearch.local.contextSize` (default 4096) lets you tune local embedding context for constrained hosts.
+13. **Cron `jobs-state.json` split** (v2026.4.20) — runtime cron execution state is now written to `jobs-state.json` so `jobs.json` stays stable for git-tracked job definitions.
+14. **Claude Opus 4.7 `xhigh` reasoning effort** (v2026.4.18) — `xhigh` reasoning effort is now supported for Opus 4.7, separate from adaptive thinking.
+15. **Secrets hot-reload triggers channel restarts** (v2026.4.22) — `secrets.reload` now restarts secret-backed channels (Slack, Zalo) so rotated webhook secrets take effect immediately without a gateway restart.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -236,7 +257,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.24+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -502,6 +523,9 @@ openclaw models auth setup-token --provider openai-codex
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# DeepSeek (v2026.4.23+ — V4 Flash is the onboarding default; supports V4 Flash and V4 Pro)
+openclaw models auth setup-token --provider deepseek
 ```
 
 ## Error Patterns

@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.24+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,21 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| macOS SSH host key enforcement | Switches `openclaw mac remote` connections to `StrictHostKeyChecking=yes` so first-time remote connections require a pre-trusted host key in `~/.ssh/known_hosts` instead of silently accepting unknown keys | v2026.4.18 |
+| Gateway-tool config mutation guard expansion | Extends the agent-facing `gateway` tool's config mutation guard to per-agent sandbox, tools, and embedded-Pi list overrides under `agents.list[]`, preventing model-driven escalation through per-agent paths | v2026.4.20 |
+| WebSocket broadcast scope enforcement | Requires `operator.read` or higher for chat, agent, and tool-result event frames; scope-gates unknown broadcast events by default so pairing-scoped/node sessions no longer passively receive session content | v2026.4.20 |
+| Non-admin device pairing scope restriction | Restricts non-admin paired-device sessions to their own pairing list, approve, and reject actions; admin/shared-secret sessions retain full visibility | v2026.4.20 |
+| `enforceOwnerForCommands` bypass prevention | Requires actual owner identity for owner-enforced commands; wildcard channel `allowFrom` or empty owner-candidate lists no longer satisfy the owner check | v2026.4.21 |
+| Synology Chat outbound webhook SSRF | Validates outbound `file_url` webhook values against the shared SSRF policy before forwarding, blocking private/loopback destinations | v2026.4.21 |
+| LINE outbound media SSRF | Validates outbound media URLs against the public-network guard before passing them to LINE, rejecting loopback/link-local/private-network targets | v2026.4.21 |
+| Control UI CSP tightening | `img-src` restricted to `'self' data:` only; avatar helpers drop remote `http(s)` URLs and fall back to the built-in logo/badge | v2026.4.21 |
+| External content special-token stripping | Strips common self-hosted LLM chat-template special tokens (Qwen/ChatML, Llama, Gemma, Mistral, Phi, GPT-OSS) from wrapped external content, preventing tokenizer-layer role-boundary spoofing against OpenAI-compatible backends | v2026.4.21 |
+| QQBot direct-upload SSRF guard | SSRF guard applied to `uploadC2CMedia` and `uploadGroupMedia` direct-upload URL paths | v2026.4.22 |
+| Assistant-media operator scope enforcement | `GET /assistant-media/*` file and metadata requests require `operator.read` scope on identity-bearing HTTP auth paths | v2026.4.24 |
+| Exec approval control-char sanitization | Raw control characters (including newline/carriage-return) are escaped in approval-prompt command sanitizers so trailing payloads cannot render on hidden extra lines | v2026.4.24 |
+| Browser CDP URL redaction | `browser.cdpUrl` and `browser.profiles.*.cdpUrl` added to sensitive config path redaction so embedded credentials in CDP URLs are not exposed via `config.get` API responses | v2026.4.24 |
+| Placeholder gateway credential rejection | Gateway rejects auth credentials that match published example placeholders at startup and secret reload | v2026.4.24 |
+| Google Chat gaxios SSRF-guarded transport | Google auth gaxios shim replaced with a scoped SSRF-guarded transport; service-account auth endpoints validated against trusted Google URLs | v2026.4.24 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +418,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.24+ for latest auth, interaction-allowlist, Google Meet, DeepSeek, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -572,7 +587,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.24+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

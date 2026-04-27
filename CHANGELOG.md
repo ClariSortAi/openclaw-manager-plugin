@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.18` through `v2026.4.24`, including Google Meet bundled participant plugin, DeepSeek V4 Flash/Pro catalog, WebRTC realtime voice in Control UI/Talk, xAI image generation/TTS/STT, TUI local embedded mode, Skill Workshop plugin, Claude Opus 4.7 `xhigh` reasoning effort, optional forked context for `sessions_spawn`, configurable local embedding context size, image generation improvements (Codex OAuth, OpenRouter, quality/format hints), cron `jobs-state.json` split, secrets hot-reload triggering channel restarts, and auto-install of missing plugins during onboarding.
+- Added breaking-change guidance for `v2026.4.24` Plugin SDK `registerEmbeddedExtensionFactory` removal: plugins must migrate to `api.registerAgentToolResultMiddleware()` with `contracts.agentToolResultMiddleware`.
+- Added DeepSeek provider (`openclaw models auth setup-token --provider deepseek`) to model provider setup in SKILL.md.
+- Added security-checklist hardening entries for `v2026.4.18`–`v2026.4.24`: macOS SSH `StrictHostKeyChecking=yes` enforcement, gateway-tool config mutation guard expansion to per-agent overrides, WebSocket broadcast scope enforcement, non-admin device pairing scope restriction, `enforceOwnerForCommands` bypass prevention, Synology Chat/LINE outbound SSRF validation, Control UI CSP tightening, external content special-token stripping, QQBot SSRF guard, assistant-media operator scope enforcement, exec approval control-char sanitization, browser CDP URL redaction, placeholder credential rejection, and Google Chat SSRF-guarded transport.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.24+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
