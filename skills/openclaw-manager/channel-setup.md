@@ -102,6 +102,7 @@ As of v2026.3.31, exec approval prompts can be routed natively in Slack with app
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.20-v2026.4.25, Slack thread aliases, Slack Connect streaming fallback, file downloads, native streaming, and outbound send ordering have additional fixes; upgrade before debugging duplicate, missing, or out-of-thread Slack replies.
 
 ---
 
@@ -148,7 +149,17 @@ openclaw channels status
 }
 ```
 
-`v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.4.25+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reduces duplicate cron-send replay during reconnect drains, and improves voice-note TTS delivery/transcoding behavior.
+
+### WhatsApp TTS Controls (v2026.4.25+)
+```bash
+/tts latest
+/tts chat on
+/tts chat off
+/tts chat default
+```
+
+Use `messages.tts` for global defaults and `channels.whatsapp.accounts.<account-id>.tts` for per-account voice/provider overrides.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:

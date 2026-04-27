@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.25+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.25+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.25+**.
 
 ## Common Issues
 
@@ -330,6 +330,25 @@ openclaw gateway restart
 openclaw channels status
 ```
 
+#### TTS Controls Do Not Affect the Current Chat
+**Symptoms:** `/tts latest`, `/tts chat on|off|default`, `/tts persona`, or `/tts status` does not reflect the expected voice/provider after upgrading or enabling new speech providers.
+
+**Cause:** v2026.4.25 adds chat-scoped TTS state plus per-agent and per-account overrides. Older builds and legacy flat TTS provider config can leave the active provider/voice different from the global `messages.tts` defaults.
+
+**Fix:**
+```bash
+# Upgrade to current stable and repair legacy TTS config paths
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+
+# Inspect relevant override layers
+openclaw config get messages.tts
+openclaw config get agents.list.<agent-id>.tts
+openclaw config get channels.<channel>.accounts.<account-id>.tts
+```
+
+In chat, run `/tts status` to confirm the active provider and voice. Use `/tts chat default` to clear chat-scoped overrides before debugging global/per-agent config.
+
 #### iMessage: Not Working (Migrate to BlueBubbles)
 **Symptoms:** iMessage channel not receiving messages
 
@@ -445,6 +464,24 @@ openclaw plugins enable <plugin-id>
 openclaw gateway restart
 ```
 
+#### Plugin Registry Looks Stale After Upgrade
+**Symptoms:** `plugins list`, provider setup, model discovery, or `doctor` output does not match installed plugin files after upgrading to v2026.4.25+.
+
+**Cause:** v2026.4.25 moves install metadata and cold capability discovery into the persisted plugin registry/index. Normal startup no longer rescans every plugin root.
+
+**Fix:**
+```bash
+# Inspect and refresh the persisted registry
+openclaw plugins registry
+openclaw plugins registry --refresh
+
+# Repair related plugin index issues
+openclaw doctor --fix
+openclaw plugins list
+```
+
+Avoid relying on `OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY`; it is deprecated break-glass behavior. Prefer registry repair.
+
 #### Plugin Conflict (Slot Error)
 **Symptoms:** Error about conflicting plugins in same slot
 
@@ -514,7 +551,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.25+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -590,6 +627,24 @@ node --version
 openclaw update
 openclaw status
 ```
+
+#### Update Appears Successful But Gateway Still Runs an Older Version
+**Symptoms:** `openclaw update` completes, but `openclaw status` or the managed gateway reports the previous version after restart.
+
+**Cause:** Current stable releases harden mixed-version verification and fail package updates when post-update plugin sync or restarted gateway version checks fail. Older managed services can also retain stale embedded gateway auth or service PATHs.
+
+**Fix:**
+```bash
+# Re-run update, then repair service/plugin metadata
+openclaw update
+openclaw doctor --fix
+
+# Verify the managed gateway reports the expected current version
+openclaw gateway status
+openclaw status --all
+```
+
+If `doctor` reports externally managed service policy, follow the supervisor-specific restart path instead of letting OpenClaw rewrite the service.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -704,7 +759,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.25+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -915,6 +970,72 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw exec-policy show
 ```
 
+#### Browser Automation Diagnostics Are Inconclusive
+**Symptoms:** Browser actions time out, role refs become stale, or managed Chrome fails on slow/headless hosts.
+
+**Cause:** Browser automation behavior changed substantially in v2026.4.24-v2026.4.25 with coordinate clicks, stable tab handles, deeper doctor probes, per-profile headless overrides, and expanded CDP readiness handling.
+
+**Fix:**
+```bash
+# Upgrade first for the newer diagnostics and safer browser paths
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Probe readiness and live snapshots
+openclaw browser doctor --deep
+
+# Tune slow hosts or headless profiles explicitly
+openclaw config set browser.actionTimeoutMs 60000
+openclaw config set browser.profiles.default.headless true
+
+# One-shot local managed launch without rewriting config
+openclaw browser start --headless
+```
+
+#### Voice/TTS Commands Behave Differently After Upgrade
+**Symptoms:** `/tts` output uses the wrong voice/provider, voice notes are duplicated, or Discord voice responses use an unexpected chat model.
+
+**Cause:** v2026.4.25 adds chat-scoped TTS controls, TTS personas, per-agent/per-account overrides, and `channels.discord.voice.model` for Discord voice-channel response LLM selection.
+
+**Fix:**
+```bash
+# Inspect active TTS state in chat
+/tts status
+
+# Read the latest reply aloud once
+/tts latest
+
+# Control current-chat auto-TTS
+/tts chat on
+/tts chat off
+/tts chat default
+
+# Verify config overrides
+openclaw config get messages.tts
+openclaw config get agents.list.<agent-id>.tts
+openclaw config get channels.<channel>.accounts.<account-id>.tts
+openclaw config get channels.discord.voice.model
+```
+
+#### Diagnostics Export or OTEL Metrics Are Missing
+**Symptoms:** Support bundles, OpenTelemetry traces/metrics/log correlation, or Prometheus scrape output are unavailable or missing expected bounded model/tool spans.
+
+**Cause:** Diagnostics export and OTEL coverage expanded across v2026.4.22-v2026.4.25; older gateways do not emit the same low-cardinality spans and metrics.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Create a sanitized support bundle when available
+openclaw diagnostics export
+
+# Inspect/enable Prometheus plugin if desired
+openclaw plugins install diagnostics-prometheus
+openclaw plugins enable diagnostics-prometheus
+```
+
+If an external SDK is preloaded, set `OPENCLAW_OTEL_PRELOADED=1`. For latest GenAI semantic provider attributes, set `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental`; legacy `gen_ai.system` remains the default.
+
 ### ACP Dispatch Issues (v2026.3.2+)
 
 #### Unexpected ACP Behavior
@@ -944,7 +1065,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1133,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.25) continue that hardening.
 
 **Fix:**
 ```bash

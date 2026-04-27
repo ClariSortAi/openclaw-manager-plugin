@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.25+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.25)
 
 These changes affect new and existing installations:
 
@@ -96,6 +96,19 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.25
+
+These are operationally important additions and reliability/security fixes in the latest stable releases:
+
+1. **Persistent plugin registry** (v2026.4.25) — plugin startup, `plugins list`, provider discovery, setup, config validation, secrets checks, and `doctor --fix` use the cold persisted registry/index instead of broad manifest/runtime scans. Use `openclaw plugins registry --refresh` when registry repair is needed.
+2. **TTS and voice upgrades** (v2026.4.25) — `/tts latest`, `/tts chat on|off|default`, `/tts persona`, per-agent `agents.list[].tts`, per-account `channels.<channel>.accounts.<id>.tts`, Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine, and ElevenLabs v3 expand voice-reply coverage.
+3. **Browser automation CLI and reliability** (v2026.4.24-v2026.4.25) — `openclaw browser click-coords`, `openclaw browser doctor --deep`, `openclaw browser start --headless`, per-profile headless overrides, longer action budgets, stable tab handles, and safer iframe-aware snapshots improve slow-host and managed-browser workflows.
+4. **Google Meet and Voice Call tooling** (v2026.4.24-v2026.4.25) — bundled Google Meet participant support adds `googlemeet doctor --oauth`, tab recovery, artifact/attendance exports, and full-agent realtime consults; Voice Call adds `voicecall setup` and dry-run `voicecall smoke` checks.
+5. **Diagnostics and observability** (v2026.4.22-v2026.4.25) — sanitized diagnostics export, payload-free stability recording, expanded OpenTelemetry spans/metrics/log correlation, `OPENCLAW_OTEL_PRELOADED=1`, and the bundled `diagnostics-prometheus` plugin help operators debug without exporting prompt/session content.
+6. **Image/model provider expansion** (v2026.4.21-v2026.4.25) — `openclaw infer image generate|edit --background`, OpenAI Codex OAuth image generation/editing, OpenRouter image generation, xAI media/TTS/STT, Tencent Cloud Hy3, DeepSeek V4, LiteLLM image generation, and current OpenAI image defaults expand media workflows.
+7. **Cron and session reliability** (v2026.4.20-v2026.4.25) — cron runtime state is split into `jobs-state.json`, delivery previews and failure accounting are clearer, interrupted jobs are surfaced safely, and session stores are pruned/bounded to avoid gateway OOM during startup.
+8. **Install/update hardening** (v2026.4.25) — Windows, macOS, Linux, Docker, Node service restarts, LaunchAgent token rotation, mixed-version gateway verification, bundled runtime-dependency repair, and low-disk/update checks are stricter and more actionable.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +249,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.25+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +375,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
