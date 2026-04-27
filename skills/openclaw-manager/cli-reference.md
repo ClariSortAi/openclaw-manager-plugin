@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.25` stable note: current stable is published as `v2026.4.25` and CLI version output should report `2026.4.25`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -173,9 +173,13 @@ openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins registry      # Inspect persisted plugin registry (v2026.4.25+)
+openclaw plugins registry --refresh  # Refresh/repair persisted plugin registry (v2026.4.25+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
+
+`v2026.4.25+` registry note: `plugins list`, provider discovery, setup/config metadata, and `doctor --fix` use the cold persisted registry/index by default. Prefer `openclaw plugins registry --refresh` for registry repair instead of deleting registry files manually or relying on the deprecated `OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY` break-glass switch.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -256,6 +260,64 @@ openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
 ```
 
+### Browser Automation (expanded in v2026.4.24-v2026.4.25)
+```bash
+openclaw browser doctor                # Check browser automation readiness
+openclaw browser doctor --deep         # Live snapshot/CDP readiness probing
+openclaw browser start --headless      # One-shot managed browser launch override
+openclaw browser click-coords          # Click by viewport coordinates
+```
+
+Related config:
+```bash
+openclaw config set browser.actionTimeoutMs 60000
+openclaw config set browser.profiles.<name>.headless true
+```
+
+### Voice, TTS, and Meetings (expanded in v2026.4.24-v2026.4.25)
+```bash
+voicecall setup                 # Configure voice-call provider prerequisites
+voicecall smoke                 # Dry-run readiness check before live calls
+googlemeet doctor --oauth       # Validate Google Meet OAuth/browser state
+googlemeet recover-tab          # Inspect/recover already-open Meet tabs
+```
+
+Chat commands:
+```text
+/tts latest
+/tts chat on|off|default
+/tts persona
+```
+
+TTS config highlights:
+```bash
+openclaw config set messages.tts.enabled true
+openclaw config set agents.list.<agent-id>.tts.provider "<provider>"
+openclaw config set channels.<channel>.accounts.<account-id>.tts.provider "<provider>"
+openclaw config set channels.discord.voice.model "<provider>/<model>"
+```
+
+### Inference and Media Generation (expanded in v2026.4.23-v2026.4.25)
+```bash
+openclaw infer image generate --background transparent --output-format png
+openclaw infer image edit --background opaque --output-format jpeg
+openclaw infer model run --model <provider>/<model> "Prompt"
+```
+
+`--openai-background` remains an OpenAI-specific alias; prefer generic `--background` for provider-neutral examples.
+
+### Diagnostics and Observability (expanded in v2026.4.22-v2026.4.25)
+```bash
+openclaw diagnostics export        # Sanitized support bundle when available
+openclaw plugins install diagnostics-prometheus
+openclaw plugins enable diagnostics-prometheus
+```
+
+OpenTelemetry notes:
+- Standard OTEL environment variables and signal-specific OTLP endpoint overrides are supported.
+- `OPENCLAW_OTEL_PRELOADED=1` lets OpenClaw reuse a pre-registered OpenTelemetry SDK.
+- GenAI latest experimental provider attributes require `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental`; legacy `gen_ai.system` remains the default.
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -305,7 +367,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,13 +418,13 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
 
-# Local-model lean defaults (v2026.4.15+, experimental)
+# Local-model lean defaults (v2026.4.25+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
@@ -370,7 +432,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
