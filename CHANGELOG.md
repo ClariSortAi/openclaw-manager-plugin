@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.26`, including `openclaw migrate`, Cerebras bundled provider setup, Matrix E2EE setup, asymmetric memory embedding config, transcript compaction preflight controls, and node pairing cleanup commands.
+- Added troubleshooting coverage for `v2026.4.26` update/install, plugin registry, Matrix encryption, migration dry-run, node cleanup, and memory configuration recovery workflows.
+- Added security-checklist coverage for `v2026.4.26` hardening around rotated device-token response redaction, explicit subagent allowlists, compaction transcript rotation, plugin install scanner guardrails, symlinked plugin discovery boundaries, and proxy handling.
 - Added release-alignment coverage for upstream stable `v2026.4.20` through `v2026.4.25`, including the persisted plugin registry, expanded TTS/chat voice controls, Google Meet/Voice Call tooling, browser CLI/doctor improvements, image/model provider updates, diagnostics/OTEL/Prometheus guidance, and install/update hardening.
 - Added troubleshooting coverage for `v2026.4.25` plugin registry refresh workflows, current-chat TTS overrides, browser `doctor --deep` diagnostics, and sanitized diagnostics/OTEL export checks.
 - Added security-checklist coverage for the `v2026.4.20-v2026.4.25` hardening line, including workspace `OPENCLAW_*` dotenv blocking, device/websocket scope tightening, Teams audience checks, plugin setup path hardening, MCP owner-only tool policy, media/parser preflight bounds, cold-registry security metadata, and bounded diagnostics redaction.
@@ -64,11 +67,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.25+` to `v2026.4.26+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.9`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.25+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
-- Updated README/version metadata for this docs release alignment (`1.3.9`).
+- Updated README/version metadata for this docs release alignment (`1.3.7`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.2+` to `v2026.4.14+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.6`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.3.31+` to `v2026.4.2+` while preserving minimum safe baseline at `v2026.3.1`.

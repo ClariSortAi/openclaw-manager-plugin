@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.25+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.26+** for the latest auth rotation fixes, tool-loop hardening defaults, migration tooling, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.25)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.26)
 
 These changes affect new and existing installations:
 
@@ -97,7 +97,7 @@ These are operationally important additions and reliability/security fixes in th
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
 
-## Notable Additions in v2026.4.20-v2026.4.25
+## Notable Additions in v2026.4.20-v2026.4.26
 
 These are operationally important additions and reliability/security fixes in the latest stable releases:
 
@@ -109,6 +109,10 @@ These are operationally important additions and reliability/security fixes in th
 6. **Image/model provider expansion** (v2026.4.21-v2026.4.25) — `openclaw infer image generate|edit --background`, OpenAI Codex OAuth image generation/editing, OpenRouter image generation, xAI media/TTS/STT, Tencent Cloud Hy3, DeepSeek V4, LiteLLM image generation, and current OpenAI image defaults expand media workflows.
 7. **Cron and session reliability** (v2026.4.20-v2026.4.25) — cron runtime state is split into `jobs-state.json`, delivery previews and failure accounting are clearer, interrupted jobs are surfaced safely, and session stores are pruned/bounded to avoid gateway OOM during startup.
 8. **Install/update hardening** (v2026.4.25) — Windows, macOS, Linux, Docker, Node service restarts, LaunchAgent token rotation, mixed-version gateway verification, bundled runtime-dependency repair, and low-disk/update checks are stricter and more actionable.
+9. **Migration/import tooling** (v2026.4.26) — `openclaw migrate` previews and applies Hermes plus Claude Code/Desktop imports with backups, JSON output, archive/manual-review state, and onboarding detection.
+10. **Cerebras bundled provider** (v2026.4.26) — Cerebras joins the bundled provider set with onboarding, static catalog metadata, and manifest-owned endpoint routing.
+11. **Matrix encryption setup** (v2026.4.26) — `openclaw matrix encryption setup` enables E2EE, bootstraps recovery, and reports verification state in one flow.
+12. **Memory and compaction controls** (v2026.4.26) — OpenAI-compatible memory embeddings can set asymmetric `memorySearch.inputType`, `queryInputType`, and `documentInputType`, while `agents.defaults.compaction.maxActiveTranscriptBytes` adds opt-in preflight compaction for oversized active transcripts.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -249,7 +253,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.25+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.26+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

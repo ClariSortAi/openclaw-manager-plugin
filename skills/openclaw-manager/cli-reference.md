@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.25` stable note: current stable is published as `v2026.4.25` and CLI version output should report `2026.4.25`.
+`v2026.4.26` stable note: current stable is published as `v2026.4.26` and CLI version output should report `2026.4.26`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -70,6 +70,13 @@ openclaw devices list        # List pending and paired devices
 openclaw devices approve <id>  # Approve device
 openclaw devices reject <id>   # Reject device
 openclaw devices revoke <id>   # Revoke device access
+```
+
+### Node Management (v2026.4.26+ cleanup)
+```bash
+openclaw nodes list
+openclaw nodes status
+openclaw nodes remove --node <id|name|ip>  # Remove stale gateway-owned node pairing records
 ```
 
 ### Cron Jobs
@@ -226,6 +233,14 @@ openclaw memory index        # Reindex memory files
 openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
+`v2026.4.26+` memory note: OpenAI-compatible embedding endpoints can use asymmetric input-type hints for query and document paths:
+
+```bash
+openclaw config set memorySearch.inputType "<provider-specific-input-type>"
+openclaw config set memorySearch.queryInputType "<provider-specific-query-input-type>"
+openclaw config set memorySearch.documentInputType "<provider-specific-document-input-type>"
+```
+
 ### Security
 ```bash
 openclaw security audit          # Basic security audit
@@ -260,6 +275,16 @@ openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
 ```
 
+### Migration & Imports (v2026.4.26+)
+```bash
+openclaw migrate plan          # Preview available import/migration actions
+openclaw migrate --dry-run     # Run migration planning without applying changes
+openclaw migrate --json        # Machine-readable migration report
+openclaw migrate               # Apply selected migration/import plan with backup handling
+```
+
+`openclaw migrate` includes bundled Claude Code/Desktop and Hermes importers for instructions, MCP servers, skills, command prompts, memory/plugin hints, model providers, and supported credentials.
+
 ### Browser Automation (expanded in v2026.4.24-v2026.4.25)
 ```bash
 openclaw browser doctor                # Check browser automation readiness
@@ -274,13 +299,15 @@ openclaw config set browser.actionTimeoutMs 60000
 openclaw config set browser.profiles.<name>.headless true
 ```
 
-### Voice, TTS, and Meetings (expanded in v2026.4.24-v2026.4.25)
+### Voice, TTS, and Meetings (expanded in v2026.4.24-v2026.4.26)
 ```bash
 voicecall setup                 # Configure voice-call provider prerequisites
 voicecall smoke                 # Dry-run readiness check before live calls
 googlemeet doctor --oauth       # Validate Google Meet OAuth/browser state
 googlemeet recover-tab          # Inspect/recover already-open Meet tabs
 ```
+
+Talk/realtime note: v2026.4.26 adds Google Live browser Talk sessions with constrained ephemeral tokens and a Gateway relay path for backend-only realtime voice plugins.
 
 Chat commands:
 ```text
@@ -328,6 +355,7 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider cerebras       # Cerebras bundled provider (v2026.4.26+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -428,6 +456,9 @@ openclaw config set agents.defaults.params.fastMode true
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
+# Active transcript preflight compaction (v2026.4.26+, opt-in)
+openclaw config set agents.defaults.compaction.maxActiveTranscriptBytes 10485760
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -441,6 +472,10 @@ openclaw config set tools.web.search.brave.mode "llm-context"
 
 # Ollama embeddings for memory search (v2026.3.2+)
 openclaw config set memorySearch.provider "ollama"
+
+# OpenAI-compatible asymmetric memory embedding input types (v2026.4.26+)
+openclaw config set memorySearch.queryInputType "query"
+openclaw config set memorySearch.documentInputType "document"
 
 # Filesystem restriction
 openclaw config set fs.workspaceOnly true

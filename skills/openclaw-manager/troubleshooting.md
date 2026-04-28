@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.25+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.26+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.25+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.26+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.25+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, migration tooling, Matrix E2EE setup, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.26+**.
 
 ## Common Issues
 
@@ -482,6 +482,22 @@ openclaw plugins list
 
 Avoid relying on `OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY`; it is deprecated break-glass behavior. Prefer registry repair.
 
+#### Profile-Specific Plugin Install Writes to the Wrong State Directory
+**Symptoms:** `openclaw --profile <name> plugins install ...`, ClawHub installs, marketplace installs, or channel setup installs appear under the default profile instead of the selected profile.
+
+**Cause:** Builds before v2026.4.26 could resolve plugin install destinations from the default profile state directory.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then repair plugin metadata for the intended profile
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw --profile <name> plugins registry --refresh
+openclaw --profile <name> doctor --fix
+
+# Re-run the install using the explicit profile
+openclaw --profile <name> plugins install <spec>
+```
+
 #### Plugin Conflict (Slot Error)
 **Symptoms:** Error about conflicting plugins in same slot
 
@@ -533,7 +549,7 @@ openclaw gateway restart
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
-**Cause:** v2026.3.22+ prefers ClawHub before npm for npm-safe package names.
+**Cause:** v2026.3.22+ prefers ClawHub before npm for npm-safe package names. In v2026.4.26+, use the explicit `npm:` prefix for known npm packages when you want to skip ClawHub lookup.
 
 **Fix:**
 ```bash
@@ -542,6 +558,7 @@ openclaw plugins install clawhub:<package>
 
 # Or force npm source
 openclaw plugins install @scope/package
+openclaw plugins install npm:<package>
 ```
 
 #### ClawHub Plugin Uninstall Fails for Previously Pinned Installs
@@ -551,7 +568,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.25+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.26+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -631,7 +648,7 @@ openclaw status
 #### Update Appears Successful But Gateway Still Runs an Older Version
 **Symptoms:** `openclaw update` completes, but `openclaw status` or the managed gateway reports the previous version after restart.
 
-**Cause:** Current stable releases harden mixed-version verification and fail package updates when post-update plugin sync or restarted gateway version checks fail. Older managed services can also retain stale embedded gateway auth or service PATHs.
+**Cause:** Current stable releases harden mixed-version verification and fail package updates when post-update plugin sync or restarted gateway version checks fail. v2026.4.26 also stages npm global updates in a verified temporary prefix before swapping package trees, preventing mixed old/new package files. Older managed services can still retain stale embedded gateway auth or service PATHs.
 
 **Fix:**
 ```bash
@@ -645,6 +662,18 @@ openclaw status --all
 ```
 
 If `doctor` reports externally managed service policy, follow the supervisor-specific restart path instead of letting OpenClaw rewrite the service.
+
+#### Holding a Deliberate Downgrade or Pausing Auto-Updates
+**Symptoms:** During incident recovery, the gateway keeps trying to auto-update after you intentionally downgraded or pinned a package version.
+
+**Fix:**
+```bash
+# v2026.4.26+: disable configured background package auto-updates at gateway startup
+export OPENCLAW_NO_AUTO_UPDATE=1
+openclaw gateway restart
+
+# Remove the variable once the incident pin is no longer needed.
+```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -759,7 +788,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.25+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.26+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone

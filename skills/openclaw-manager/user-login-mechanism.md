@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.25+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.4.25+` note: setup/provider auth choices are resolved from the cold persisted plugin registry where possible. If an auth choice or channel setup path is missing after upgrade, run `openclaw plugins registry --refresh` and `openclaw doctor --fix` before re-running setup.
+`v2026.4.26+` note: device-token rotation responses no longer echo rotated bearer tokens except for the same-device handoff required by token-only clients; retrieve or rotate credentials through the authenticated device workflow rather than relying on admin response payloads.
 
 **Process:**
 1. Run the command

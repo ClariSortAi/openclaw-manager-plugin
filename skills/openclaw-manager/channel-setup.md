@@ -426,6 +426,17 @@ openclaw plugins info matrix
 openclaw channels status
 ```
 
+### Matrix End-to-End Encryption (v2026.4.26+)
+
+For encrypted rooms, use the bundled setup flow so recovery bootstrap and verification status stay in sync:
+
+```bash
+openclaw matrix encryption setup
+openclaw channels status
+```
+
+If encryption setup reports stale or broken device state, run `openclaw plugins registry --refresh` and retry before hand-editing Matrix plugin state.
+
 ---
 
 ## Nostr (Plugin Required)

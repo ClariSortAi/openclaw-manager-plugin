@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.25+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.26+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Media/parser hardening | Bounds MIME sniffing and ZIP archive preflight before untrusted files or plugin archives reach parser dependencies | v2026.4.24 |
 | Plugin registry security metadata | Reads plugin allowlist ownership, web-search credential presence, and channel exposure checks from cold registry/config metadata instead of importing plugin runtimes | v2026.4.25 |
 | Secret and log redaction expansion | Masks configured secret patterns at console/file sinks and keeps OTEL/exported diagnostics bounded without prompt, session-key, command text, recipient, or raw request-id payloads | v2026.4.25 |
+| Device token response redaction | Stops shared/admin `device.token.rotate` responses from echoing rotated bearer tokens while preserving same-device handoff for token-only clients | v2026.4.26 |
+| Subagent self-target authorization | Enforces `subagents.allowAgents` for explicit same-agent `sessions_spawn(agentId=...)` calls instead of auto-allowing requester self-targets | v2026.4.26 |
+| Plugin install symlink/test scan guardrails | Follows valid symlinked plugin directories, skips packaged test fixtures during scans, and allows exact package-manager peer links to the trusted host while continuing to block spoofed or escaping `node_modules` links | v2026.4.26 |
+| Session transcript redaction | Applies configured redaction patterns to persisted transcript text and validates custom redaction regexes more safely | v2026.4.26 |
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
@@ -411,7 +415,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.25+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.26+ for latest auth, interaction-allowlist, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -419,7 +423,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
-- [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.25+)
+- [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.26+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -580,7 +584,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.25+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.26+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
