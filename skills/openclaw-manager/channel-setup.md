@@ -415,6 +415,50 @@ openclaw plugins info matrix
 openclaw channels status
 ```
 
+### Matrix End-to-End Encryption (v2026.4.24+)
+
+Enable cross-signing identity verification before turning on E2EE:
+
+```bash
+# Establish your cross-signing identity trust (v2026.4.24+)
+openclaw matrix verify self
+
+# Enable E2EE, bootstrap recovery keys, and print verification status (v2026.4.26+)
+openclaw matrix encryption setup
+```
+
+---
+
+## Google Meet (Bundled, v2026.4.24+)
+
+Google Meet is a bundled participant plugin that joins and interacts with Meet sessions using personal Google auth.
+
+### Prerequisites
+- Personal Google account with access to Google Meet
+- Chrome browser installed on the gateway host
+
+### Setup Steps
+
+1. **Enable the Plugin**
+```bash
+openclaw plugins enable google-meet
+openclaw gateway restart
+```
+
+2. **Authenticate**
+   - The plugin uses personal Google auth; follow the prompts after enabling.
+
+3. **Verify**
+```bash
+openclaw plugins info google-meet
+openclaw channels status
+```
+
+### Notes
+- Supports Chrome/Twilio realtime voice/video
+- Exports artifacts and attendance records from meetings
+- Requires Chrome DevTools access on the gateway host
+
 ---
 
 ## Nostr (Plugin Required)

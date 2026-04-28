@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable releases `v2026.4.20` through `v2026.4.26`, covering all new stable versions since `v2026.4.15`.
+- Added **Cerebras bundled provider** documentation (v2026.4.26): `openclaw models auth setup-token --provider cerebras` entry in SKILL.md model providers section and CLI reference.
+- Added **`openclaw migrate`** command documentation (v2026.4.26): supports plan, dry-run, JSON output, pre-migration backup, and Claude Code/Desktop + Hermes importers; documented in SKILL.md common tasks and CLI reference.
+- Added **Matrix E2EE** documentation (v2026.4.24–v2026.4.26): `openclaw matrix verify self` (v2026.4.24) and `openclaw matrix encryption setup` (v2026.4.26) in CLI reference and channel-setup.md.
+- Added **Google Meet bundled channel** documentation (v2026.4.24): full channel setup guide in channel-setup.md, entry in CLI reference plugins table, and channel count update in SKILL.md.
+- Added **TTS voice upgrade** documentation (v2026.4.25): `/tts latest` and `/tts chat on|off|default` commands; new bundled TTS providers (Azure Speech, ElevenLabs v3, Volcengine, Inworld, Xiaomi, local CLI) in notable additions section.
+- Added **xAI image + audio expansion** notes (v2026.4.22): image generation, TTS (6 voices), STT (`grok-stt`), and bundled Deepgram/ElevenLabs/Mistral STT providers for Voice Call.
+- Added **DeepSeek V4** (v2026.4.24): Flash and Pro catalog entries noted in notable additions.
+- Added **`openclaw models auth login`** CLI command (v2026.4.20) to CLI reference.
+- Added **Tencent Cloud** provider (`openclaw models auth setup-token --provider tencent`, v2026.4.22) to SKILL.md model providers and CLI reference.
+- Added new CLI commands to reference: `openclaw nodes remove`, `openclaw browser click-coords`.
+- Added new environment variables to CLI reference: `OPENCLAW_NO_AUTO_UPDATE`, `OPENCLAW_PLUGIN_STAGE_DIR`, `OPENCLAW_OTEL_PRELOADED`.
+- Added new config path examples: `agents.defaults.compaction.maxActiveTranscriptBytes`, `memorySearch.inputType`/`queryInputType`/`documentInputType`, `gateway.nodes.pairing.autoApproveCidrs`, `agents.defaults.contextInjection`, `browser.actionTimeoutMs`.
+- Added **Notable Additions in v2026.4.20-v2026.4.26** section to SKILL.md covering all 10 operationally important additions.
+- Added breaking changes #21 (`/models add` deprecated, v2026.4.25) and #22 (PDF moved to `document-extract` plugin, v2026.4.24) to SKILL.md breaking changes list.
+- Added troubleshooting entry for PDF analysis failures after upgrade to v2026.4.24+.
+
+### Changed
+- Updated recommended OpenClaw target version across all plugin documentation from `v2026.4.15+` to `v2026.4.26+` (SKILL.md, cli-reference.md, security-checklist.md, troubleshooting.md).
+- Updated channel count from `23+` to `24+` in SKILL.md to reflect Google Meet addition.
+- Updated model configuration capability description in SKILL.md to include Cerebras, Tencent Cloud, and DeepSeek.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.

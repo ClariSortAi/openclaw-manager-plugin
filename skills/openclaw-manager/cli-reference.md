@@ -72,6 +72,16 @@ openclaw devices reject <id>   # Reject device
 openclaw devices revoke <id>   # Revoke device access
 ```
 
+### Node Management
+```bash
+openclaw nodes remove --node <id|name|ip>  # Remove stale gateway-owned node pairing records (v2026.4.26+)
+```
+
+### Browser CLI
+```bash
+openclaw browser click-coords <x> <y>  # Click at viewport coordinates in a running browser session (v2026.4.24+)
+```
+
 ### Cron Jobs
 ```bash
 openclaw cron list           # List all cron jobs
@@ -263,9 +273,27 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth login   # Add/update default models for a configured provider (v2026.4.20+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider cerebras       # Cerebras (v2026.4.26+)
+openclaw models auth setup-token --provider tencent        # Tencent Cloud / TokenHub (v2026.4.22+)
+```
+
+### Migration (v2026.4.26+)
+```bash
+openclaw migrate             # Import config/providers/MCP/skills from Claude Code, Claude Desktop, or Hermes
+openclaw migrate --dry-run   # Preview import without making changes
+openclaw migrate --json      # Machine-readable output
+```
+
+Supported importers: Claude (Claude Code/Desktop instructions, MCP servers, skills, command prompts) and Hermes (configuration, memory/plugin hints, model providers, credentials). Pre-migration backup is created automatically.
+
+### Matrix Encryption (v2026.4.24+)
+```bash
+openclaw matrix verify self           # Establish cross-signing identity trust (v2026.4.24+)
+openclaw matrix encryption setup      # Enable E2EE, bootstrap recovery, print verification status (v2026.4.26+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -366,6 +394,23 @@ openclaw config set agents.defaults.params.fastMode true
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
+# Transcript compaction preflight (v2026.4.26+)
+openclaw config set agents.defaults.compaction.maxActiveTranscriptBytes 10485760   # 10 MB
+
+# Asymmetric embedding endpoints for OpenAI-compatible memory providers (v2026.4.26+)
+openclaw config set memorySearch.inputType "query"
+openclaw config set memorySearch.queryInputType "query"
+openclaw config set memorySearch.documentInputType "document"
+
+# Node pairing auto-approve trusted CIDRs (v2026.4.24+; disabled by default — leave unset for security)
+openclaw config set gateway.nodes.pairing.autoApproveCidrs '["192.168.1.0/24"]'
+
+# Disable workspace bootstrap file injection into agent context (v2026.4.24+)
+openclaw config set agents.defaults.contextInjection "never"
+
+# Browser automation action budget (v2026.4.25+; default 60s)
+openclaw config set browser.actionTimeoutMs 60000
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -419,6 +464,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Set to `1` to disable background package auto-updates (v2026.4.26+) |
+| `OPENCLAW_PLUGIN_STAGE_DIR` | Layered runtime-dependency roots for plugin installation (v2026.4.26+) |
+| `OPENCLAW_OTEL_PRELOADED` | Set to `1` to reuse a pre-registered OpenTelemetry SDK (v2026.4.25+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -466,6 +514,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
+| Google Meet | bundled | Google Meet participant plugin — personal Google auth, Chrome/Twilio realtime voice/video, artifact/attendance exports (v2026.4.24+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 

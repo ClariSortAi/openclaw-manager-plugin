@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.26+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.26+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, task/cron/tool-loop reliability improvements, TTS voice upgrade, and Matrix E2EE setup, upgrade to **v2026.4.26+**.
 
 ## Common Issues
 
@@ -980,6 +980,24 @@ openclaw gateway restart
 # Verify configured model id
 openclaw config get agents.defaults.model
 ```
+
+### PDF Analysis Fails After Upgrade to v2026.4.24+
+
+**Symptoms:** PDF analysis stops working or returns errors after upgrading.
+
+**Cause:** PDF extraction was moved to the bundled `document-extract` plugin in v2026.4.24; `pdfjs-dist` was removed from core.
+
+**Fix:**
+```bash
+# Run post-upgrade migration and restart
+openclaw doctor --fix
+openclaw gateway restart
+
+# Verify PDF config is still set
+openclaw config get agents.defaults.pdfModel
+```
+
+Existing `pdfModel`/`pdfMaxBytesMb`/`pdfMaxPages` settings continue to work once the `document-extract` plugin is active.
 
 ### Plugin SDK Breaking Change (v2026.3.2)
 
