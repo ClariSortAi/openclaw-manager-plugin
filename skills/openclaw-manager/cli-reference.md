@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.26` stable note: current stable is published as `v2026.4.26` and CLI version output should report `2026.4.26`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -173,6 +173,8 @@ openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins registry      # Inspect persisted plugin registry (v2026.4.25+)
+openclaw plugins registry --refresh  # Refresh/repair cold registry snapshot (v2026.4.25+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -184,6 +186,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.4.25+` registry note: `openclaw plugins list` reads the cold persisted registry by default; use `openclaw plugins doctor`, `openclaw plugins inspect`, or `openclaw plugins registry --refresh` when you need module-aware diagnostics or stale-index repair.
 
 ### Agents
 ```bash
@@ -256,6 +260,16 @@ openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
 ```
 
+### Migration Importers (v2026.4.26+)
+```bash
+openclaw migrate plan             # Preview supported import/migration sources
+openclaw migrate dry-run          # Dry-run migration with no writes
+openclaw migrate --json           # Machine-readable migration output
+openclaw migrate apply            # Apply migration after reviewing plan
+```
+
+`openclaw migrate` includes pre-migration backup handling and bundled importers for Claude Code/Desktop and Hermes configuration, MCP servers, skills, command prompts, memory/plugin hints, model providers, and supported credentials.
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -266,6 +280,13 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider cerebras       # Cerebras bundled provider (v2026.4.26+)
+```
+
+### Browser Automation (v2026.4.25+)
+```bash
+openclaw browser doctor --deep     # Deep browser/CDP readiness and live snapshot probes
+openclaw browser start --headless  # One-shot managed browser launch without persisted config edits
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -305,7 +326,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -348,6 +369,18 @@ openclaw config set agents.defaults.tools.exec.security "ask"
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
+# v2026.4.25+: TTS overrides at global, per-agent, and per-channel/account scopes
+openclaw config set agents.list.<agent-id>.tts.provider "<provider>"
+openclaw config set channels.<channel>.accounts.<account-id>.tts.provider "<provider>"
+
+# v2026.4.26+: preflight compaction for very large active transcripts
+openclaw config set agents.defaults.compaction.maxActiveTranscriptBytes 10485760
+
+# v2026.4.26+: asymmetric OpenAI-compatible memory embedding endpoints
+openclaw config set memorySearch.inputType "text"
+openclaw config set memorySearch.queryInputType "query"
+openclaw config set memorySearch.documentInputType "document"
+
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
@@ -356,7 +389,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6+)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +403,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -406,6 +439,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `GET /ready` | Readiness probe |
 | `GET /readyz` | Readiness probe (alias) |
 
+`v2026.4.25+` note: `/healthz` and `/readyz` are reserved before plugin/control UI routes are registered, so probes should continue responding even when a later route handler stalls.
+
 ## Environment Variables
 
 | Variable | Purpose |
@@ -419,6 +454,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_PLUGIN_STAGE_DIR` | Layered plugin runtime dependency staging roots for preinstalled/read-only deps (v2026.4.26+) |
+| `OPENCLAW_OTEL_PRELOADED` | Reuse an already-registered OpenTelemetry SDK while wiring OpenClaw diagnostics (v2026.4.25+) |
+| `OPENCLAW_SERVICE_REPAIR_POLICY` | Set `external` to report but skip service repair mutations for externally managed services (v2026.4.25+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -468,6 +506,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Diagnostics Prometheus | bundled | Protected low-cardinality diagnostics scrape route (v2026.4.25+) |
+| Cerebras Provider | bundled | Cerebras model provider with onboarding and static catalog metadata (v2026.4.26+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

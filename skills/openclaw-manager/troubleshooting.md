@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.26+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.26+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, persisted plugin registry repair, TTS/voice upgrades, safer update verification, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.26+**.
 
 ## Common Issues
 
@@ -478,6 +478,38 @@ openclaw plugins remove <plugin-id>
 openclaw gateway restart
 ```
 
+#### `plugins list` Shows Stale or Missing Entries After Upgrade
+**Symptoms:** `openclaw plugins list` does not match installed files, or plugin startup/provider discovery behaves differently than expected after upgrading to v2026.4.25+.
+
+**Cause:** v2026.4.25 moves plugin startup and install paths to a cold persisted registry. Normal listing uses this snapshot; stale indexes should be repaired instead of forcing broad runtime scans.
+
+**Fix:**
+```bash
+# Refresh the persisted registry snapshot directly
+openclaw plugins registry --refresh
+
+# Or let doctor repair plugin index/registry state
+openclaw doctor --fix
+
+# Use module-aware diagnostics if needed
+openclaw plugins doctor
+openclaw plugins list
+```
+
+#### Gateway Boot-Loops on One Missing or Invalid Plugin/Channel
+**Symptoms:** One stale plugin channel or invalid plugin config causes the gateway to crash-loop instead of starting other channels.
+
+**Cause:** Older builds were less resilient to stale plugin channel refs and invalid plugin schema config. v2026.4.26 starts degraded when possible and points cleanup at doctor/quarantine flows.
+
+**Fix:**
+```bash
+# Upgrade first, then repair stale plugin/channel references
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw plugins doctor
+openclaw gateway restart
+```
+
 #### Bundled Plugin Runtime Missing After Global Install
 **Symptoms:** Channels/plugins such as WhatsApp or Matrix fail to boot with missing runtime files after a package-manager/global install.
 
@@ -514,7 +546,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.26+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,7 +736,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.26+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -777,6 +809,21 @@ openclaw config set agents.defaults.subagents.maxSpawnDepth 3
 # Increase children per agent (default: 5)
 openclaw config set agents.defaults.subagents.maxChildrenPerAgent 10
 
+openclaw gateway restart
+```
+
+#### Explicit Same-Agent Spawn Fails After Upgrade
+**Symptoms:** `sessions_spawn(agentId=...)` calls that target the same agent now fail authorization even though older builds allowed them.
+
+**Cause:** v2026.4.26 enforces `subagents.allowAgents` for explicit same-agent spawn requests instead of auto-allowing requester self-targets.
+
+**Fix:**
+```bash
+# Review explicit sub-agent allow policy
+openclaw config get agents.defaults.subagents.allowAgents
+
+# Add the intended agent id only if the workflow is trusted
+openclaw config set agents.defaults.subagents.allowAgents '["<agent-id>"]'
 openclaw gateway restart
 ```
 
@@ -944,7 +991,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1059,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.26) continue that hardening.
 
 **Fix:**
 ```bash

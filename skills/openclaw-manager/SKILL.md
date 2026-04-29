@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.26+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -22,7 +22,7 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 5. **Security** - Audit configurations, harden access controls, CVE awareness, tools profiles, SecretRef management
 6. **Automation** - Set up cron jobs, Gmail webhooks, scheduled tasks
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
-8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
+8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI, Cerebras), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
 10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
 11. **Backup & Recovery** - Create and verify local state backups before destructive changes (v2026.3.8+)
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.26)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,8 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Plugin registry became persisted/cold-path first** (v2026.4.25) — `openclaw plugins list` now reads the persisted registry snapshot by default. Use `openclaw plugins registry --refresh`, `openclaw plugins doctor`, or `openclaw doctor --fix` when registry state looks stale.
+22. **Plugin config mutation helpers are replacing direct config load/write APIs** (v2026.4.26) — plugin authors should move to runtime snapshots and transactional mutation helpers with explicit restart follow-up policy.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -96,6 +98,21 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.25-v2026.4.26
+
+These are operationally important additions and reliability/security fixes in the latest stable releases:
+
+1. **Expanded TTS and voice controls** — `/tts latest`, `/tts chat on|off|default`, per-agent/per-account TTS overrides, TTS personas, Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine, ElevenLabs v3, and Google Live browser Talk sessions with constrained ephemeral tokens.
+2. **Persisted plugin registry workflows** — plugin startup/install paths now use a cold persisted registry; use `openclaw plugins registry --refresh` or `openclaw doctor --fix` to repair stale registry/index state.
+3. **OpenTelemetry and Prometheus diagnostics** — bounded telemetry spans/metrics now cover model calls, token usage, tool loops, exec processes, outbound delivery, context assembly, harness runs, and memory pressure without exporting prompts, tool output, or raw identifiers.
+4. **Browser automation hardening and CLI coverage** — safer tab URLs, iframe-aware role snapshots, deeper `openclaw browser doctor --deep` probes, and `openclaw browser start --headless` for one-shot local managed browser launches.
+5. **Bundled migration workflows** — `openclaw migrate` adds plan, dry-run, JSON, pre-migration backup, and importers for Claude Code/Desktop and Hermes configuration, skills, MCP servers, memory/plugin hints, model providers, and supported credentials.
+6. **Bundled Cerebras provider** — Cerebras is available as a bundled provider plugin with onboarding, static catalog metadata, and manifest-owned endpoint metadata.
+7. **Matrix E2EE setup command** — `openclaw matrix encryption setup` bootstraps Matrix encryption, recovery, and verification status from one flow.
+8. **Memory and compaction improvements** — OpenAI-compatible memory search supports asymmetric embedding inputs, Ollama retrieval query prefixes are model-specific, and `agents.defaults.compaction.maxActiveTranscriptBytes` can trigger local transcript compaction before active JSONL files grow too large.
+9. **Install/update hardening** — package updates verify temporary prefixes before swap, post-update doctor migrations run before restart, mixed-version gateway restarts fail verification, Docker slim images include CA certificates, and stale/missing plugin configs are repaired or quarantined instead of causing broad boot loops.
+10. **Sub-agent and device-token hardening** — explicit same-agent `sessions_spawn(agentId=...)` now enforces `subagents.allowAgents`, and device token rotation no longer echoes rotated bearer tokens to shared/admin callers.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +253,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.26+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +379,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.6):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.6+ models default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
@@ -502,6 +519,27 @@ openclaw models auth setup-token --provider openai-codex
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# Cerebras (v2026.4.26+ — bundled provider with static catalog metadata)
+openclaw models auth setup-token --provider cerebras
+```
+
+### Import From Other Agent Setups (v2026.4.26+)
+```bash
+# Preview importable Claude Code/Desktop or Hermes state before changing files
+openclaw migrate plan
+openclaw migrate dry-run
+
+# Apply only after reviewing the plan and backup output
+openclaw migrate apply
+```
+
+### Repair Persisted Plugin Registry (v2026.4.25+)
+```bash
+# Inspect and refresh the cold plugin registry used by startup/list/provider discovery paths
+openclaw plugins registry
+openclaw plugins registry --refresh
+openclaw doctor --fix
 ```
 
 ## Error Patterns

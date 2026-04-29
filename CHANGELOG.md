@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.25` and `v2026.4.26`, including expanded TTS/voice controls, persisted plugin registry workflows, OpenTelemetry/Prometheus diagnostics, browser automation commands, migration importers, Cerebras provider support, Matrix E2EE setup, memory/compaction improvements, and install/update hardening.
+- Added CLI reference coverage for `openclaw plugins registry --refresh`, `openclaw migrate`, `openclaw browser doctor --deep`, `openclaw browser start --headless`, `openclaw models auth setup-token --provider cerebras`, Matrix encryption setup, and new operational environment variables.
+- Added troubleshooting coverage for stale persisted plugin registries, invalid plugin config quarantine, `openclaw update` mixed-version/stale-file verification failures, explicit same-agent sub-agent allowlist enforcement, and large transcript preflight compaction.
+- Added security-checklist hardening entries for `v2026.4.25-v2026.4.26`: low-cardinality telemetry redaction boundaries, device-token rotation response hardening, stricter sub-agent allowlist enforcement, logging/session redaction, plugin install symlink/test-scan hardening, route probe reservations, and plugin config quarantine.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.26+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
