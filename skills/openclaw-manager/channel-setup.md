@@ -631,6 +631,45 @@ openclaw gateway restart
 
 ---
 
+## Google Meet (Plugin Required, v2026.4.24+)
+
+Google Meet is supported as a bundled participant plugin. It supports personal Google auth, Chrome or Twilio realtime voice sessions, artifact/attendance exports, and recovery tooling for already-open Meet tabs.
+
+### Prerequisites
+- Personal Google account
+- Chrome installed (for Chrome realtime transport) or Twilio account (for phone-based transport)
+
+### Setup Steps
+
+1. **Enable the Plugin** (bundled — no separate install needed)
+```bash
+openclaw plugins enable google-meet
+openclaw gateway restart
+```
+
+2. **Authenticate with Google**
+```bash
+openclaw plugins info google-meet
+# Follow the OAuth setup instructions shown
+```
+
+3. **Recover or Doctor Meet State**
+```bash
+# Diagnose OAuth and browser connectivity
+openclaw plugins google-meet doctor --oauth
+
+# Inspect an already-open Meet tab without launching a duplicate
+# (use the recover_current_tab tool from chat)
+```
+
+### Notes
+- Chrome realtime transport requires Chrome and (optionally) BlackHole audio for paired-node setups
+- Twilio realtime transport uses the Voice Call plugin for phone-backed sessions
+- Artifact and attendance exports (recordings, transcripts, smart notes) are available after the meeting ends
+- The `openclaw_agent_consult` tool lets live voice sessions hand off to the full OpenClaw agent for tool-backed answers
+
+---
+
 ## Feishu / Lark (v2026.2.2+)
 
 Feishu (飞书) and Lark are natively supported as of v2026.2.2 -- the first Chinese enterprise chat integration.

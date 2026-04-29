@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20` through `v2026.4.26`, including new bundled providers (DeepSeek V4 Flash/Pro, Cerebras), Google Meet bundled participant plugin, xAI image/TTS/STT support, `/models add` chat command, TUI local embedded mode, `/tts latest` and chat-scoped TTS controls, `OPENCLAW_SKIP_ONBOARDING`/`OPENCLAW_PLUGIN_STAGE_DIR`/`OPENCLAW_NO_AUTO_UPDATE` environment variables, memory asymmetric embeddings config, and OpenTelemetry expanded coverage.
+- Added breaking-change entry #21 for Plugin SDK `api.registerEmbeddedExtensionFactory(...)` removal in v2026.4.24; bundled tool-result rewrites must use `api.registerAgentToolResultMiddleware(...)`.
+- Added `Google Meet` bundled participant plugin setup guide to `channel-setup.md` (v2026.4.24).
+- Added troubleshooting entry for `registerEmbeddedExtensionFactory` removal (v2026.4.24).
+- Added security-checklist hardening entries for v2026.4.20–v2026.4.26: gateway config-apply guard expansion, session WebSocket broadcast scoping, device pairing gateway scoping, `OPENCLAW_*` env blocking in untrusted `.env`, SSRF guard for QQBot, owner command explicit identity enforcement, Android loopback cleartext enforcement, pairing host cleartext restriction, Teams cross-bot token replay prevention, Discord slash-command bypass fix, plugin setup-api launch-directory lookup blocked, WhatsApp/group contact injection mitigation, approval auto-enable removed, `browser.request` operator.admin gating, and webhook SecretRef hot-reload.
+
+### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.26+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.

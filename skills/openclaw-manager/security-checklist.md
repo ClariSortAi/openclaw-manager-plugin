@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.26+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,21 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| Gateway config apply/patch guard expansion | Extends the agent-facing `gateway` tool config mutation guard to block rewrites of operator-trusted paths (sandbox, plugin trust, gateway auth/TLS, hook routing, SSRF policy, MCP servers, workspace hardening) and per-agent sandbox/tools overrides | v2026.4.20 |
+| Session WebSocket broadcast scoping | Requires `operator.read` or higher for chat, agent, and tool-result event frames; pairing-scoped sessions no longer passively receive session chat content | v2026.4.20 |
+| Device pairing gateway scoping | Restricts non-admin paired-device sessions to their own pairing list, approve, and reject actions, preventing cross-device pairing enumeration | v2026.4.20 |
+| `OPENCLAW_*` env blocking in untrusted `.env` files | Blocks all `OPENCLAW_*` keys from untrusted workspace `.env` files, fail-closing new runtime-control variable injection | v2026.4.20 |
+| SSRF guard for QQBot media uploads | Adds SSRF guard to direct-upload URL paths in QQBot `uploadC2CMedia` and `uploadGroupMedia` | v2026.4.20 |
+| Owner commands explicit identity enforcement | Requires explicit owner identity (owner-candidate match or internal `operator.admin`) for owner-enforced commands, blocking permissive wildcard-allowFrom bypass when `commands.ownerAllowFrom` is unset | v2026.4.21 |
+| Android loopback cleartext enforcement | Requires loopback-only cleartext gateway connections on Android, so private-LAN and link-local `ws://` endpoints fail closed unless TLS is enabled | v2026.4.23 |
+| Pairing host cleartext restriction | Requires private-IP or loopback hosts for cleartext mobile pairing; `.local` or dotless hostnames no longer treated as safe cleartext endpoints | v2026.4.23 |
+| Teams cross-bot token replay prevention | Requires shared Bot Framework audience tokens to name the configured Teams app via verified `appid` or `azp`, blocking cross-bot token replay on the global audience | v2026.4.23 |
+| Discord slash-command channel-policy bypass fix | Prevents native slash-command channel policy from bypassing configured owner or member restrictions while preserving channel-policy fallback when no stricter rule exists | v2026.4.23 |
+| Plugin setup-api launch-directory lookup blocked | Stops setup-api lookup from falling back to the launch directory so workspace-local `extensions/<plugin>/setup-api.*` files cannot be executed during provider setup resolution | v2026.4.23 |
+| WhatsApp/group contact injection mitigation | Keeps contact/vCard/location free text and channel-sourced group names out of the inline message body, rendering them through fenced untrusted metadata JSON to limit hidden prompt-injection payloads | v2026.4.23 |
+| Approval auto-enable removed | Requires explicit chat exec-approval enablement instead of auto-enabling approval clients just because approvers resolve from config or owner allowlists | v2026.4.23 |
+| Browser `browser.request` restricted to `operator.admin` | Requires `operator.admin` for the `browser.request` gateway method, matching the host/browser-node control authority exposed by that route | v2026.4.24 |
+| Webhook `SecretRef` hot-reload | Re-resolves `SecretRef`-backed webhook route secrets on each request so `openclaw secrets reload` revokes the previous secret immediately without a gateway restart | v2026.4.20 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +418,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.26+ for latest auth, interaction-allowlist, execution hardening, and security fixes)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -572,7 +587,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.26+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

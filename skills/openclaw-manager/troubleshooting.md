@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.26+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.26+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.26+**.
 
 ## Common Issues
 
@@ -981,7 +981,21 @@ openclaw gateway restart
 openclaw config get agents.defaults.model
 ```
 
-### Plugin SDK Breaking Change (v2026.3.2)
+### Plugin SDK Breaking Changes
+
+#### Plugin Error: "registerEmbeddedExtensionFactory is not a function" (v2026.4.24)
+**Symptoms:** Plugin crashes after upgrading to v2026.4.24+ with an error about `registerEmbeddedExtensionFactory`.
+
+**Cause:** `api.registerEmbeddedExtensionFactory(...)` was removed in v2026.4.24. Bundled tool-result rewrites must use `api.registerAgentToolResultMiddleware(...)` with `contracts.agentToolResultMiddleware` declaring the targeted harnesses.
+
+**Fix:** Update the plugin code:
+```javascript
+// Old (removed in v2026.4.24):
+// api.registerEmbeddedExtensionFactory(...)
+
+// New (v2026.4.24+):
+api.registerAgentToolResultMiddleware({ handler, contracts: { agentToolResultMiddleware: { harnesses: ['pi', 'codex'] } } })
+```
 
 #### Plugin Error: "registerHttpHandler is not a function"
 **Symptoms:** Plugin crashes on startup after upgrading to v2026.3.2

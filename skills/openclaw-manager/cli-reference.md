@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.26` stable note: current stable is published as `v2026.4.26` and CLI version output should report `2026.4.26`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -263,9 +263,12 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+# /models add <provider> <modelId> — register a model from chat without gateway restart (v2026.4.22+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider deepseek       # DeepSeek (v2026.4.24+; V4 Flash is onboarding default)
+openclaw models auth setup-token --provider cerebras       # Cerebras (v2026.4.26+; bundled provider)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -419,6 +422,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_SKIP_ONBOARDING` | Set to `1` to skip the interactive onboarding step in automated Docker installs while still applying gateway defaults |
+| `OPENCLAW_PLUGIN_STAGE_DIR` | Layered runtime-dependency roots for read-only preinstalled plugin deps in packaged environments (v2026.4.26+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Set to `1` to disable background package auto-updates at gateway startup (v2026.4.26+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -454,6 +460,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Nextcloud Talk | `@openclaw/nextcloud-talk` | Nextcloud integration |
 | Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
 | QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (v2026.3.31+) |
+| Google Meet | bundled | Participant plugin with personal Google auth, Chrome/Twilio realtime voice, artifact/attendance exports (v2026.4.24+) |
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
