@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.27+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,16 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| Paired-device session scoping | Restricts non-admin paired-device sessions to their own pairing list, approve, and reject actions; they can no longer enumerate other devices or approve/reject requests authored by other devices | v2026.4.20 |
+| Agent gateway tool config mutation guard expansion | `config.patch`/`config.apply` from model-driven agents cannot rewrite operator-trusted paths (sandbox, plugin trust, gateway auth/TLS, hook routing, SSRF policy, MCP servers, workspace filesystem hardening) or per-agent bypass via `agents.list[]` | v2026.4.20 |
+| WebSocket broadcast scope gating | `chat`, `agent`, and `tool-result` broadcast events now require `operator.read` or higher; pairing-scoped and node-role sessions no longer passively receive session chat content | v2026.4.20 |
+| MCP interpreter-startup env blocking | Blocks interpreter-startup env keys such as `NODE_OPTIONS` for stdio MCP servers while preserving ordinary credential and proxy env vars | v2026.4.20 |
+| Workspace `OPENCLAW_*` env key blocking | All `OPENCLAW_*` keys are blocked from untrusted workspace `.env` files so workspace-local env loading cannot override runtime-control variables | v2026.4.20 |
+| QQBot direct-upload SSRF guard | Adds SSRF policy enforcement on QQBot `uploadC2CMedia` and `uploadGroupMedia` URL paths | v2026.4.20 |
+| macOS LaunchAgent secret hardening | Gateway auth tokens and sensitive service secrets are loaded from owner-only env files instead of being stored in world-readable LaunchAgent plist metadata | v2026.4.27 |
+| Outbound proxy routing with strict validation | `proxy.enabled` + `proxy.proxyUrl`/`OPENCLAW_PROXY_URL` routes outbound Gateway/provider calls through a strict http:// forward proxy with loopback-always-bypass semantics | v2026.4.27 |
+| Media MIME sanitization hardening | Parameterized MIME values are end-anchored; malformed whitespace or suffix payloads are rejected before file-context handling | v2026.4.27 |
+| Logging token redaction at console sink | Configured `logging.redactPatterns` now apply at the subsystem console sink so tokens reaching subsystem loggers are masked before terminal display | v2026.4.27 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +413,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.27+ for latest auth, proxy routing, device-scope enforcement, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -412,6 +422,9 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
+- [ ] If deploying behind a proxy, configure `proxy.enabled` + `proxy.proxyUrl` (or `OPENCLAW_PROXY_URL`) with an http:// forward proxy — do not rely on ambient `HTTPS_PROXY` for Gateway-internal calls (v2026.4.27+)
+- [ ] On macOS, verify LaunchAgent plist does not contain embedded gateway auth tokens — v2026.4.27+ loads them from owner-only env files; re-run `openclaw onboard --install-daemon` if upgrading from older installs
+- [ ] Non-admin paired-device sessions are now scoped to their own pairing records only — audit any automation that relied on paired-device sessions to enumerate or approve other devices (v2026.4.20+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`

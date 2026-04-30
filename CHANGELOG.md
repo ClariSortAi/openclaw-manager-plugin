@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable releases `v2026.4.16` through `v2026.4.27`, documenting all operationally important additions, breaking changes, and security hardening.
+- Added **Notable Additions in v2026.4.16-v2026.4.27** section to SKILL.md: operator outbound proxy routing (`proxy.enabled`, `proxy.proxyUrl`, `OPENCLAW_PROXY_URL`), Docker sandbox GPU passthrough (`sandbox.docker.gpus`), `models.pricing.enabled` for offline installs, `OPENCLAW_NO_AUTO_UPDATE=1` kill-switch, `openclaw migrate` Claude Code/Desktop importer, Matrix E2EE (`openclaw matrix encryption setup`), full TTS upgrade (per-agent TTS, `/tts latest`/`/tts chat`/`/tts persona`, Azure Speech/Xiaomi/Local CLI/Inworld/Volcengine/ElevenLabs v3 providers), new bundled providers (DeepInfra, Cerebras, Tencent Cloud TokenHub), Tencent Yuanbao external channel, xAI image/TTS/STT support, TUI embedded mode, diagnostics export, OpenTelemetry observability expansion, `openclaw plugins registry`, and `openclaw nodes remove`.
+- Added breaking change entries 21-25 to SKILL.md: `session.maintenance.rotateBytes` deprecated, `agents.defaults.llm` retired, `openai-codex/gpt-5.4-mini` Codex OAuth removal, Codex CLI `~/.codex` OAuth import removed from onboarding, `plugins.installs` authored config deprecated.
+- Added CLI reference coverage for new commands: `openclaw migrate`, `openclaw matrix encryption setup`, `openclaw browser start --headless`, `openclaw browser doctor --deep`, `openclaw plugins registry [--refresh]`, `openclaw nodes remove --node`, `openclaw diagnostics export`, `openclaw cron add --thread-id`.
+- Added new config paths to CLI reference: `proxy.enabled`, `proxy.proxyUrl`, `sandbox.docker.gpus`, `models.pricing.enabled`, `agents.defaults.compaction.maxActiveTranscriptBytes`, `memorySearch.inputType/queryInputType/documentInputType`, `agents.list[].tts`, `channels.slack.socketMode.*` tuning keys.
+- Added new env vars to CLI reference: `OPENCLAW_PROXY_URL`, `OPENCLAW_NO_AUTO_UPDATE`, `DEEPINFRA_API_KEY`.
+- Added DeepInfra and Cerebras to provider auth setup examples in CLI reference.
+- Added Tencent Yuanbao plugin channel to CLI reference channel table and channel-setup.md guide.
+- Added Matrix E2EE setup section to channel-setup.md.
+- Added security hardening entries to security-checklist.md for v2026.4.20-v2026.4.27: paired-device session scoping, agent config mutation guard expansion, WebSocket broadcast scope gating, MCP interpreter-startup env blocking, `OPENCLAW_*` workspace env blocking, QQBot SSRF guard, macOS LaunchAgent secret hardening, outbound proxy routing security, media MIME sanitization hardening, and logging token redaction at console sink.
+- Added security checklist items for proxy deployment, macOS LaunchAgent plist migration, and paired-device session scope audit.
+- Added troubleshooting entry for gateway startup pricing-catalog hang on offline/restricted-network installs (`models.pricing.enabled: false`).
+- Added troubleshooting entry for Slack Socket Mode WebSocket stall/disconnect tuning (`channels.slack.socketMode.*`).
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.27+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated CLI reference stable version note to `v2026.4.27`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).

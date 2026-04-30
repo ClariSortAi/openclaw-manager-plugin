@@ -415,6 +415,16 @@ openclaw plugins info matrix
 openclaw channels status
 ```
 
+### Matrix End-to-End Encryption (v2026.4.26+)
+
+Enable E2EE for Matrix channels from one setup flow:
+
+```bash
+openclaw matrix encryption setup
+```
+
+This enables encryption, bootstraps recovery, and prints verification status. Run after the plugin is configured and the gateway is online.
+
 ---
 
 ## Nostr (Plugin Required)
@@ -627,6 +637,30 @@ Twitch chat integration via the `@openclaw/twitch` plugin.
 ```bash
 openclaw plugins install @openclaw/twitch
 openclaw gateway restart
+```
+
+---
+
+## Tencent Yuanbao (Plugin Required)
+
+Tencent Yuanbao is supported via the `openclaw-plugin-yuanbao` external channel plugin (v2026.4.27+), which adds WebSocket bot DMs and group chats with the Yuanbao platform.
+
+### Setup Steps
+
+1. **Install the Plugin**
+```bash
+openclaw plugins install openclaw-plugin-yuanbao
+```
+
+2. **Configure per the plugin's setup instructions**
+```bash
+openclaw plugins info yuanbao
+openclaw gateway restart
+```
+
+3. **Verify**
+```bash
+openclaw channels status
 ```
 
 ---

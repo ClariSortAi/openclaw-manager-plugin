@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.27+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.27+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**. For outbound proxy routing, TTS personas, DeepInfra/Cerebras providers, `openclaw migrate`, macOS LaunchAgent secret hardening, and device-scope enforcement, upgrade to **v2026.4.27+**.
 
 ## Common Issues
 
@@ -232,6 +232,19 @@ openclaw gateway status
 - `groups:history`, `im:history`, `mpim:history`
 - `users:read`, `app_mentions:read`
 - `reactions:read`, `reactions:write`
+
+#### Slack: Socket Mode WebSocket Stalls or Disconnects Frequently
+**Symptoms:** Slack bot goes silent periodically with socket-mode reconnect attempts; health heuristics mark the socket stale prematurely.
+
+**Fix (v2026.4.27+):**
+```bash
+# Tune the Socket Mode ping/pong timeouts
+openclaw config set channels.slack.socketMode.clientPingTimeout 15000
+openclaw config set channels.slack.socketMode.serverPingTimeout 15000
+openclaw gateway restart
+```
+
+**Note:** Upgrading to v2026.4.27+ also changes the default pong timeout to 15 seconds and decouples stale-socket detection from app-event health heuristics.
 
 #### Slack: Interactive Buttons/Modals Stop Working After Upgrade
 **Symptoms:** Message replies work, but button actions or modal submissions are ignored/denied.
@@ -1008,6 +1021,18 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 # If you fully trust the source and accept risk, rerun with explicit dangerous override flags.
 openclaw plugins install <spec>
 ```
+
+#### Gateway Startup Hangs Fetching Pricing Catalogs (Offline/Restricted-Network)
+**Symptoms:** Gateway startup is slow or hangs while fetching model pricing from OpenRouter or LiteLLM; common on air-gapped or restricted-network installs.
+
+**Fix:**
+```bash
+# Disable external pricing catalog fetches at startup
+openclaw config set models.pricing.enabled false
+openclaw gateway restart
+```
+
+Explicitly configured model costs in `models.providers.*.models` still work; only the automatic remote-catalog fetch is disabled.
 
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.

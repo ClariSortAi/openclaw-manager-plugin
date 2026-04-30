@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.27` stable note: current stable is published as `v2026.4.27` and CLI version output should report `2026.4.27`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -64,12 +64,40 @@ openclaw exec-policy preset    # Apply a built-in exec policy preset locally
 openclaw exec-policy set       # Set explicit local exec policy values
 ```
 
+### Plugins Registry (v2026.4.25+)
+```bash
+openclaw plugins registry          # Inspect cold persisted plugin registry
+openclaw plugins registry --refresh  # Force repair of persisted registry without a full rescan
+```
+
+### Browser (expanded v2026.4.25+)
+```bash
+openclaw browser start --headless  # One-shot headless Chrome launch without rewriting persisted browser config
+openclaw browser doctor --deep     # Live browser snapshot probing and diagnostics
+```
+
+### Matrix Encryption (v2026.4.26+)
+```bash
+openclaw matrix encryption setup   # Enable Matrix E2EE, bootstrap recovery, and print verification status
+```
+
+### Diagnostics (v2026.4.22+)
+```bash
+openclaw diagnostics export        # Export sanitized logs/status/health/config/stability bundle for bug reports
+```
+
 ### Device Management
 ```bash
 openclaw devices list        # List pending and paired devices
 openclaw devices approve <id>  # Approve device
 openclaw devices reject <id>   # Reject device
 openclaw devices revoke <id>   # Revoke device access
+```
+
+### Node Management
+```bash
+openclaw nodes list          # List paired and pending nodes
+openclaw nodes remove --node <id|name|ip>  # Remove stale gateway-owned node pairing record (v2026.4.26+)
 ```
 
 ### Cron Jobs
@@ -127,7 +155,8 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai-codex/gpt-5.4  # Model override
+  --model openai-codex/gpt-5.4 \  # Model override
+  --thread-id <id>            # Telegram forum topic thread ID (v2026.4.27+)
 ```
 
 ### Skills
@@ -239,6 +268,15 @@ openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
 openclaw webhooks gmail run      # Run Gmail webhook listener
 ```
 
+### Migration (v2026.4.26+)
+```bash
+openclaw migrate             # Interactive Claude Code/Desktop importer
+openclaw migrate --dry-run   # Preview migration without applying
+openclaw migrate --json      # Machine-readable plan output
+```
+
+Supports importing Claude Code/Desktop instructions, MCP servers, skills, command prompts, and safe archive state. Also includes a bundled Hermes importer. A pre-migration backup is created automatically.
+
 ### Setup & Reset
 ```bash
 openclaw setup               # Initialize config and workspace
@@ -266,6 +304,8 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider deepinfra      # DeepInfra (v2026.4.27+; image/TTS/embeddings/video)
+openclaw models auth setup-token --provider cerebras       # Cerebras (v2026.4.26+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -366,6 +406,32 @@ openclaw config set agents.defaults.params.fastMode true
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
+# Outbound proxy routing (v2026.4.27+; http:// forward proxy only; loopback bypasses proxy automatically)
+openclaw config set proxy.enabled true
+openclaw config set proxy.proxyUrl "http://proxy.example.com:8080"
+# Or via environment variable: OPENCLAW_PROXY_URL=http://proxy.example.com:8080
+
+# Docker sandbox GPU passthrough (v2026.4.27+; requires host Docker runtime --gpus support)
+openclaw config set sandbox.docker.gpus "all"
+
+# Disable startup pricing catalog fetches for offline/restricted-network installs (v2026.4.27+)
+openclaw config set models.pricing.enabled false
+
+# Compaction preflight trigger (v2026.4.26+; runs compaction when active JSONL exceeds threshold)
+openclaw config set agents.defaults.compaction.maxActiveTranscriptBytes 10485760
+
+# Asymmetric embedding config for memory search (v2026.4.26+)
+openclaw config set memorySearch.inputType "query"
+openclaw config set memorySearch.queryInputType "query"
+openclaw config set memorySearch.documentInputType "document"
+
+# Per-agent TTS overrides (v2026.4.25+)
+openclaw config set agents.list.my-agent.tts.provider "azure-speech"
+
+# Slack Socket Mode ping tuning (v2026.4.27+)
+openclaw config set channels.slack.socketMode.clientPingTimeout 15000
+openclaw config set channels.slack.socketMode.serverPingTimeout 15000
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -419,6 +485,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_PROXY_URL` | Outbound http:// forward proxy URL for all Gateway/provider calls (v2026.4.27+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Set to `1` to disable background package auto-updates (v2026.4.26+) |
+| `DEEPINFRA_API_KEY` | DeepInfra API key (v2026.4.27+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -455,6 +524,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
 | QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (v2026.3.31+) |
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
+| Tencent Yuanbao | `openclaw-plugin-yuanbao` | Tencent Yuanbao WebSocket bot DMs and group chats (v2026.4.27+) |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
 | Zalo | `@openclaw/zalo` | Zalo Official Account |
