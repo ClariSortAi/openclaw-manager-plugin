@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20` through `v2026.4.27`, including Google Meet/voice-call setup flows, diagnostics/OTEL expansion, TTS upgrades, bundled Cerebras and DeepInfra providers, migration/import tooling, Matrix E2EE setup, plugin registry/runtime repair, Codex Computer Use setup, Yuanbao/QQBot channel updates, and Docker/browser/node controls.
+- Added beta watch guidance for `v2026.4.29-beta.1` covering active-run steering defaults, `messages.visibleReplies`, follow-up commitments, people-aware memory/wiki updates, NVIDIA provider onboarding, Docker `OPENCLAW_SKIP_ONBOARDING`, startup diagnostics, and OpenGrep scanning without recommending the pre-release for production.
+- Added troubleshooting guidance for stale plugin/channel config crash loops, mixed-version update recovery, Slack Socket Mode/media stalls, and Telegram startup token/network failures fixed in the current stable line.
+- Added CLI reference coverage for `openclaw migrate`, `openclaw browser start --headless`, `openclaw matrix encryption setup`, `openclaw nodes remove --node`, `openclaw plugins registry`, Codex Computer Use setup/status, Cerebras/DeepInfra auth setup, and new environment variables from recent releases.
+- Added Tencent Yuanbao channel setup guidance and refreshed QQ Bot/Slack/WhatsApp/Matrix channel notes for current stable behavior.
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.27+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated plugin metadata and README version badge to `1.3.10` for this release-alignment pass.
+- Refreshed stale Anthropic Claude 4.6 examples to Claude 4.7 where the docs discuss current model guidance.
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).

@@ -2,7 +2,7 @@
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.7-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.10-blue?style=flat-square)](CHANGELOG.md)
 
 > **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
@@ -116,6 +116,7 @@ Or just describe what you need in natural language—Claude will automatically u
 - **Mattermost** - `@openclaw/mattermost`
 - **Nostr** - `@openclaw/nostr`
 - **Nextcloud Talk, Synology Chat, Tlon, Twitch** - Plugin ecosystem
+- **QQ Bot / Tencent Yuanbao** - bundled QQ Bot; external `openclaw-plugin-yuanbao`
 - **Zalo / Zalo Personal** - `@openclaw/zalo`, `@openclaw/zalouser`
 
 ### Supported Operating Systems
@@ -158,7 +159,7 @@ openclaw-manager-plugin/
   - Node.js v22.14.0+ (Node 24 recommended; NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
   - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
-  - **Recommended OpenClaw version: v2026.4.15+** (latest stable as of this plugin release alignment)
+  - **Recommended OpenClaw version: v2026.4.27+** (latest stable as of this plugin release alignment; v2026.4.29-beta.1 is pre-release/watch-only)
 
 ## How It Works
 

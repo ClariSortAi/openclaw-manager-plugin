@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.27+** for the latest stable provider/channel coverage, migration tooling, plugin runtime reliability, diagnostics, and auth/update hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.27)
 
 These changes affect new and existing installations:
 
@@ -86,7 +86,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes from this stable release:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -96,6 +96,31 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.24
+
+These stable releases add several operator-facing workflows worth checking during upgrades:
+
+1. **Cron state split and diagnostics expansion** — cron `jobs-state.json`, richer diagnostics export/OTEL signals, and safer cron failure/error classification improve scheduled automation audits.
+2. **Google Meet and voice-call setup flows** — bundled Google Meet participant tooling plus `googlemeet doctor --oauth`, `voicecall setup`, and `voicecall smoke` simplify realtime/voice deployments.
+3. **Browser and plugin repair controls** — `openclaw browser start --headless`, browser action timeout/profile overrides, plugin metadata/runtime-dependency repair, and packaged sidecar reliability reduce slow-host setup failures.
+4. **Media/provider coverage** — DeepSeek V4, Tencent/OpenAI image via Codex OAuth, OpenRouter image updates, and model/provider catalog fixes broaden media generation and custom-provider options.
+5. **Security hardening** — workspace `OPENCLAW_*` dotenv blocking, device scope limits, WebSocket broadcast scoping, Teams audience checks, SecretRef webhook hot reload, plugin setup path lookup hardening, owner-only MCP/tool access, and browser admin authority checks.
+
+## Notable Additions in v2026.4.25-v2026.4.27
+
+These are the newest stable release additions to prefer for day-to-day operations:
+
+1. **TTS and realtime upgrades** — `/tts latest`, `/tts chat`, personas, per-agent/per-account TTS overrides, Google Live/Talk browser transport, and new bundled Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine, and ElevenLabs v3 TTS providers.
+2. **Provider additions** — bundled Cerebras and DeepInfra providers add onboarding/model catalogs; DeepInfra includes image/video/media/TTS/embedding support.
+3. **Migration and setup tooling** — `openclaw migrate` imports Claude Code/Desktop and Hermes data with plan/dry-run/backup flows; `openclaw matrix encryption setup` bootstraps Matrix E2EE; Codex Computer Use adds `/codex computer-use status|install`.
+4. **Plugin registry/runtime reliability** — `openclaw plugins registry`, cold persisted plugin registries, `OPENCLAW_PLUGIN_STAGE_DIR`, and bundled runtime-dependency repair reduce startup and packaged-install failures.
+5. **Browser, Docker, and node controls** — `openclaw browser start --headless`, `sandbox.docker.gpus`, `openclaw nodes remove --node`, `OPENCLAW_NO_AUTO_UPDATE=1`, and verified package-update swaps help controlled operations.
+6. **Channel reliability** — Yuanbao joins the official channel catalog, QQBot gains group/streaming/media support, Slack socket/media timeouts are tunable, Telegram startup/send paths are more resilient, and Matrix live approval/preview streaming improves.
+
+## Beta Watch: v2026.4.29-beta.1
+
+The newest GitHub release entry is a pre-release. Do not recommend it for production by default, but watch for these surfaces when they become stable: active-run queueing defaulting to `steer`, global `messages.visibleReplies`, opt-in follow-up commitments (`commitments.enabled`, `commitments.maxPerDay`), people-aware memory/wiki provenance views, per-conversation Active Memory filters, NVIDIA provider onboarding/catalogs, `OPENCLAW_SKIP_ONBOARDING` for Docker automation, Gateway startup diagnostics timelines, and OpenGrep security scanning.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +261,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.27+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +387,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models default to `"adaptive"` thinking level where supported. Override if needed:
 
 ```bash
 # Check current thinking level

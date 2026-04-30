@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.27+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.27+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.27+**.
 
 ## Common Issues
 
@@ -514,7 +514,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.27+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -604,6 +604,64 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 # Then prune stale refs automatically
 openclaw doctor --fix
 openclaw status
+```
+
+#### Plugin Config or Missing Channel Plugin Causes Gateway Crash Loop
+**Symptoms:** Gateway repeatedly fails to start after plugin removal, failed install, or stale channel/plugin config edits.
+
+**Cause:** Older builds could treat one invalid plugin entry or missing configured channel plugin as fatal for the whole Gateway.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then quarantine/repair stale plugin config
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw plugins registry --refresh
+openclaw config validate
+openclaw gateway restart
+```
+
+#### `openclaw update` Leaves a Mixed or Stale Install
+**Symptoms:** Update reports success but the running Gateway still reports an older version, packaged runtime files are missing, or startup fails after update.
+
+**Cause:** Builds before the v2026.4.25-v2026.4.27 line had weaker mixed-version verification and packaged runtime-dependency repair.
+
+**Fix:**
+```bash
+# Hold background auto-update during incident recovery if needed
+export OPENCLAW_NO_AUTO_UPDATE=1
+
+# Re-run update/doctor and verify the active runtime version
+openclaw update
+openclaw doctor --fix
+openclaw status
+```
+
+#### Slack Socket Mode or File Media Stalls Replies
+**Symptoms:** Slack receives messages but replies hang after stale Socket Mode connections or large/private file shares.
+
+**Cause:** Older builds depended on broad event health heuristics and unbounded private-file media downloads.
+
+**Fix:**
+```bash
+# Upgrade to v2026.4.27+ and tune only if the defaults are insufficient
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw config set channels.slack.socketMode.clientPingTimeout 15000
+openclaw gateway restart
+```
+
+#### Telegram Startup Fails on Invalid Token or Slow Bot API Network
+**Symptoms:** Telegram channel startup loops, hangs during `deleteWebhook`, or reports misleading cleanup failures.
+
+**Cause:** Older builds did not fail fast on BotFather `401` token probes and had weaker fallback retry handling for Bot API startup calls.
+
+**Fix:**
+```bash
+# Verify token, upgrade, and restart
+openclaw config get channels.telegram.botToken
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status
 ```
 
 ### Skill Issues
@@ -704,7 +762,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.27+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -944,7 +1002,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1070,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.27) continue that hardening.
 
 **Fix:**
 ```bash

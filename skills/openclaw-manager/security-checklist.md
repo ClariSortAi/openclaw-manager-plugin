@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest stable hardening and recovery tooling, prefer **v2026.4.27+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,13 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| Workspace dotenv runtime-control blocking | Blocks workspace `.env` from overriding sensitive `OPENCLAW_*` runtime controls and service/update paths | v2026.4.20-v2026.4.24 |
+| Device and WebSocket scope tightening | Narrows paired-device scopes and WebSocket broadcast visibility so device or channel events do not cross owner boundaries | v2026.4.20-v2026.4.24 |
+| Teams audience and SecretRef webhook hardening | Tightens Teams audience validation and lets SecretRef-backed webhook auth reload safely without stale secret windows | v2026.4.20-v2026.4.24 |
+| Plugin setup/install scanner guardrails | Hardens plugin setup path lookup, symlink/package-boundary checks, and install scanner behavior for managed plugins | v2026.4.20-v2026.4.26 |
+| Subagent allowlist enforcement | Enforces `subagents.allowAgents` even for explicit same-agent spawn requests instead of auto-allowing requester self-targets | v2026.4.26 |
+| Operator-managed outbound proxy validation | Adds strict `proxy.enabled` / `proxy.proxyUrl` handling with `http://` forward-proxy validation and loopback Gateway bypass | v2026.4.27 |
+| Media MIME and reasoning-boundary sanitization | Rejects malformed media MIME suffix payloads and treats malformed reasoning tags as privacy boundaries across delivery/history/UI | v2026.4.27 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +410,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.27+ for latest stable auth, interaction-allowlist, plugin/runtime, proxy, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -487,7 +494,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -528,7 +535,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -572,13 +579,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.27+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation

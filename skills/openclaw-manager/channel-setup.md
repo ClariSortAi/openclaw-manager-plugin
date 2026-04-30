@@ -101,7 +101,7 @@ As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing 
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
-As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts. In v2026.4.27+, tune `channels.slack.socketMode.clientPingTimeout`, `serverPingTimeout`, and `pingPongLoggingEnabled` if stale Socket Mode connections or media downloads wedge replies.
 
 ---
 
@@ -148,7 +148,7 @@ openclaw channels status
 }
 ```
 
-`v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes. In v2026.4.26+, gateway `HTTPS_PROXY` / `HTTP_PROXY` are honored for WhatsApp QR-login WebSocket connections while respecting `NO_PROXY`.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -392,7 +392,7 @@ openclaw channels status
 
 ## Matrix (Plugin Required)
 
-Matrix is supported via the `@openclaw/matrix` plugin.
+Matrix is supported via the `@openclaw/matrix` plugin. In v2026.4.26+, use `openclaw matrix encryption setup` to bootstrap E2EE/recovery and print verification status.
 
 ### Setup Steps
 
@@ -547,6 +547,20 @@ openclaw dashboard  # Opens the Control UI in a browser
 ```
 
 No additional configuration needed — it runs as part of the gateway.
+
+---
+
+## Tencent Yuanbao (External Plugin, v2026.4.27+)
+
+Tencent Yuanbao support is available through the official catalog entry for the external `openclaw-plugin-yuanbao` package (GitHub: `YuanbaoTeam/yuanbao-openclaw-plugin`) and the `yuanbao` alias.
+
+```bash
+openclaw plugins install openclaw-plugin-yuanbao
+openclaw plugins info yuanbao
+openclaw channels status
+```
+
+Use it for Yuanbao WebSocket bot DMs and group chats. Keep pairing/allowlist controls as strict as other group-capable chat channels.
 
 ---
 

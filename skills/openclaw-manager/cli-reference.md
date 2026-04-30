@@ -55,7 +55,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.27` stable note: current stable is published as `v2026.4.27` and CLI version output should report `2026.4.27`. The newer `v2026.4.29-beta.1` release is pre-release/watch-only.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -173,6 +173,7 @@ openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins registry      # Inspect/refresh persisted plugin registry (v2026.4.25+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -256,6 +257,35 @@ openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
 ```
 
+### Migration & Imports (v2026.4.26+)
+```bash
+openclaw migrate plan                  # Preview supported Claude/Hermes imports
+openclaw migrate --dry-run             # Validate import without applying changes
+openclaw migrate --json                # Machine-readable migration plan/report
+```
+
+### Browser Control (v2026.4.25+)
+```bash
+openclaw browser start --headless      # One-shot managed browser launch override
+openclaw browser doctor --deep         # Live browser/CDP readiness probes
+```
+
+### Matrix Encryption (v2026.4.26+)
+```bash
+openclaw matrix encryption setup       # Bootstrap Matrix E2EE and recovery verification
+```
+
+### Node Pairing Cleanup (v2026.4.26+)
+```bash
+openclaw nodes remove --node <id|name|ip>  # Remove stale gateway-owned node pairing records
+```
+
+### Codex Computer Use (v2026.4.27+)
+```bash
+/codex computer-use status             # Check Codex-mode desktop control readiness
+/codex computer-use install            # Install/repair Codex Computer Use prerequisites
+```
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -266,6 +296,8 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider cerebras       # Cerebras bundled provider (v2026.4.26+)
+openclaw models auth setup-token --provider deepinfra      # DeepInfra bundled provider (v2026.4.27+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -305,7 +337,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,7 +388,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7 where supported)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +402,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -419,6 +451,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Disable configured background package auto-updates during gateway startup (v2026.4.26+) |
+| `OPENCLAW_PLUGIN_STAGE_DIR` | Layered runtime-dependency staging roots for packaged plugins (v2026.4.26+) |
+| `OPENCLAW_SKIP_ONBOARDING` | Skip interactive onboarding in automated Docker installs (pre-release v2026.4.29-beta.1; watch-only until stable) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -453,7 +488,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Matrix | `@openclaw/matrix` | Matrix protocol channel |
 | Nextcloud Talk | `@openclaw/nextcloud-talk` | Nextcloud integration |
 | Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
-| QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (v2026.3.31+) |
+| QQ Bot | bundled | QQ Bot channel plugin with multi-account, group chat, streaming, and chunked media support (expanded in v2026.4.27+) |
+| Tencent Yuanbao | `openclaw-plugin-yuanbao` | External Tencent Yuanbao WebSocket bot channel; official catalog alias `yuanbao` (v2026.4.27+) |
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
