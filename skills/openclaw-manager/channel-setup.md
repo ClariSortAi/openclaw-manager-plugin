@@ -102,6 +102,7 @@ As of v2026.3.31, exec approval prompts can be routed natively in Slack with app
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.29, Slack delivery includes additional Block Kit limit handling and active-run steering reliability; if long interactive replies fail, upgrade and reduce custom plugin block payload size.
 
 ---
 
@@ -149,6 +150,7 @@ openclaw channels status
 ```
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.4.29+` reliability note: WhatsApp delivery/liveness and native reply quoting have additional fixes; upgrade current stable if sends appear delivered but recipients do not see replies.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -226,6 +228,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+- v2026.4.29 adds additional polling/webhook/send resilience; prefer current stable before debugging provider-side Telegram outages.
 
 ---
 
@@ -392,7 +395,7 @@ openclaw channels status
 
 ## Matrix (Plugin Required)
 
-Matrix is supported via the `@openclaw/matrix` plugin.
+Matrix is supported via the `@openclaw/matrix` plugin. Current stable releases include encryption setup and self-verification helpers.
 
 ### Setup Steps
 
@@ -413,6 +416,10 @@ openclaw gateway restart
 ```bash
 openclaw plugins info matrix
 openclaw channels status
+
+# v2026.4.26+ encryption helpers
+openclaw matrix encryption setup
+openclaw matrix verify self
 ```
 
 ---
@@ -437,6 +444,31 @@ openclaw gateway restart
 3. **Verify**
 ```bash
 openclaw plugins info nostr
+```
+
+---
+
+## Yuanbao (Plugin Required)
+
+Tencent Yuanbao is available through the Yuanbao plugin/channel catalog alias in current stable releases.
+
+```bash
+openclaw plugins install yuanbao
+openclaw plugins info yuanbao
+openclaw gateway restart
+```
+
+The upstream plugin location moved to `YuanbaoTeam/yuanbao-openclaw-plugin`; use `openclaw plugins registry` if source resolution looks stale after an upgrade.
+
+---
+
+## Google Meet Participant (Bundled Plugin)
+
+The Google Meet participant plugin can join meetings as a managed participant after OAuth setup.
+
+```bash
+openclaw plugins registry
+openclaw googlemeet doctor --oauth
 ```
 
 ---

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.20` through `v2026.4.29`, including active-run steering, `messages.visibleReplies`, commitments, people-aware memory, NVIDIA/DeepInfra/Cerebras/Tencent provider coverage, TTS/realtime additions, diagnostics export/OTEL updates, plugin registry/runtime repair, Matrix encryption helpers, Yuanbao/QQBot/Google Meet channel updates, and browser/node controls.
+- Added troubleshooting guidance for Slack Block Kit limit failures, Matrix encryption/self-verification, Google Meet OAuth diagnostics, plugin SDK embedded-extension removal, and restrictive tools profile `alsoAllow` behavior in `v2026.4.29`.
+- Added security-checklist coverage for newer hardening: workspace `OPENCLAW_*` dotenv blocking, paired-device scope limits, websocket broadcast scoping, Teams audience checks, SecretRef webhook hot reload, manifest-scoped plugin setup path hardening, owner-only MCP/tool access, browser admin authority, restrictive-profile semantics, and OpenGrep scanning.
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.29+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/plugin metadata for this docs release alignment (`1.3.8`).
+- Refreshed Anthropic example model references from Claude 4.6 to Claude 4.7 across current onboarding and manager guidance.
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).

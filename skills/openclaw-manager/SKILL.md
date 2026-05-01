@@ -11,14 +11,14 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.29+** for the latest active-run steering defaults, memory/provider expansions, diagnostics, security hardening, and channel reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
 1. **Installation** - Guide fresh installs on macOS, Linux, Windows (WSL2), Docker/Kubernetes
 2. **Configuration** - Set up channels, security, cron jobs, webhooks, sub-agents, tools profiles
 3. **Troubleshooting** - Diagnose and fix common issues, validate config files
-4. **Channel Management** - 23+ platforms: Slack, WhatsApp, Telegram, Discord, BlueBubbles, Signal, Google Chat, IRC, WebChat (native); Teams, Matrix, Feishu/Lark, LINE, Mattermost, Nostr, Nextcloud Talk, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal (plugins)
+4. **Channel Management** - 26+ platforms: Slack, WhatsApp, Telegram, Discord, BlueBubbles, Signal, Google Chat, IRC, WebChat (native); Teams, Matrix, Feishu/Lark, LINE, Mattermost, Nostr, Nextcloud Talk, Synology Chat, Tlon, Twitch, QQ Bot, Yuanbao, Google Meet participant, Zalo, Zalo Personal (plugins)
 5. **Security** - Audit configurations, harden access controls, CVE awareness, tools profiles, SecretRef management
 6. **Automation** - Set up cron jobs, Gmail webhooks, scheduled tasks
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.4.29)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,11 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Plugin embedded-extension factory API removed** (v2026.4.24) — plugins using `api.registerEmbeddedExtensionFactory(...)` must migrate to current manifest-scoped setup/runtime descriptors before upgrading.
+22. **Cron state storage split** (v2026.4.20+) — cron job runtime state now lives outside primary job definitions (`jobs-state.json`); run `openclaw doctor --fix` after upgrades and back up both job files before manual edits.
+23. **Restrictive tools profiles stay restrictive** (v2026.4.29) — `tools.exec` and `tools.fs` configuration no longer implicitly widens `messaging` or `minimal`; add explicit `alsoAllow` entries when those tools are intentionally available.
+24. **Active-run queueing defaults to `steer`** (v2026.4.29) — pending steering messages drain at model boundaries; use legacy `queue` only when one-at-a-time behavior is required.
+25. **Visible reply enforcement can be global** (v2026.4.29) — `messages.visibleReplies` can require chat-visible output through `message(action=send)` across source chats, with `messages.groupChat.visibleReplies` as the group override.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -86,7 +91,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes in that stable release:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -96,6 +101,21 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.29
+
+These are operationally important additions and reliability/security fixes in the latest stable releases:
+
+1. **Messaging steering and visibility controls** — active-run queueing now defaults to `steer`, `messages.visibleReplies` adds global visible-output enforcement, and spawned subagent events include `spawnedBy` routing metadata.
+2. **Commitments and task follow-ups** — opt-in inferred follow-up commitments add `commitments.enabled`, `commitments.maxPerDay`, heartbeat delivery, and CLI management for reminder-style automation.
+3. **People-aware memory** — Active Memory adds people wiki metadata, provenance/person views, per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and read-only REM preview diagnostics.
+4. **Provider and media expansion** — bundled coverage now includes NVIDIA, DeepInfra, Cerebras, Tencent, newer DeepSeek, OpenAI/Codex image paths, OpenRouter image generation, richer xAI media, and Bedrock Opus 4.7 thinking parity.
+5. **TTS and realtime controls** — `/tts latest`, chat-scoped TTS controls, personas, and expanded provider backends (Azure Speech, Xiaomi, Inworld, Volcengine, ElevenLabs v3, Google Gemini Live) are available in current stable builds.
+6. **Channel and meeting additions** — Yuanbao docs/alias support, QQBot group/streaming/media improvements, Matrix encryption setup, and the Google Meet participant plugin broaden managed channel coverage.
+7. **Diagnostics and runtime repair** — diagnostics export, startup timelines, richer OTEL/Prometheus telemetry, `openclaw plugins registry`, plugin dependency repair, and version-scoped update caches improve operations.
+8. **Browser and node controls** — browser coordinate-click helpers, headless/profile overrides, deeper browser doctor output, and `openclaw nodes remove --node` improve controlled automation and cleanup.
+9. **Deployment controls** — `OPENCLAW_SKIP_ONBOARDING`, proxy configuration, Docker CA handling, and systemd sysexits 78 guidance reduce automation and service-loop failures.
+10. **Security hardening** — owner-only MCP/tool access, stricter Teams audience checks, websocket broadcast scoping, pairing/device scope limits, browser admin authority checks, OpenGrep scanning, and restrictive-profile `alsoAllow` semantics tighten multi-user deployments.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +256,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.29+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +382,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
@@ -502,6 +522,14 @@ openclaw models auth setup-token --provider openai-codex
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# NVIDIA (v2026.4.29+ — hosted model catalog with literal provider-prefixed refs)
+openclaw models auth setup-token --provider nvidia
+
+# DeepInfra / Cerebras / Tencent (v2026.4.26-v2026.4.29+ — expanded bundled provider coverage)
+openclaw models auth setup-token --provider deepinfra
+openclaw models auth setup-token --provider cerebras
+openclaw models auth setup-token --provider tencent
 ```
 
 ## Error Patterns

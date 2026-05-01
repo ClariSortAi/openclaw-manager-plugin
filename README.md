@@ -2,7 +2,7 @@
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-6B5CE7?style=flat-square)](https://code.claude.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.7-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.8-blue?style=flat-square)](CHANGELOG.md)
 
 > **If you can use Claude Code, you can use OpenClaw.** This plugin democratizes access to powerful AI-to-messaging integrations—no DevOps expertise required.
 
@@ -95,7 +95,7 @@ Or just describe what you need in natural language—Claude will automatically u
 | **PDF Analysis** | `Configure PDF tool for document processing` |
 
 
-### Supported Platforms (23+)
+### Supported Platforms (26+)
 
 **Native (built-in):**
 - **Slack** - Socket Mode, native text streaming
@@ -116,7 +116,12 @@ Or just describe what you need in natural language—Claude will automatically u
 - **Mattermost** - `@openclaw/mattermost`
 - **Nostr** - `@openclaw/nostr`
 - **Nextcloud Talk, Synology Chat, Tlon, Twitch** - Plugin ecosystem
+- **QQ Bot, Yuanbao, Google Meet participant** - Bundled/plugin ecosystem
 - **Zalo / Zalo Personal** - `@openclaw/zalo`, `@openclaw/zalouser`
+
+### Current Release Coverage
+
+This plugin is aligned with OpenClaw `v2026.4.29`, including active-run steering, `messages.visibleReplies`, commitments, people-aware memory, NVIDIA/DeepInfra/Cerebras/Tencent provider additions, TTS/realtime updates, diagnostics export/OTEL improvements, plugin registry/runtime repair, browser controls, Matrix encryption helpers, Yuanbao/QQBot/Google Meet channel updates, and recent security hardening.
 
 ### Supported Operating Systems
 
@@ -137,7 +142,7 @@ openclaw-manager-plugin/
 │   │   ├── SKILL.md             # Main skill definition
 │   │   ├── cli-reference.md     # Complete CLI command reference
 │   │   ├── troubleshooting.md   # Common issues and solutions
-│   │   ├── channel-setup.md     # Platform-specific setup guides (23+)
+│   │   ├── channel-setup.md     # Platform-specific setup guides (26+)
 │   │   └── security-checklist.md # Security hardening guide
 │   └── onboarding/              # Interactive onboarding wizard
 │       ├── SKILL.md             # Interview flow + journey synthesis
@@ -158,7 +163,7 @@ openclaw-manager-plugin/
   - Node.js v22.14.0+ (Node 24 recommended; NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
   - **Minimum OpenClaw version: v2026.3.1** (critical security hardening + breaking change support)
-  - **Recommended OpenClaw version: v2026.4.15+** (latest stable as of this plugin release alignment)
+  - **Recommended OpenClaw version: v2026.4.29+** (latest stable as of this plugin release alignment)
 
 ## How It Works
 
@@ -168,7 +173,7 @@ This plugin provides Claude with comprehensive OpenClaw knowledge through two sk
 1. **Skill Definition** (`SKILL.md`) - Core capabilities, workflows, and decision-making guidance
 2. **CLI Reference** - Every command, flag, and configuration path
 3. **Troubleshooting Guide** - Diagnostic workflows and common fixes
-4. **Channel Setup** - Platform-specific setup for 23+ channels
+4. **Channel Setup** - Platform-specific setup for 26+ channels
 5. **Security Checklist** - Hardening recommendations, CVE awareness, and audit procedures
 
 ### Onboarding Wizard (`/onboarding`)

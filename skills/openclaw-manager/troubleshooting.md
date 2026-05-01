@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.29+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.29+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider/config migration coverage, auth-rotation reliability, Slack/Telegram/WhatsApp reliability, diagnostics, memory/provider expansion, and task/cron/tool-loop hardening, upgrade to **v2026.4.29+**.
 
 ## Common Issues
 
@@ -251,6 +251,20 @@ openclaw gateway restart
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
 
+#### Slack: Messages Fail Near Block Kit Limits
+**Symptoms:** Long or richly formatted Slack replies fail, truncate unexpectedly, or stop rendering controls.
+
+**Cause:** Current stable releases add stricter handling around Slack Block Kit and text-size limits; older builds can overrun Slack API limits under streamed or tool-rich replies.
+
+**Fix:**
+```bash
+# Upgrade to current stable and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# If custom plugins emit Slack blocks, reduce block count/text size and retest.
+```
+
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
 
@@ -390,6 +404,27 @@ openclaw plugins info msteams
 openclaw channels status
 ```
 
+#### Matrix: Encryption Setup or Self-Verification Fails
+**Symptoms:** Matrix channel connects, but encrypted rooms fail or the bot device remains unverified.
+
+**Fix:**
+```bash
+# v2026.4.26+
+openclaw matrix encryption setup
+openclaw matrix verify self
+openclaw channels status
+```
+
+#### Google Meet Participant Plugin Fails Setup
+**Symptoms:** Google Meet participant plugin is installed, but OAuth/device setup or smoke tests fail.
+
+**Fix:**
+```bash
+openclaw plugins registry
+openclaw plugins deps
+openclaw googlemeet doctor --oauth
+```
+
 ### Pairing Issues
 
 #### Messages Not Triggering (Pairing Required)
@@ -514,7 +549,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.4.29+; includes v2026.4.2 migrations and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,7 +739,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.4.29+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -944,7 +979,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1047,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.29) continue that hardening.
 
 **Fix:**
 ```bash
@@ -1025,6 +1060,32 @@ openclaw flows show <flow-id>
 
 # Cancel and resubmit if needed
 openclaw flows cancel <flow-id>
+```
+
+#### Plugin Fails After `registerEmbeddedExtensionFactory` Removal
+**Symptoms:** A custom plugin that previously registered embedded extensions fails to load after upgrading to v2026.4.24+.
+
+**Cause:** The legacy `api.registerEmbeddedExtensionFactory(...)` path was removed in favor of manifest-scoped setup/runtime descriptors.
+
+**Fix:** Update the plugin to current SDK descriptors, then validate with:
+```bash
+openclaw plugins doctor
+openclaw plugins deps
+openclaw gateway restart
+```
+
+#### Restrictive Tools Profile No Longer Exposes Exec/FS
+**Symptoms:** After upgrading to v2026.4.29+, an agent on `messaging` or `minimal` cannot use exec/filesystem tools even though `tools.exec` or `tools.fs` settings exist.
+
+**Cause:** Configured tool sections no longer implicitly widen restrictive profiles.
+
+**Fix:**
+```bash
+# Keep the restrictive profile, then explicitly allow only intended tools
+openclaw config get agents.defaults.tools.profile
+openclaw config set agents.defaults.tools.alsoAllow '["exec"]'
+openclaw config validate
+openclaw gateway restart
 ```
 
 ### Zalo Personal Issues (v2026.3.2)
