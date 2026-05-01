@@ -173,6 +173,8 @@ openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins deps          # Inspect bundled plugin dependency state (v2026.4.29+)
+openclaw plugins deps --repair # Repair missing bundled runtime dependencies (v2026.4.29+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -256,6 +258,11 @@ openclaw backup create --no-include-workspace  # Exclude workspace payload
 openclaw backup verify <path>          # Verify backup archive manifest/payload
 ```
 
+### Proxy Validation (v2026.4.29+)
+```bash
+openclaw proxy validate        # Verify effective proxy config, reachability, and allow/deny destination behavior
+```
+
 ### Other Commands
 ```bash
 openclaw dashboard           # Open Control UI
@@ -264,8 +271,9 @@ openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
-openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
+openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4, openai-codex/gpt-5.4-mini)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider nvidia         # NVIDIA hosted models (v2026.4.29+; prefix refs with "nvidia/")
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -305,7 +313,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -419,6 +427,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_SKIP_ONBOARDING` | Skip interactive onboarding in automated Docker installs while still applying gateway defaults (v2026.4.29+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -457,6 +466,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
+| Yuanbao | `yuanbao-openclaw-plugin` | Tencent Yuanbao bot (v2026.4.29+; install from YuanbaoTeam/yuanbao-openclaw-plugin) |
 | Zalo | `@openclaw/zalo` | Zalo Official Account |
 | Zalo Personal | `@openclaw/zalouser` | Zalo personal (rebuilt in v2026.3.2 — native JS, no external CLI) |
 

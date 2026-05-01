@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.29+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.29+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, task/cron/tool-loop reliability improvements, and the tools-profile implicit-widening fix, upgrade to **v2026.4.29+**.
 
 ## Common Issues
 
@@ -834,6 +834,26 @@ openclaw gateway restart
 openclaw config set agents.list.my-dev-agent.tools.profile "full"
 ```
 
+#### Agent Lost Access to Exec/FS Tools After Upgrade to v2026.4.29+
+**Symptoms:** After upgrading, an agent previously using `tools.exec` or `tools.fs` under a `messaging` or `minimal` profile no longer has access to those tools, even though the config sections are still present.
+
+**Cause:** v2026.4.29 removed implicit widening of `tools.exec`/`tools.fs` sections within restrictive profiles. Previously, these sections widened the profile automatically; now they require explicit opt-in.
+
+**Fix:**
+```bash
+# A startup warning will identify affected config sections.
+# Add alsoAllow entries to restore access explicitly:
+openclaw config validate --json  # Check for startup warnings
+
+# Option 1: Switch to a permissive profile for the agent
+openclaw config set agents.list.<agent-id>.tools.profile "coding"
+
+# Option 2: Keep restrictive profile, explicitly allow tools via alsoAllow
+# (set in your openclaw.json under agents.defaults.tools.alsoAllow)
+openclaw config validate
+openclaw gateway restart
+```
+
 ### Config Validation Issues (v2026.3.2+)
 
 #### Gateway Refuses to Start with Invalid Config
@@ -871,6 +891,20 @@ openclaw config unset <legacy.path>
 openclaw config validate
 openclaw gateway restart
 ```
+
+#### Signal: Bot Doesn't Respond to Group Messages (Group Allowlist Not Matching)
+**Symptoms:** Bot responds in DMs but ignores Signal group messages, even when groups are in the allowlist.
+
+**Cause:** Builds before v2026.4.29 matched group allowlists against sender IDs only, not Signal group IDs. Explicitly configured groups also previously required `requireMention` unless disabled.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+v2026.4.29+ matches group allowlists against inbound Signal group IDs, and explicitly configured groups no longer require a mention unless `requireMention` is set.
 
 #### Signal Group Keys Rejected as Invalid Config
 **Symptoms:** `openclaw config validate` fails on `channels.signal` group-related keys.

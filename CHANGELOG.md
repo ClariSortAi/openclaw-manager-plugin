@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.4.29`, including: NVIDIA provider documentation, Yuanbao channel entry, `OPENCLAW_SKIP_ONBOARDING` env var for Docker automation, `openclaw proxy validate` and `openclaw plugins deps` CLI commands, opt-in commitments feature (`commitments.enabled`/`commitments.maxPerDay`), Active Memory per-conversation filters (`allowedChatIds`/`deniedChatIds`), and `agents.defaults.skipOptionalBootstrapFiles` config option.
+- Added breaking-change entry for `v2026.4.29`: `tools.exec`/`tools.fs` sections no longer implicitly widen restrictive profiles (`messaging`, `minimal`); explicit `alsoAllow` entries required for access.
+- Added troubleshooting guidance for Signal group allowlist matching behavior fixed in `v2026.4.29` (groups now matched by Signal group ID, not just sender ID).
+- Added troubleshooting entry for agents losing exec/fs tool access after upgrading to `v2026.4.29+` due to implicit-profile-widening removal.
+- Added security-checklist hardening entries for `v2026.4.29`: tools-profile implicit-widening removal, payment credential field redaction, additional cloud provider API key redaction (Tencent Cloud, Alibaba Cloud, HuggingFace, Replicate), and timing-safe credential comparison hardening.
+- Added `openai-codex/gpt-5.4-mini` model note to CLI reference (restored in `v2026.4.29` for ChatGPT/Codex OAuth PI runs).
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.4.29+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).
