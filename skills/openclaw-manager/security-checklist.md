@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening, diagnostics, provider/channel reliability, and recovery tooling, prefer **v2026.4.29+**.
 
 ### Known Critical Vulnerabilities
 
@@ -123,6 +123,16 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
+| Workspace `OPENCLAW_*` dotenv blocking | Prevents workspace dotenv files from overriding runtime-control `OPENCLAW_*` variables in trusted helper paths | v2026.4.20+ |
+| Device and pairing scope limits | Tightens paired-device scope ceilings and owner-command identity checks across gateway and chat control surfaces | v2026.4.20+ |
+| WebSocket broadcast scoping | Requires appropriate operator/read scope before session or gateway broadcasts expose sensitive event streams | v2026.4.24+ |
+| Teams audience validation | Validates Teams bot audience tokens and sender allowlists more strictly for signin and invoke flows | v2026.4.24+ |
+| SecretRef webhook hot reload | Re-resolves webhook secrets per request so rotated SecretRefs apply without long-lived stale auth windows | v2026.4.24+ |
+| Plugin setup path hardening | Uses manifest-scoped setup/runtime path resolution and rejects stale embedded-extension registration APIs | v2026.4.24 |
+| Owner-only MCP/tool access | Restricts MCP bridge and owner-only tools to authorized owner/operator scopes rather than broad HTTP access | v2026.4.24+ |
+| Browser admin authority | Requires admin authority for sensitive `browser.request` operations and browser control profile mutations | v2026.4.24+ |
+| Restrictive profile `alsoAllow` semantics | Keeps `messaging`/`minimal` restrictive even when `tools.exec` or `tools.fs` sections exist; operators must explicitly add `alsoAllow` entries | v2026.4.29 |
+| OpenGrep security scanning | Adds first-party OpenGrep rulepack/provenance scanning workflows for sharper code/security triage | v2026.4.29 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -403,7 +413,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.4.29+ for latest auth, interaction-allowlist, diagnostics, channel, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -411,6 +421,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Host exec policy is pinned explicitly (`agents.defaults.tools.exec.security`) rather than relying on defaults introduced by recent releases
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
+- [ ] If using `messaging` or `minimal` tools profiles with configured `tools.exec` / `tools.fs`, add explicit `alsoAllow` entries only for the tools that should be exposed (v2026.4.29+)
+- [ ] If upgrading plugin SDK code, remove `api.registerEmbeddedExtensionFactory(...)` usage and rely on current manifest-scoped setup/runtime descriptors (v2026.4.24+)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
@@ -487,7 +499,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -528,7 +540,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -572,13 +584,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.29+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation

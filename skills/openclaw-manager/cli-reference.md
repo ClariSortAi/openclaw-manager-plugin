@@ -55,13 +55,21 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.4.29` stable note: current stable is published as `v2026.4.29` and CLI version output should report `2026.4.29`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
 openclaw exec-policy show      # Show effective local exec approvals/policy sync state
 openclaw exec-policy preset    # Apply a built-in exec policy preset locally
 openclaw exec-policy set       # Set explicit local exec policy values
+```
+
+### Migration & Runtime Repair (v2026.4.26+)
+```bash
+openclaw migrate               # Run supported state/config migrations
+openclaw plugins registry      # Inspect bundled/cold plugin registry state
+openclaw plugins deps          # Inspect or repair plugin runtime dependencies
+openclaw nodes remove --node <node-id>  # Remove a registered node by id
 ```
 
 ### Device Management
@@ -127,6 +135,8 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
+  --tools web_search,web_fetch \  # Per-job tool allowlist (v2026.4.1+)
+  --thread-id "thread-id" \  # Thread target for supported channels (v2026.4.20+)
   --model openai-codex/gpt-5.4  # Model override
 ```
 
@@ -222,6 +232,8 @@ openclaw memory index        # Reindex memory files
 openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
+`v2026.4.29+` memory note: Active Memory supports people-aware wiki/provenance views, per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and read-only REM preview diagnostics through the gateway doctor RPC surface.
+
 ### Security
 ```bash
 openclaw security audit          # Basic security audit
@@ -237,6 +249,26 @@ openclaw secrets audit           # Audit all SecretRef targets
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
 openclaw webhooks gmail run      # Run Gmail webhook listener
+```
+
+### Text-to-Speech (v2026.4.25+)
+```bash
+/tts latest                      # Replay latest assistant response as speech
+/tts chat                        # Toggle chat-scoped TTS behavior
+/tts persona                     # Manage voice/persona defaults
+```
+
+### Browser Control (v2026.4.24+)
+```bash
+openclaw browser start --headless    # Start browser control runtime headlessly
+openclaw browser doctor --deep       # Deep browser diagnostics
+openclaw browser click-coords        # Use coordinate-click helper for UI automation
+```
+
+### Matrix (v2026.4.26+)
+```bash
+openclaw matrix encryption setup     # Configure Matrix encryption support
+openclaw matrix verify self          # Verify the bot's Matrix identity/device
 ```
 
 ### Setup & Reset
@@ -266,6 +298,10 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider nvidia        # NVIDIA hosted models (v2026.4.29+)
+openclaw models auth setup-token --provider deepinfra     # DeepInfra provider (v2026.4.27+)
+openclaw models auth setup-token --provider cerebras      # Cerebras provider (v2026.4.26+)
+openclaw models auth setup-token --provider tencent       # Tencent provider (v2026.4.27+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -305,7 +341,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -356,7 +392,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +406,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -419,6 +455,11 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_SKIP_ONBOARDING` | Skip interactive onboarding during automated Docker installs while still applying gateway defaults (v2026.4.29+) |
+| `OPENCLAW_PROXY_URL` | Global outbound proxy URL for providers/channels that honor OpenClaw proxy config (v2026.4.27+) |
+| `OPENCLAW_PLUGIN_STAGE_DIR` | Override plugin install staging directory for constrained packaged deployments (v2026.4.24+) |
+| `OPENCLAW_SERVICE_REPAIR_POLICY` | Control packaged service repair behavior, including `external` policy (v2026.4.25+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Disable automatic update checks in managed/packaged runtimes (v2026.4.26+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
