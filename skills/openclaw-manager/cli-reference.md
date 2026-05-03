@@ -19,6 +19,7 @@ openclaw gateway             # Show gateway info
 openclaw gateway start       # Start gateway
 openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
+openclaw gateway restart --force --wait 30s  # Force after wait window (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
@@ -55,7 +56,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.5.2` stable note: current stable is published as `v2026.5.2` and CLI version output should report `2026.5.2`.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -163,7 +164,9 @@ Skills are installed to `~/.openclaw/skills/` and are immediately available. Alw
 ```bash
 openclaw plugins list          # List installed plugins
 openclaw plugins info <id>     # Show plugin details
-openclaw plugins install <spec>  # Install plugin (npm package or local path)
+openclaw plugins install <spec>  # Install plugin (v2026.5.2+: bare packages use npm-first cutover)
+openclaw plugins install npm:<package>  # Force npm source (v2026.4.26+)
+openclaw plugins install git:<url>#<ref>  # Install/update from a recorded git source (v2026.5.2+)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
 openclaw plugins update <id>   # Update a plugin
@@ -173,9 +176,11 @@ openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins registry [--refresh]  # Inspect/repair cold plugin registry (v2026.4.25+)
+openclaw plugins deps [--repair]       # Inspect/repair runtime dependencies (v2026.4.29+)
 ```
 
-Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
+Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.5.2+`, bare `openclaw plugins install <package>` follows the npm-first cutover; use explicit `clawhub:<package>` for ClawHub artifacts, `npm:<package>` for npm, and `git:<url>#<ref>` for recorded git-source installs. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -184,6 +189,18 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+### Nodes (v2026.4.26+)
+```bash
+openclaw nodes remove --node <id|name|ip>  # Remove stale gateway-owned node pairing records
+```
+
+### Migration (v2026.4.26+)
+```bash
+openclaw migrate plan          # Preview supported imports
+openclaw migrate --dry-run     # Dry-run with pre-migration checks
+openclaw migrate --json        # Machine-readable migration plan/results
+```
 
 ### Agents
 ```bash
@@ -233,6 +250,33 @@ openclaw secrets apply           # Apply credential changes
 openclaw secrets audit           # Audit all SecretRef targets
 ```
 
+### Browser (v2026.4.24+)
+```bash
+openclaw browser start --headless       # One-shot managed browser launch override (v2026.4.25+)
+openclaw browser click-coords <x> <y>   # Coordinate click for browser automation
+openclaw browser doctor --deep          # Deep browser readiness/snapshot diagnostics
+```
+
+### Proxy (v2026.5.2+)
+```bash
+openclaw proxy validate  # Validate effective proxy config and destination allow/deny behavior
+```
+
+### Matrix (v2026.4.24+)
+```bash
+openclaw matrix verify self       # Establish Matrix self-device trust
+openclaw matrix encryption setup  # Configure Matrix E2EE and recovery (v2026.4.26+)
+```
+
+### Google Meet / Voice Call (v2026.4.24+)
+```bash
+googlemeet doctor --oauth              # Verify Google auth/browser state
+googlemeet test-listen                 # Check caption/transcript movement (v2026.5.2+)
+googlemeet end-active-conference       # Close managed Meet spaces (v2026.5.2+)
+voicecall setup                        # Configure voice-call provider readiness
+voicecall smoke --dry-run              # Dry-run readiness smoke test
+```
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -266,6 +310,9 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider deepinfra       # DeepInfra provider (v2026.4.27+)
+openclaw models auth setup-token --provider cerebras        # Cerebras provider (v2026.4.26+)
+openclaw models auth setup-token --provider nvidia          # NVIDIA hosted models (v2026.4.29+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -305,7 +352,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -353,10 +400,34 @@ openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
 openclaw config get plugins.entries.firecrawl.config.webFetch
 
+# v2026.4.29+: restricted profiles require explicit alsoAllow for named tool access
+openclaw config set agents.defaults.tools.alsoAllow '["exec"]'
+
+# v2026.4.29+: require visible replies through message(action=send)
+openclaw config set messages.visibleReplies true
+
+# v2026.4.29+: opt-in follow-up commitments
+openclaw config set commitments.enabled true
+openclaw config set commitments.maxPerDay 5
+
+# v2026.5.2+: thread-bound spawn migration target
+openclaw config set threadBindings.spawnSessions true
+
+# v2026.5.2+: skip selected optional workspace bootstrap files
+openclaw config set agents.defaults.skipOptionalBootstrapFiles '["README.md"]'
+
+# v2026.5.2+: operator-approved config include roots
+export OPENCLAW_INCLUDE_ROOTS="$HOME/.openclaw/includes"
+
+# Outbound proxy (v2026.4.27+; validate in v2026.5.2+)
+openclaw config set proxy.enabled true
+openclaw config set proxy.proxyUrl "http://127.0.0.1:8080"
+openclaw proxy validate
+
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for current Claude 4.x)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -370,7 +441,7 @@ openclaw config set agents.defaults.experimental.localModelLean true
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -419,6 +490,12 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_SKIP_ONBOARDING` | Skip interactive onboarding in automated Docker installs (v2026.4.29+) |
+| `OPENCLAW_NO_AUTO_UPDATE` | Disable configured background auto-update at gateway startup (v2026.4.26+) |
+| `OPENCLAW_PROXY_URL` | Operator-managed outbound proxy URL (v2026.4.27+) |
+| `OPENCLAW_INCLUDE_ROOTS` | Approved roots for `$include` config files (v2026.5.2+) |
+| `OPENCLAW_OTEL_PRELOADED` | Reuse an already-registered OpenTelemetry SDK (v2026.4.25+) |
+| `OPENCLAW_SERVICE_REPAIR_POLICY` | Control service repair behavior, e.g. `external` (v2026.4.25+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -453,7 +530,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Matrix | `@openclaw/matrix` | Matrix protocol channel |
 | Nextcloud Talk | `@openclaw/nextcloud-talk` | Nextcloud integration |
 | Nostr | `@openclaw/nostr` | Nostr decentralized messaging |
-| QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (v2026.3.31+) |
+| QQ Bot | bundled | QQ Bot channel plugin with multi-account and media support (group/streaming/media expanded v2026.4.27+) |
+| Tencent Yuanbao | `openclaw-plugin-yuanbao` | External Yuanbao bot plugin for WebSocket DMs/groups (v2026.4.27+) |
 | Synology Chat | `@openclaw/synology-chat` | NAS-based chat |
 | Tlon | `@openclaw/tlon` | Decentralized platform |
 | Twitch | `@openclaw/twitch` | Streaming chat integration |
@@ -468,6 +546,10 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Diagnostics Prometheus | bundled | Protected scrape route for low-cardinality metrics (v2026.4.25+) |
+| Diagnostics OTEL | `@openclaw/diagnostics-otel` | OpenTelemetry traces/metrics/logs plugin (externalized in v2026.5.2+) |
+| Google Meet | bundled | Meeting participant, listen/test, attendance, and artifact workflows (v2026.4.24+) |
+| Browser | bundled | Browser automation, doctor, and headless/coordinate controls |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

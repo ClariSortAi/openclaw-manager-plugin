@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.2+** for the latest plugin cutover repairs, gateway restart controls, proxy validation, channel reliability, and security-audit hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -22,7 +22,7 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 5. **Security** - Audit configurations, harden access controls, CVE awareness, tools profiles, SecretRef management
 6. **Automation** - Set up cron jobs, Gmail webhooks, scheduled tasks
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
-8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
+8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI, DeepInfra, Cerebras, NVIDIA), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
 10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
 11. **Backup & Recovery** - Create and verify local state backups before destructive changes (v2026.3.8+)
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.2)
 
 These changes affect new and existing installations:
 
@@ -48,7 +48,7 @@ These changes affect new and existing installations:
 6. **iMessage (legacy) deprecated** — Replaced by BlueBubbles for full feature support (edit, unsend, effects, reactions, group management).
 7. **Cron isolated delivery tightened** (v2026.3.11) — Legacy notify/webhook metadata and ad hoc fallback send paths are migrated by `openclaw doctor --fix`.
 8. **Browser extension relay removed** (v2026.3.22) — Legacy Chrome extension relay path and `chrome-relay` profile assumptions are removed; migrate browser config to `existing-session` / `user` with `openclaw doctor --fix`.
-9. **ClawHub resolution precedence changed** (v2026.3.22) — `openclaw plugins install <package>` now prefers ClawHub before npm for npm-safe names; use explicit `clawhub:` specs when you need deterministic source selection.
+9. **ClawHub resolution precedence changed historically** (v2026.3.22) — older v2026.3.22-v2026.4.x builds preferred ClawHub before npm for npm-safe names; current v2026.5.2+ guidance is explicit source prefixes (`clawhub:`, `npm:`, `git:`) for deterministic installs.
 10. **Qwen Portal OAuth removed** (v2026.3.28) — deprecated `qwen-portal-auth`/`portal.qwen.ai` OAuth flow is removed; migrate to Model Studio API keys (for example via `openclaw onboard --auth-choice modelstudio-api-key`).
 11. **Very old config auto-migrations removed** (v2026.3.28) — legacy keys older than roughly two months are no longer silently rewritten by runtime load or doctor; outdated keys now fail validation and must be fixed explicitly.
 12. **MiniMax legacy model IDs removed** (v2026.3.28) — old M2/M2.1/M2.5/VL-01 catalog entries were removed; move MiniMax model selections to the M2.7 catalog.
@@ -60,6 +60,11 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Plugin SDK embedded-extension factory removed** (v2026.4.24) — Pi-only `api.registerEmbeddedExtensionFactory(...)` compatibility is gone; plugins should use `api.registerAgentToolResultMiddleware(...)` plus `contracts.agentToolResultMiddleware`.
+22. **Restrictive tool profiles no longer widen implicitly** (v2026.4.29) — configured `tools.exec` / `tools.fs` sections do not make `messaging` or `minimal` profiles expose those tools; add explicit `agents.defaults.tools.alsoAllow` entries when a restricted profile needs a named tool.
+23. **Plugin source resolution is npm-first for bare package specs** (v2026.5.2) — use `openclaw plugins install clawhub:<package>` for explicit ClawHub artifacts, `npm:<package>` for explicit npm packages, and `git:<url>#<ref>` for recorded git-source installs.
+24. **Thread-bound spawn config migrated** (v2026.5.2) — split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
+25. **Codex subscription routing clarified** (v2026.5.2) — ChatGPT/Codex subscription setups should use `openai/gpt-*` with `agentRuntime.id: "codex"`; `openai-codex/*` remains the PI OAuth route.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -86,7 +91,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These remain operationally important additions and reliability/security fixes from the v2026.4.15 stable release:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -96,6 +101,44 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.20-v2026.4.24
+
+These stable releases add several operator-facing surfaces worth checking during upgrades:
+
+1. **Google Meet bundled participant plugin** — `googlemeet doctor --oauth`, Meet room/listen/recovery actions, Chrome/Twilio realtime transports, attendance/artifact exports, and full-agent consults during live calls.
+2. **Voice Call readiness commands** — `voicecall setup` and dry-run `voicecall smoke` help verify Twilio/provider readiness before live calls.
+3. **Browser automation controls** — `openclaw browser click-coords`, `browser.actionTimeoutMs`, per-profile `browser.profiles.<name>.headless`, and richer browser doctor probes.
+4. **Matrix encryption workflows** — `openclaw matrix verify self` and later `openclaw matrix encryption setup` support E2EE bootstrap and verification.
+5. **Model/provider expansion** — DeepSeek V4, Google Gemini Live realtime voice, Gradium TTS, manifest-backed provider catalogs, and static model-list acceleration.
+6. **Plugin architecture shift** — PDF extraction, Bonjour discovery, Anthropic Vertex runtime, and provider catalogs move further into bundled plugins/manifest metadata.
+7. **Diagnostics/OTEL expansion** — bounded run, model-call, tool, exec, delivery, and memory diagnostics are exportable without prompt/response/session payload content.
+
+## Notable Additions in v2026.4.25-v2026.4.29
+
+These releases expand plugin lifecycle, voice, memory, automation, and provider coverage:
+
+1. **TTS upgrade** — `/tts latest`, `/tts chat on|off|default`, `/tts persona`, per-agent/per-account TTS overrides, and Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine, ElevenLabs v3, and Google TTS provider coverage.
+2. **Plugin registry and dependency repair** — `openclaw plugins registry` and `openclaw plugins deps` expose cold registry state and script-free runtime-dependency inspection/repair.
+3. **Migration command hub** — `openclaw migrate` previews/imports Claude Code, Claude Desktop, Hermes, MCP, skills, memory/plugin hints, provider configs, and supported credentials with backup support.
+4. **Active-run steering and visible replies** — active-run queues default toward steering, `messages.visibleReplies` can require visible output through `message(action=send)`, and subagent events carry `spawnedBy`.
+5. **Commitments and people-aware memory** — opt-in follow-up commitments, people wiki metadata, relationship/evidence views, per-conversation Active Memory filters, and partial recall on timeout.
+6. **Provider/channel additions** — DeepInfra, Cerebras, NVIDIA, Tencent Yuanbao, expanded QQ Bot group/media support, Codex Computer Use, OpenAI image/Codex OAuth media paths, and realtime/TTS updates.
+7. **Restrictive-profile semantics** — `messaging`/`minimal` profiles require explicit `alsoAllow` for otherwise-restricted tool access even if `tools.exec` or `tools.fs` config exists.
+8. **Docker/update controls** — `OPENCLAW_SKIP_ONBOARDING`, verified-prefix update swaps, `OPENCLAW_NO_AUTO_UPDATE=1`, and better plugin runtime-dependency repair improve unattended/containerized upgrades.
+
+## Notable Additions in v2026.5.2
+
+These are the latest stable operational highlights:
+
+1. **Gateway restart controls** — `openclaw gateway restart --force --wait <duration>` can force timeout restarts while surfacing active run IDs before deferral.
+2. **Proxy validation** — `openclaw proxy validate` verifies effective proxy config, reachability, and expected allow/deny behavior before rollout.
+3. **Plugin source and repair improvements** — npm-first bare plugin installs, explicit ClawHub artifacts, `git:` plugin installs, ClawPack digest metadata, beta-channel fallback, and one-time `doctor --fix` repairs for stale configured installs.
+4. **Google Meet and Voice Call operations** — `googlemeet end-active-conference`, `googlemeet test-listen`, live caption health, and richer Twilio/Meet phase diagnostics.
+5. **Thread bindings** — `threadBindings.spawnSessions` replaces split subagent/ACP thread-spawn toggles and defaults thread-bound spawns on after migration.
+6. **Codex runtime guidance** — subscription-backed Codex should use `openai/gpt-*` plus `agentRuntime.id: "codex"`; `openai-codex/*` stays reserved for PI OAuth.
+7. **Workspace/config controls** — `$include` can read operator-approved `OPENCLAW_INCLUDE_ROOTS`, and `agents.defaults.skipOptionalBootstrapFiles` can skip selected optional workspace bootstrap files.
+8. **Security/readiness hardening** — cold security audits avoid broad plugin runtime execution, plugin-debris false positives are reduced, workspace dotenv Windows shell pivots are blocked, and config-audit/payment credential redaction is expanded.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +279,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.2+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -362,14 +405,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
@@ -502,6 +545,15 @@ openclaw models auth setup-token --provider openai-codex
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# DeepInfra (v2026.4.27+ — discovery, media generation/editing, TTS, embeddings)
+openclaw models auth setup-token --provider deepinfra
+
+# Cerebras (v2026.4.26+ — bundled provider plugin)
+openclaw models auth setup-token --provider cerebras
+
+# NVIDIA (v2026.4.29+ — hosted model catalog/onboarding)
+openclaw models auth setup-token --provider nvidia
 ```
 
 ## Error Patterns

@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.4.15+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.2+**.
 
 ### Known Critical Vulnerabilities
 
@@ -120,6 +120,21 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | MCP loopback auth/origin hardening | Uses constant-time bearer comparison on `/mcp` and rejects non-loopback browser-origin requests before auth evaluation | v2026.4.15 |
 | QMD `memory_get` canonical path restrictions | Rejects arbitrary workspace markdown reads and only allows canonical memory files plus active indexed QMD documents | v2026.4.15 |
 | Webchat media path hardening | Enforces local-root containment and rejects remote-host `file://` media embedding paths | v2026.4.15 |
+| Browser admin authority | Requires `operator.admin` for `browser.request` gateway method, matching host/browser-node control authority | v2026.4.24 |
+| Dashboard token log protection | Avoids writing tokenized Control UI URLs or SSH hints to logs readable through `logs.tail` | v2026.4.24 |
+| Transcript redaction expansion | Applies configured redaction patterns to persisted session transcript text and safer custom redaction regex handling | v2026.4.25 |
+| Device token rotate redaction | Stops echoing rotated bearer tokens from shared/admin `device.token.rotate` responses | v2026.4.26 |
+| Plugin install scanner hardening | Skips packaged test files while still scanning runtime entrypoints and blocks unsafe symlink/package-manager escapes | v2026.4.26 |
+| Outbound proxy validation | Adds strict operator-managed proxy routing and later `openclaw proxy validate` for destination allow/deny verification | v2026.4.27-v2026.5.2 |
+| Restrictive profile no-implicit-widening | Prevents `tools.exec`/`tools.fs` config from widening `messaging` or `minimal` profiles without explicit `alsoAllow` | v2026.4.29 |
+| Slack bot relay authorization | Requires bot-authored room messages with `allowBots=true` to come from an explicitly channel-allowlisted bot or owner-present room | v2026.4.29 |
+| Secrets timing compare hardening | Compares credential bytes with padded timing-safe buffers rather than candidate-password hashing | v2026.4.29 |
+| QQBot debug log sanitization | Sanitizes debug log arguments before `console.*` writes to prevent forged payload log lines | v2026.4.29 |
+| Plugin security audit cold path | Keeps normal `security audit` on cold config/filesystem paths and reserves plugin runtime collectors for `--deep` | v2026.5.2 |
+| Workspace dotenv Windows shell hardening | Blocks workspace `.env` pivots for Windows shell trust-root variables such as `COMSPEC`, `WINDIR`, and `SYSTEMROOT` | v2026.5.2 |
+| Config-audit argv redaction | Redacts CLI `argv`/`execArgv` secrets before persisting config audit records | v2026.5.2 |
+| Payment credential redaction | Adds default redaction for card/CVC/payment credential field names in logs and tool payloads | v2026.5.2 |
+| Nextcloud Talk webhook compare hardening | Uses padded timing-safe signature comparison even for wrong-length signatures | v2026.5.2 |
 | Busybox/toybox exec interpreter removal | Removes busybox and toybox from the list of safe-to-approve interpreter-like exec binaries so approval prompts cannot launder arbitrary commands through them | v2026.4.12 |
 | Empty approver list approval bypass prevention | Prevents an empty approver list from inadvertently granting explicit approval authorization to unapproved callers | v2026.4.12 |
 | Shell-wrapper detection broadening | Broadens shell-wrapper classification and blocks `env`-argv assignment injection so additional wrapper forms cannot bypass exec approval checks | v2026.4.12 |
@@ -403,7 +418,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.4.15+ for latest auth, interaction-allowlist, and execution hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.2+ for latest plugin, proxy, audit, and execution hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -412,6 +427,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
+- [ ] If relying on a restrictive `tools.profile`, explicitly configure `agents.defaults.tools.alsoAllow` for any intended exceptions (v2026.4.29+)
+- [ ] If using outbound proxies, run `openclaw proxy validate` and keep proxy URL/operator policy explicit (v2026.5.2+)
+- [ ] If using plugin-heavy installs, run routine `openclaw security audit` cold and reserve runtime-loading collectors for `--deep` (v2026.5.2+)
+- [ ] Run `openclaw plugins registry --refresh` and `openclaw plugins deps --repair` after plugin/runtime-dependency upgrade warnings
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] Config validated before restart: `openclaw config validate`
@@ -487,7 +506,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -528,7 +547,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-6",
+      "model": "anthropic/claude-opus-4-7",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -572,13 +591,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.4.15+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.2+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation

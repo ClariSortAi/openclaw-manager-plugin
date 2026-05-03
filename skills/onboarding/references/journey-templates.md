@@ -36,12 +36,12 @@ openclaw models auth setup-token --provider <provider>
 openclaw config set agents.defaults.model "<provider>/<model>"
 
 # Examples by provider:
-#   anthropic/claude-sonnet-4-6  (good balance of quality and cost)
-#   anthropic/claude-opus-4-6    (highest quality, most expensive)
+#   anthropic/claude-sonnet-4-7  (good balance of quality and cost)
+#   anthropic/claude-opus-4-7    (highest quality, most expensive)
 #   anthropic/claude-haiku-4-5   (budget-friendly, fast)
 #   openai/gpt-4o               (OpenAI alternative)
 #   ollama/llama3                (free, local, private)
-#   kilocode/anthropic/claude-sonnet-4-6  (managed gateway)
+#   kilocode/anthropic/claude-sonnet-4-7  (managed gateway)
 
 # For reasoning-capable models, enable adaptive thinking
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
@@ -235,8 +235,8 @@ openclaw config set agents.defaults.tools.profile "coding"
 # Set your preferred model (pick one)
 openclaw models auth setup-token --provider <provider>
 openclaw config set agents.defaults.model "<provider>/<model>"
-# Sonnet 4.6 is a strong default for coding — fast, capable, reasonable cost
-# Opus 4.6 for highest quality (expensive), Haiku for speed
+# Sonnet 4.7 is a strong default for coding — fast, capable, reasonable cost
+# Opus 4.7 for highest quality (expensive), Haiku for speed
 # Ollama for local/private development
 
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
@@ -373,7 +373,7 @@ openclaw channels login --channel zalouser
 
 ### Milestone 3: Adopt New Features
 ```bash
-# Adaptive thinking (Claude 4.6)
+# Adaptive thinking (Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Config validation (run before every restart)

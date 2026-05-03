@@ -101,7 +101,7 @@ As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing 
 As of v2026.3.31, exec approval prompts can be routed natively in Slack with approver authorization instead of falling back to web/terminal approval paths.
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
-As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts. In v2026.4.29-v2026.5.2, Block Kit values, fallback text, approval card metadata, app-home defaults, bot-participated thread tracking, and multi-workspace outbound routing are further hardened.
 
 ---
 
@@ -148,7 +148,7 @@ openclaw channels status
 }
 ```
 
-`v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes. `v2026.5.2+` also supports explicit WhatsApp Channel/Newsletter `@newsletter` outbound targets with channel session metadata.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -415,6 +415,13 @@ openclaw plugins info matrix
 openclaw channels status
 ```
 
+### Matrix Encryption / Verification (v2026.4.24+)
+```bash
+openclaw matrix verify self
+openclaw matrix encryption setup
+```
+Use this for E2EE bootstrap, recovery, and self-device trust verification.
+
 ---
 
 ## Nostr (Plugin Required)
@@ -437,6 +444,18 @@ openclaw gateway restart
 3. **Verify**
 ```bash
 openclaw plugins info nostr
+```
+
+---
+
+## Tencent Yuanbao (External Plugin, v2026.4.27+)
+
+Tencent Yuanbao bot support is available through the external `openclaw-plugin-yuanbao` plugin for WebSocket bot DMs and group chats.
+
+```bash
+openclaw plugins install npm:openclaw-plugin-yuanbao
+openclaw plugins info yuanbao
+openclaw gateway restart
 ```
 
 ---
@@ -517,6 +536,26 @@ openclaw config set channels.googlechat.enabled true
 openclaw config set channels.googlechat.dmPolicy pairing
 openclaw gateway restart
 ```
+
+---
+
+## Google Meet (Bundled Plugin, v2026.4.24+)
+
+Google Meet support adds an agent participant for meeting listen/transcribe, Chrome/Twilio realtime transports, attendance/artifact exports, and full-agent consults during live calls.
+
+### Setup / Diagnostics
+```bash
+# Verify OAuth and browser state
+googlemeet doctor --oauth
+
+# Check listen-first health before relying on transcribe mode
+googlemeet test-listen
+
+# Close a managed space after a call
+googlemeet end-active-conference
+```
+
+Use `googlemeet recover-tab` / `recover_current_tab` when a Meet tab is already open and you need OpenClaw to inspect it instead of opening a duplicate.
 
 ---
 
@@ -687,6 +726,19 @@ openclaw channels status
 - TTS/voice bubbles, Opus audio as `msg_type: "audio"` (v2026.3.1)
 - Webhook ingress rate-limiting with stale-window pruning (v2026.3.1)
 - Multi-app mention routing validation (v2026.3.2)
+
+---
+
+## Voice Call and TTS
+
+OpenClaw's voice surfaces expanded in v2026.4.24-v2026.5.2 with Voice Call readiness commands, shared full-agent consults, chat-scoped TTS controls, personas, and per-agent/per-account overrides.
+
+```bash
+voicecall setup
+voicecall smoke --dry-run
+```
+
+Chat commands/operators can use `/tts latest`, `/tts chat on|off|default`, and `/tts persona` where the channel supports voice-note delivery. Current bundled speech providers include Google, Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine/BytePlus, ElevenLabs v3, and Gradium.
 
 ---
 

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.5.2`, including gateway restart `--force/--wait`, `openclaw proxy validate`, npm-first plugin source behavior, `git:` plugin installs, ClawPack metadata, Google Meet `test-listen`/`end-active-conference`, thread binding migration, and Codex subscription routing guidance.
+- Added backfilled stable coverage for `v2026.4.20` through `v2026.4.29`: Google Meet bundled plugin, Voice Call readiness commands, browser coordinate/headless controls, Matrix E2EE setup, `openclaw migrate`, `openclaw plugins registry`, `openclaw plugins deps`, TTS personas/chat controls, active-run steering, visible-reply enforcement, commitments, people-aware memory, DeepInfra/Cerebras/NVIDIA/Yuanbao/QQBot expansions, and Docker/update controls.
+- Added troubleshooting guidance for gateway restart deferral, plugin registry/runtime-dependency repair, missing/invalid channel plugin recovery, proxy validation, Google Meet/Voice Call listen health, Matrix encryption setup, and restrictive `tools.profile` `alsoAllow` semantics.
+- Added security-checklist hardening entries for `v2026.4.24` through `v2026.5.2`, including browser admin authority, transcript/device-token redaction, plugin scanner guardrails, outbound proxy validation, restrictive-profile no-implicit-widening, Slack bot relay checks, cold-path security audit behavior, Windows workspace dotenv shell hardening, config-audit argv redaction, payment credential redaction, and Nextcloud Talk timing-safe webhook signature comparison.
+- Added channel setup coverage for Google Meet, Voice Call/TTS operations, Tencent Yuanbao, Matrix encryption setup, WhatsApp newsletter targets, and updated Slack/Block Kit reliability notes.
+
 - Added release-alignment coverage for upstream stable `v2026.4.15` across core skill/docs, including Anthropic default model refresh guidance, Google bundled TTS support notes, local-model lean mode config coverage, and stable (non-beta) Model Auth/LanceDB/Copilot memory highlights.
 - Added troubleshooting coverage for `v2026.4.15` reliability fixes: gateway token rotation behavior on HTTP surfaces, post-skill-change `Tool <name> not found` loop recovery, and Ollama model-id prefix normalization issues.
 - Added security-checklist hardening entries for `v2026.4.15`: built-in tool name-collision protections, HTTP auth hot-reload parity, MCP loopback constant-time/auth-origin checks, QMD canonical memory-path restrictions, and webchat media path enforcement updates.
@@ -61,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.5.2+` while preserving minimum safe baseline at `v2026.3.1`.
+- Refreshed Anthropic example model references from Claude 4.6 to Claude 4.7 where current-release guidance expects the newer defaults.
+- Updated README and plugin metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated SKILL release-notes coverage by replacing the beta-only `v2026.4.15-beta.1` section with stable `v2026.4.15` additions/reliability notes.
 - Updated README/version metadata for this docs release alignment (`1.3.7`).

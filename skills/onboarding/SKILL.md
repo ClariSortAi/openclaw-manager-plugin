@@ -65,7 +65,7 @@ Continue with:
 
 ### Fast Track
 
-If the user asks to skip the interview, wants "the simplest setup", or says "just get me started", skip directly to Template A (Personal AI Assistant) using their OS and a sensible default model (Sonnet 4.6 for API users, Ollama for local). Present it with a note that they can re-run `/onboarding` later to customize.
+If the user asks to skip the interview, wants "the simplest setup", or says "just get me started", skip directly to Template A (Personal AI Assistant) using their OS and a sensible default model (Sonnet 4.7 for API users, Ollama for local). Present it with a note that they can re-run `/onboarding` later to customize.
 
 ## Journey Synthesis
 

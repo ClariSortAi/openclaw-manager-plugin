@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.2+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.2+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, plugin-source cutover repair, proxy validation, gateway restart controls, channel reliability, and security-audit hardening, upgrade to **v2026.5.2+**.
 
 ## Common Issues
 
@@ -72,6 +72,21 @@ openclaw gateway status --require-rpc
 openclaw doctor --fix
 openclaw gateway restart
 openclaw gateway status --require-rpc
+```
+
+#### Gateway Restart Defers Forever Because Runs Are Active
+**Symptoms:** `openclaw gateway restart` waits behind active tasks, or operators cannot tell which run is blocking restart.
+
+**Cause:** Long-running tasks can defer restarts; v2026.5.2 logs active task run IDs and adds forced restart controls.
+
+**Fix:**
+```bash
+# Wait briefly, then force if the gateway does not stop cleanly
+openclaw gateway restart --wait 30s --force
+
+# Follow with health/status checks
+openclaw gateway status --require-rpc
+openclaw status --all
 ```
 
 #### Port 18789 Already in Use
@@ -390,6 +405,34 @@ openclaw plugins info msteams
 openclaw channels status
 ```
 
+#### Google Meet or Voice Call Setup Fails
+**Symptoms:** Meet joins, listen-first health, or Twilio voice calls appear connected but no captions/audio movement is detected.
+
+**Fix:**
+```bash
+# Check Google OAuth/browser state
+googlemeet doctor --oauth
+
+# Verify listen/transcript movement before relying on transcribe mode
+googlemeet test-listen
+
+# Voice Call readiness without placing a live call
+voicecall setup
+voicecall smoke --dry-run
+```
+
+In v2026.5.2+, Meet status and doctor output include live caption health and recent transcript lines.
+
+#### Matrix Encryption Setup or Verification Is Stuck
+**Symptoms:** Matrix clients remain in a verifying loop, encrypted rooms fail, or E2EE status is unclear.
+
+**Fix:**
+```bash
+openclaw matrix verify self
+openclaw matrix encryption setup
+openclaw channels status
+```
+
 ### Pairing Issues
 
 #### Messages Not Triggering (Pairing Required)
@@ -493,18 +536,53 @@ openclaw doctor --fix
 openclaw gateway restart
 ```
 
+#### Plugin Registry or Runtime Dependencies Are Stale After Upgrade
+**Symptoms:** `plugins list` shows stale entries, startup warns about missing package payloads, or configured plugins fail because runtime dependencies are absent.
+
+**Cause:** v2026.4.25+ moved plugin lifecycle paths to a cold persisted registry and v2026.4.29+ added explicit dependency inspection/repair. v2026.5.2 adds one-time configured-plugin install repair for stale records.
+
+**Fix:**
+```bash
+# Refresh registry metadata and repair known upgrade issues
+openclaw doctor --fix
+openclaw plugins registry --refresh
+
+# Inspect and repair runtime dependencies without loading every plugin
+openclaw plugins deps
+openclaw plugins deps --repair
+
+openclaw gateway restart
+```
+
+#### Gateway Crash-Loops on a Missing or Invalid Channel Plugin
+**Symptoms:** Gateway fails during startup after a plugin uninstall/update, often mentioning a stale configured channel or invalid plugin schema.
+
+**Cause:** Older builds could treat one missing channel plugin or invalid plugin entry as fatal for the whole gateway. Newer stable releases degrade or quarantine narrower plugin failures and point cleanup at doctor.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw plugins registry --refresh
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Bare Plugin Install Pulls Unexpected Source
 **Symptoms:** `openclaw plugins install <name>` installs a different package source than expected.
 
-**Cause:** v2026.3.22+ prefers ClawHub before npm for npm-safe package names.
+**Cause:** Source precedence has changed across releases. Older v2026.3.22+ builds preferred ClawHub for npm-safe names; v2026.5.2+ moves bare package specs to the npm-first cutover while explicit `clawhub:` still targets ClawHub artifacts.
 
 **Fix:**
 ```bash
 # Force ClawHub source
 openclaw plugins install clawhub:<package>
 
-# Or force npm source
-openclaw plugins install @scope/package
+# Force npm source
+openclaw plugins install npm:<package>
+
+# Install from a tracked git source
+openclaw plugins install git:<url>#<ref>
 ```
 
 #### ClawHub Plugin Uninstall Fails for Previously Pinned Installs
@@ -514,7 +592,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.5.2+; includes plugin registry/dependency repairs and newer reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -704,7 +782,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.2+ includes timezone and scheduler reliability fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -817,7 +895,7 @@ openclaw config set session.maintenance.highWaterBytes 858993459
 #### Agent Can't Run Commands / "Tools Not Available"
 **Symptoms:** Agent refuses to execute shell commands, read files, or use browser tools
 
-**Cause:** `tools.profile` is currently set to `"messaging"` (chat-only tools). In v2026.3.x, defaults can differ by onboarding path, so rely on the configured value, not assumptions.
+**Cause:** `tools.profile` is currently set to `"messaging"` or `"minimal"` (restricted tool set). In v2026.4.29+, configured `tools.exec` or `tools.fs` sections do not implicitly widen restricted profiles; rely on explicit profile/tool allowlists, not assumptions.
 
 **Fix:**
 ```bash
@@ -826,6 +904,8 @@ openclaw config get agents.defaults.tools.profile
 
 # Set to coding or full
 openclaw config set agents.defaults.tools.profile "coding"
+# Or keep the restricted profile and add a narrow exception
+openclaw config set agents.defaults.tools.alsoAllow '["exec"]'
 openclaw gateway restart
 ```
 
@@ -944,7 +1024,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1092,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.5.2) continue that hardening.
 
 **Fix:**
 ```bash
@@ -1038,6 +1118,28 @@ openclaw flows cancel <flow-id>
 ```bash
 openclaw channels login --channel zalouser
 ```
+
+### Proxy Issues (v2026.4.27+)
+
+#### Outbound Proxy Configuration Does Not Behave as Expected
+**Symptoms:** Provider, web-search, or media calls ignore a proxy, route direct unexpectedly, or fail only behind a corporate proxy.
+
+**Diagnose/Fix:**
+```bash
+openclaw config get proxy
+openclaw proxy validate
+
+# Configure explicit operator-managed proxy routing
+openclaw config set proxy.enabled true
+openclaw config set proxy.proxyUrl "http://127.0.0.1:8080"
+# or
+export OPENCLAW_PROXY_URL="http://127.0.0.1:8080"
+
+openclaw proxy validate
+openclaw gateway restart
+```
+
+Use a strict `http://` forward proxy URL and keep loopback gateway traffic bypassed.
 
 ### Service Issues (systemd)
 
