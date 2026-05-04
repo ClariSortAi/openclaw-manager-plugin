@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.4.15+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.4.15+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Slack-interaction allowlist hardening, and task/cron/tool-loop reliability improvements, upgrade to **v2026.4.15+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
 
 ## Common Issues
 
@@ -73,6 +73,18 @@ openclaw doctor --fix
 openclaw gateway restart
 openclaw gateway status --require-rpc
 ```
+
+#### Gateway Restart Defers or Times Out During Active Work
+**Symptoms:** `openclaw gateway restart` waits behind active task runs, or operators need a bounded/forced restart during maintenance.
+
+**Fix:**
+```bash
+# v2026.5.2+: wait for a bounded restart window, then force if required
+openclaw gateway restart --wait 60s
+openclaw gateway restart --force
+```
+
+Check logs for active task run ids before forcing a restart.
 
 #### Port 18789 Already in Use
 **Symptoms:** Gateway fails to start, port conflict
@@ -514,12 +526,61 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+; includes v2026.4.2 migrations and newer reliability fixes)
+# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
 openclaw plugins uninstall <plugin-id>
 openclaw plugins uninstall clawhub:<package>
+```
+
+#### Official Plugin Install or Update Reports Missing Dependencies
+**Symptoms:** An official plugin is configured but missing on disk, `plugins list --json` reports dependency install problems, or update/doctor keeps revisiting the same plugin.
+
+**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers.
+
+**Fix:**
+```bash
+# Inspect dependency state without loading plugin runtimes
+openclaw plugins list --json
+openclaw plugins deps
+
+# Repair configured official plugin installs and stale manifests
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+```
+
+#### Official Bundled Plugin Install Blocked by Scanner
+**Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
+
+**Cause:** The initial v2026.5.3 install scanner could false-positive on official bundled plugin packages when those patterns appeared far apart in the same compiled file.
+
+**Fix:**
+```bash
+# Use the v2026.5.3-1 core npm hotfix or newer
+openclaw update --channel beta
+
+# Then retry install/update
+openclaw plugins update --all
+```
+
+#### File-Transfer Tool Denies a Path
+**Symptoms:** `file_fetch`, `dir_list`, `dir_fetch`, or `file_write` fails with a path-policy, traversal, symlink, or size-limit denial.
+
+**Cause:** The bundled file-transfer plugin added in v2026.5.3 is default-deny per paired node, refuses symlink traversal by default, and enforces a 16 MB byte ceiling per round trip.
+
+**Fix:**
+```bash
+# Inspect the node-specific path policy
+openclaw config get plugins.entries.file-transfer.config.nodes
+
+# Add only the minimum approved paths for that paired node
+openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '["/approved/path"]'
+
+# Keep symlink traversal disabled unless explicitly risk-reviewed
+openclaw config validate
+openclaw gateway restart
 ```
 
 #### `x_search` Stops Working After Upgrade
@@ -704,7 +765,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.4.15+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -817,7 +878,7 @@ openclaw config set session.maintenance.highWaterBytes 858993459
 #### Agent Can't Run Commands / "Tools Not Available"
 **Symptoms:** Agent refuses to execute shell commands, read files, or use browser tools
 
-**Cause:** `tools.profile` is currently set to `"messaging"` (chat-only tools). In v2026.3.x, defaults can differ by onboarding path, so rely on the configured value, not assumptions.
+**Cause:** `tools.profile` is currently set to `"messaging"` (chat-only tools). In v2026.3.x, defaults can differ by onboarding path, so rely on the configured value, not assumptions. In v2026.4.29+, configured `tools.exec` or `tools.fs` sections no longer implicitly widen restrictive profiles.
 
 **Fix:**
 ```bash
@@ -826,6 +887,9 @@ openclaw config get agents.defaults.tools.profile
 
 # Set to coding or full
 openclaw config set agents.defaults.tools.profile "coding"
+
+# Or keep a restricted profile and add explicit tool exceptions
+openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 openclaw gateway restart
 ```
 
@@ -855,6 +919,8 @@ openclaw config unset <invalid.path>
 openclaw config validate
 openclaw gateway restart
 ```
+
+As of v2026.5.3, Gateway startup and hot reload fail closed instead of auto-restoring invalid config. Let `openclaw doctor --fix` apply safe migrations and explicitly validate before restarting.
 
 #### Legacy Config Keys Stop Auto-Migrating
 **Symptoms:** After upgrading to v2026.3.28+, startup or `openclaw config validate` fails on very old legacy keys that used to auto-rewrite.
@@ -944,7 +1010,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
@@ -1012,7 +1078,7 @@ openclaw plugins install <spec>
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
-**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables (including v2026.4.15) continue that hardening.
+**Cause:** Older builds had weaker flow/task lifecycle handling under load. v2026.4.2 restored core flow durability, and newer stables continue that hardening.
 
 **Fix:**
 ```bash

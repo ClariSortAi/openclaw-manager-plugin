@@ -36,12 +36,12 @@ openclaw models auth setup-token --provider <provider>
 openclaw config set agents.defaults.model "<provider>/<model>"
 
 # Examples by provider:
-#   anthropic/claude-sonnet-4-6  (good balance of quality and cost)
-#   anthropic/claude-opus-4-6    (highest quality, most expensive)
+#   anthropic/claude-sonnet-4-7  (good balance of quality and cost)
+#   anthropic/claude-opus-4-7    (highest quality, most expensive)
 #   anthropic/claude-haiku-4-5   (budget-friendly, fast)
 #   openai/gpt-4o               (OpenAI alternative)
 #   ollama/llama3                (free, local, private)
-#   kilocode/anthropic/claude-sonnet-4-6  (managed gateway)
+#   kilocode/anthropic/claude-sonnet-4-7  (managed gateway)
 
 # For reasoning-capable models, enable adaptive thinking
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"

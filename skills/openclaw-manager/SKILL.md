@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.4.15+** for the latest auth rotation fixes, tool-loop hardening defaults, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.4.15)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
 
 These changes affect new and existing installations:
 
@@ -60,6 +60,10 @@ These changes affect new and existing installations:
 18. **Host exec defaults became more permissive** (v2026.4.2) — do not rely on defaults for approval behavior; explicitly set `agents.defaults.tools.exec.security` (`"ask"` or `"deny"`) for production/multi-user setups.
 19. **Slack interactive actions now enforce global allowlists** (v2026.4.14) — button/modal interactions now honor configured `allowFrom` owner controls with stricter sender verification; review `channels.slack.allowFrom` and paired users if previously permissive interactive flows stop working.
 20. **Model-facing gateway config edits are safety-gated** (v2026.4.14) — `config.patch`/`config.apply` from the model-facing gateway tool can no longer newly enable flags reported as dangerous by `openclaw security audit`; perform high-risk flag changes through authenticated operator workflows instead.
+21. **Restricted tool profiles no longer widen from configured `tools.exec` / `tools.fs` sections** (v2026.4.29) — if a `"messaging"` or `"minimal"` profile needs exec/filesystem tools, add explicit `tools.alsoAllow` entries instead of relying on nested tool config to imply access.
+22. **Thread-spawn config keys migrated** (v2026.5.2) — legacy split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
+23. **Invalid config fails closed** (v2026.5.3) — Gateway startup and hot reload no longer auto-restore invalid config; use `openclaw config validate` and `openclaw doctor --fix` for last-known-good repair.
+24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -79,7 +83,7 @@ These are operationally important additions and hardening updates in newer stabl
 2. **Per-provider private-network request control** (v2026.4.12) — `models.providers.*.request.allowPrivateNetwork` gives explicit opt-in for trusted self-hosted OpenAI-compatible endpoints.
 3. **Optional Active Memory plugin** (v2026.4.12) — adds a memory-recall pre-reply sub-agent path for ongoing conversations.
 4. **Bundled LM Studio provider** (v2026.4.12) — local/self-hosted OpenAI-compatible models via LM Studio, including onboarding, runtime model discovery, stream preload, and memory-search embeddings.
-5. **Bundled OpenAI Codex provider** (v2026.4.12) — `openai-codex/gpt-*` models use Codex-managed auth, native threads, and model discovery; `openai/gpt-*` remains on the standard OpenAI provider path.
+5. **OpenAI Codex provider path** (v2026.4.12+, clarified in v2026.5.2) — `openai-codex/*` remains the PI OAuth route; ChatGPT/Codex subscription setups should use `openai/gpt-*` with `agentRuntime.id: "codex"` for native Codex runtime.
 6. **Telegram forum-topic name persistence** (v2026.4.14) — topic names are learned and persisted for cleaner context metadata across restarts.
 7. **Slack interactive allowlist enforcement hardening** (v2026.4.14) — interactive events now cross-check sender identity and channel type against configured owner allowlist intent.
 8. **Model-facing config safety guardrails** (v2026.4.14) — gateway tool config mutations are blocked from newly enabling security-audit dangerous flags.
@@ -96,6 +100,34 @@ These are operationally important additions and reliability/security fixes in th
 6. **Experimental local-model lean mode** — `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools (`browser`, `cron`, `message`) for weak local-model setups.
 7. **Safer skill/tool-loop behavior by default** — skill-snapshot cache invalidation on `skills.*` writes and unknown-tool stream guard default enablement reduce `Tool <name> not found` loop failure modes.
 8. **Auth/token and web surface hardening** — gateway HTTP auth now resolves active bearer config per request (faster secret-rotation effect), and additional webchat/media path checks tighten local-root and remote-file protections.
+
+## Notable Additions in v2026.4.29-v2026.5.2
+
+These are operationally important additions introduced after v2026.4.15:
+
+1. **Active-run steering defaults** — active-run queueing now defaults to steer-style followups, and `/steer` can guide a running session without starting a new turn.
+2. **Global visible-reply enforcement** — `messages.visibleReplies` can require visible chat output to go through the message tool across source chats.
+3. **Follow-up commitments** — optional `commitments.enabled` / `commitments.maxPerDay` lets heartbeat-delivered reminders track inferred follow-up commitments.
+4. **People-aware Memory Wiki and Active Memory filters** — memory adds person cards, relationship/provenance views, per-conversation allow/deny filters, and partial recall on timeout.
+5. **NVIDIA provider** — NVIDIA hosted models have API-key onboarding, static catalog metadata, and literal provider-prefixed model refs.
+6. **Plugin lifecycle improvements** — `openclaw plugins list --json` reports dependency install state; `openclaw plugins deps` repairs missing runtime dependencies; `git:` plugin installs record refs and commit metadata.
+7. **Gateway restart controls** — `openclaw gateway restart --force` and `--wait` improve controlled restarts during active work.
+8. **Proxy validation** — `openclaw proxy validate` checks effective proxy configuration and expected destination allow/deny behavior.
+9. **Codex setup clarification** — ChatGPT/Codex subscription setups should use `openai/gpt-*` with `agentRuntime.id: "codex"` for native Codex runtime; `openai-codex/*` remains the PI OAuth route.
+
+## Notable Additions in v2026.5.3
+
+These are operationally important additions and reliability/security fixes in the latest stable release:
+
+1. **Bundled file-transfer plugin** — provides `file_fetch`, `dir_list`, `dir_fetch`, and `file_write` tools for paired-node binary file operations, with default-deny per-node path policy under `plugins.entries.file-transfer.config.nodes`, operator approval, symlink traversal refused by default, and a 16 MB round-trip ceiling.
+2. **Unified progress streaming** — `streaming.mode: "progress"` adds shared progress-draft behavior with auto single-word labels across Discord, Telegram, Matrix, Slack, and Microsoft Teams.
+3. **`/steer` and `/side` chat commands** — `/steer` adjusts the active current-session run queue-independently; `/side` is a text/native slash-command alias for `/btw` side questions.
+4. **Official plugin install/update hardening** — onboarding, install, uninstall, update, ClawHub fallback, beta-channel updates, stale bundled load paths, and dependency-state reporting now handle externalized official plugins as first-class package installs.
+5. **Manual setup can install optional official plugins** — onboarding exposes optional official plugins and the external Codex provider setup choice.
+6. **Gateway startup/performance improvements** — plugin/runtime discovery, cron, schema, shutdown hooks, sessions, model metadata, and maintenance timers are lazy-loaded or deferred until needed.
+7. **WhatsApp Channel/Newsletter targets** — explicit `@newsletter` outbound targets use channel session metadata instead of DM routing.
+8. **Google Meet and realtime voice reliability** — Meet joins wait for realtime readiness, expose transcripts/status diagnostics, and avoid silently queued audio behind unconfigured sessions.
+9. **2026.5.3-1 npm hotfix** — the core npm package `openclaw@2026.5.3-1` on the beta dist-tag fixes official bundled plugin install-scanner false positives involving distant `process.env` and normal API send references in compiled bundles.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -236,7 +268,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.4.15+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -497,8 +529,11 @@ openclaw models auth setup-token --provider minimax
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)
 openclaw models auth setup-token --provider vercel-ai
 
-# OpenAI Codex (v2026.4.12+ — Codex-managed auth and native threads; models: openai-codex/gpt-5.4)
+# OpenAI Codex (v2026.4.12+ — PI OAuth route; for ChatGPT/Codex subscriptions, prefer openai/gpt-* with agentRuntime.id: "codex")
 openclaw models auth setup-token --provider openai-codex
+
+# NVIDIA (v2026.4.29+ — hosted NVIDIA models)
+openclaw models auth setup-token --provider nvidia
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio

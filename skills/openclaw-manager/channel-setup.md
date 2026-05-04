@@ -102,6 +102,25 @@ As of v2026.3.31, exec approval prompts can be routed natively in Slack with app
 As of v2026.4.2, Slack thread-context filtering is tightened around effective conversation allowlists, reducing accidental context leakage in mixed room/DM setups.
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
+As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+
+### Slack App Home and Thread Continuity (v2026.5.2+)
+
+OpenClaw publishes a safe default App Home view on `app_home_opened` and tracks bot-participated Slack threads across gateway restarts so ongoing threaded conversations can continue auto-replying.
+Add the `app_home_opened` event subscription if your Slack manifest predates v2026.5.2:
+
+```json
+"event_subscriptions": {
+  "bot_events": [
+    "app_home_opened",
+    "app_mention",
+    "message.channels",
+    "message.groups",
+    "message.im",
+    "message.mpim"
+  ]
+}
+```
 
 ---
 
@@ -149,6 +168,7 @@ openclaw channels status
 ```
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
+`v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -213,6 +233,7 @@ openclaw gateway restart
 ### Telegram Streaming (v2026.3.2+)
 
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
+In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
 
 ### Telegram DM Topics (v2026.3.1+)
 

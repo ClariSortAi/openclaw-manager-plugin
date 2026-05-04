@@ -19,6 +19,8 @@ openclaw gateway             # Show gateway info
 openclaw gateway start       # Start gateway
 openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
+openclaw gateway restart --wait 60000  # Wait for active work before restarting (v2026.5.2+)
+openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
@@ -55,7 +57,13 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.4.15` stable note: current stable is published as `v2026.4.15` and CLI version output should report `2026.4.15`.
+`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+
+### Chat Commands (v2026.5.3+)
+```bash
+/steer <guidance>   # Guide the active current-session run without starting a new turn
+/side <question>    # Alias for /btw side questions (text and native slash command)
+```
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -127,7 +135,7 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai-codex/gpt-5.4  # Model override
+  --model openai/gpt-5.4  # Model override (use agentRuntime.id: "codex" for native Codex runtime)
 ```
 
 ### Skills
@@ -172,10 +180,13 @@ openclaw plugins enable <id>   # Enable a plugin
 openclaw plugins disable <id>  # Disable a plugin
 openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
+openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
 ```
 
-Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. Bundled plugins are disabled by default; installed plugins are enabled by default.
+Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
+
+`v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -184,6 +195,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.13+` plugin note: startup/install now fails fast on channel and binding collisions instead of deferring to runtime.
 
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
+
+`v2026.5.3+` install-safety note: source-only plugin packages are rejected before runtime load. The `v2026.5.3-1` npm hotfix avoids false positives for official bundled plugin packages whose compiled bundles contain distant `process.env` reads and normal API sends.
 
 ### Agents
 ```bash
@@ -233,6 +246,11 @@ openclaw secrets apply           # Apply credential changes
 openclaw secrets audit           # Audit all SecretRef targets
 ```
 
+### Proxy Validation (v2026.5.2+)
+```bash
+openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+```
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -264,7 +282,7 @@ openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
-openclaw models auth setup-token --provider openai-codex   # OpenAI Codex (v2026.4.12+; models: openai-codex/gpt-5.4)
+openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
 
@@ -305,7 +323,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -345,6 +363,9 @@ openclaw config set agents.defaults.tools.profile "coding"
 openclaw config set agents.defaults.tools.exec.security "ask"
 # Options: "allow", "ask" (approval workflow), "deny"
 
+# v2026.4.29+: restricted profiles no longer widen from tools.exec/tools.fs config alone
+openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
+
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
@@ -366,11 +387,24 @@ openclaw config set agents.defaults.params.fastMode true
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
+# Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
+openclaw config set streaming.mode "progress"
+
+# Visible reply enforcement (v2026.4.29+)
+openclaw config set messages.visibleReplies true
+
+# Thread-bound session spawns (v2026.5.2+; doctor migrates legacy keys)
+openclaw config set threadBindings.spawnSessions true
+
+# Optional inferred follow-up commitments (v2026.4.29+)
+openclaw config set commitments.enabled true
+openclaw config set commitments.maxPerDay 5
+
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-6"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -393,6 +427,9 @@ openclaw config set skills.load.watch true
 openclaw config set plugins.enabled true
 openclaw config set plugins.allow '["voice-call"]'
 openclaw config set plugins.slots.memory "memory-core"
+
+# Bundled file-transfer plugin (v2026.5.3+; default-deny path policy)
+openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '["/approved/path"]'
 ```
 
 ## Health Endpoints (v2026.3.1+)
@@ -466,6 +503,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
+| File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 
