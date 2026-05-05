@@ -65,7 +65,7 @@ Continue with:
 
 ### Fast Track
 
-If the user asks to skip the interview, wants "the simplest setup", or says "just get me started", skip directly to Template A (Personal AI Assistant) using their OS and a sensible default model (Sonnet 4.6 for API users, Ollama for local). Present it with a note that they can re-run `/onboarding` later to customize.
+If the user asks to skip the interview, wants "the simplest setup", or says "just get me started", skip directly to Template A (Personal AI Assistant) using their OS and a sensible default model (Sonnet 4.7 for API users, Ollama for local). Present it with a note that they can re-run `/onboarding` later to customize.
 
 ## Journey Synthesis
 
@@ -129,6 +129,6 @@ When generating the journey, link to the existing plugin documentation:
 
 - If the user gives vague answers ("I don't know"), suggest the most common path (personal assistant on macOS with WhatsApp + Telegram) and note they can adjust later.
 - If the user wants channels not yet documented, note the plugin-based channel and link to OpenClaw docs at https://docs.openclaw.ai/channels.
-- If the user is on a version older than v2026.3.1 (recommended for full feature support; v2026.2.12 is the minimum for security), make **upgrading** Milestone 0 before anything else.
+- If the user is on a version older than v2026.3.1 (minimum safe baseline), make **upgrading** Milestone 0 before anything else; recommend v2026.5.4+ for current stable guidance.
 - If the user describes a use case that doesn't fit the templates, adapt creatively — the templates are starting points, not constraints.
 - If the user provides goals upfront (via argument-hint), skip redundant questions and jump to the relevant round.

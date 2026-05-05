@@ -57,7 +57,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.4` stable note: current stable is published as `v2026.5.4`; `v2026.5.3-1` remains a stable correction version for npm/plugin API range checks.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
@@ -209,6 +209,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions --limit 100  # Limit output rows (v2026.5.4+; use --limit all for full output)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,6 +282,8 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list    # List saved per-agent auth profiles without secrets (v2026.5.4+)
+openclaw models auth list --provider openai --json  # Filter/machine-readable profile inspection
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
@@ -377,7 +380,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +392,12 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Rich Slack Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Debug raw command/detail text in progress drafts (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -470,7 +479,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Discord | Bot API + Gateway; servers, channels, DMs, interactive UI |
 | Google Chat | HTTP webhook integration |
 | iMessage (legacy) | **Deprecated** — use BlueBubbles instead |
-| IRC | Classic server support with pairing/allowlist controls |
+| IRC | Classic server support with pairing/allowlist controls; raw TCP/TLS egress bypasses OpenClaw's managed forward-proxy routing, so approve direct IRC egress explicitly |
 | Signal | signal-cli integration, privacy-focused |
 | Slack | Bolt SDK, Socket Mode, native text streaming |
 | Telegram | Bot API via grammY, group support, streaming, DM topics |

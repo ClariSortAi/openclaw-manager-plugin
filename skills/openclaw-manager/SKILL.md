@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.4+** for the latest official-plugin repair behavior, model-auth/session inspection commands, rich progress streaming, Google Meet/voice-call reliability, Windows gateway fixes, and security hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.4)
 
 These changes affect new and existing installations:
 
@@ -128,6 +128,19 @@ These are operationally important additions and reliability/security fixes in th
 7. **WhatsApp Channel/Newsletter targets** — explicit `@newsletter` outbound targets use channel session metadata instead of DM routing.
 8. **Google Meet and realtime voice reliability** — Meet joins wait for realtime readiness, expose transcripts/status diagnostics, and avoid silently queued audio behind unconfigured sessions.
 9. **2026.5.3-1 npm hotfix** — the core npm package `openclaw@2026.5.3-1` on the beta dist-tag fixes official bundled plugin install-scanner false positives involving distant `process.env` and normal API send references in compiled bundles.
+
+## Notable Additions in v2026.5.4
+
+These are operationally important additions and reliability/security fixes in the latest stable release:
+
+1. **Google Meet/Voice Call realtime bridge** — Twilio dial-in joins now speak through the realtime Gemini voice bridge with paced audio streaming, backpressure-aware buffering, and barge-in queue clearing.
+2. **Model auth inspection** — `openclaw models auth list [--provider <id>] [--json]` lists saved per-agent auth profiles without dumping secrets.
+3. **Richer progress streaming** — `streaming.progress.render: "rich"` enables Slack Block Kit progress drafts, and `agents.defaults.toolProgressDetail: "raw"` exposes raw command/detail output for debugging.
+4. **Session listing bounds** — `openclaw sessions --limit <n|all>` and JSON pagination metadata keep large session stores safe for automation polling.
+5. **Official plugin repair hints** — missing official external plugin config now points operators toward `openclaw plugins install <spec>` and `doctor --fix` repair paths instead of treating valid config as stale.
+6. **External channel SecretRef fixes** — npm-published external channel plugins with compiled `dist/` artifacts (for example Discord) now contribute SecretRef contracts correctly at gateway start.
+7. **Discord and Slack reliability** — status surfaces expose degraded Discord transport/event-loop signals; Slack rich progress drafts, thread participation, and resumed threaded sends are more reliable.
+8. **Windows and browser hardening** — Windows loopback binding, temp paths, host-env command resolution, browser SSRF checks, plugin package-boundary validation, and channel command authorization received additional hardening.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -268,7 +281,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.4+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -394,14 +407,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level
