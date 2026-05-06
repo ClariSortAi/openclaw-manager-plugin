@@ -7,9 +7,11 @@
 openclaw status              # Quick status summary
 openclaw status --all        # Full diagnosis with log tail
 openclaw status --deep       # Health checks with provider probes
+openclaw status              # v2026.5.5+: session rows include selected agent runtime/harness
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --deep       # v2026.5.5+: includes recent supervisor restart handoff details
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
@@ -23,6 +25,7 @@ openclaw gateway restart --wait 60000  # Wait for active work before restarting 
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
+openclaw gateway status --deep          # v2026.5.5+: reports recent supervisor restart handoffs
 ```
 
 ### Configuration
@@ -57,7 +60,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.5` stable note: current stable is published as `v2026.5.5`; `v2026.5.3-1` remains a stable correction version for npm/plugin API range checks.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
@@ -198,6 +201,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.3+` install-safety note: source-only plugin packages are rejected before runtime load. The `v2026.5.3-1` npm hotfix avoids false positives for official bundled plugin packages whose compiled bundles contain distant `process.env` reads and normal API sends.
 
+`v2026.5.5+` update note: official npm and ClawHub plugins keep syncing during host updates even when disabled or previously exact-pinned, stale managed npm-root peer packages are repaired before plugin installs, and SDK peer links are reasserted after shared-root npm operations.
+
 ### Agents
 ```bash
 openclaw agents list         # List configured agents
@@ -209,8 +214,11 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions --limit 100  # Limit output rows (v2026.5.4+; use --limit all for full output)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
+
+`v2026.5.5+` sessions note: terminal session rows show the selected agent runtime, and `openclaw sessions cleanup` also prunes old unreferenced transcript, compaction checkpoint, and trajectory artifacts left outside `sessions.json`.
 
 Session disk budget controls:
 ```bash
@@ -281,6 +289,8 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list    # List saved per-agent auth profiles without secrets (v2026.5.4+)
+openclaw models auth list --provider openai --json  # Filter/machine-readable profile inspection
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
@@ -377,7 +387,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +399,12 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Rich Slack Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Debug raw command/detail text in progress drafts (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -470,7 +486,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Discord | Bot API + Gateway; servers, channels, DMs, interactive UI |
 | Google Chat | HTTP webhook integration |
 | iMessage (legacy) | **Deprecated** — use BlueBubbles instead |
-| IRC | Classic server support with pairing/allowlist controls |
+| IRC | Classic server support with pairing/allowlist controls; raw TCP/TLS egress bypasses OpenClaw's managed forward-proxy routing, so approve direct IRC egress explicitly |
 | Signal | signal-cli integration, privacy-focused |
 | Slack | Bolt SDK, Socket Mode, native text streaming |
 | Telegram | Bot API via grammY, group support, streaming, DM topics |

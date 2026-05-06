@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.5+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.5+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, session cleanup, Codex/model-route repair, and channel/provider reliability improvements, upgrade to **v2026.5.5+**.
 
 ## Common Issues
 
@@ -122,6 +122,19 @@ openclaw gateway restart
 openclaw config set gateway.auth.mode token
 openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
 openclaw gateway restart
+```
+
+#### Windows Gateway localhost requests hang
+**Symptoms:** On Windows/WSL-adjacent setups, the gateway appears bound locally but localhost HTTP requests stall or fail inconsistently.
+
+**Cause:** Builds before v2026.5.4 could bind the default loopback listener through libuv dual-stack `::1` behavior that wedged localhost HTTP requests on Windows.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.4+ and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw gateway status
 ```
 
 ### Authentication Issues
@@ -225,6 +238,16 @@ openclaw secrets reload
 openclaw gateway status
 ```
 
+#### Per-Agent Auth Profiles Are Hard to Inspect
+**Symptoms:** You need to confirm which auth profiles are saved for an agent/provider without exposing token values.
+
+**Fix:**
+```bash
+# v2026.5.4+: list saved auth profile metadata without secrets
+openclaw models auth list
+openclaw models auth list --provider openai --json
+```
+
 ### Channel Issues
 
 #### Slack: missing_scope Error
@@ -262,6 +285,22 @@ openclaw gateway restart
 ```
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
+
+#### LINE: Open DM Policy Fails Validation
+**Symptoms:** LINE webhook DMs stop validating after upgrade when `dmPolicy` is set to `"open"`.
+
+**Cause:** v2026.5.5 rejects `dmPolicy: "open"` without wildcard `allowFrom` so open-DM configs fail loudly instead of acknowledging and silently blocking inbound messages.
+
+**Fix:**
+```bash
+# Prefer pairing or allowlist for production
+openclaw config set plugins.entries.line.config.dmPolicy pairing
+
+# If open DMs are intentional, make the wildcard explicit
+openclaw config set plugins.entries.line.config.allowFrom '["*"]'
+openclaw config validate
+openclaw gateway restart
+```
 
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
@@ -386,6 +425,19 @@ openclaw gateway restart
 ```
 
 If still on v2026.2.24, force restart: `openclaw gateway restart`
+
+#### Discord: Status Looks Healthy But Messages Fail
+**Symptoms:** Discord appears connected, but replies intermittently fail or the channel silently stops handling events.
+
+**Cause:** Builds before v2026.5.4 had fewer degraded transport and event-loop starvation signals in status output, so intermittent socket or REST failures could look healthy.
+
+**Fix:**
+```bash
+# Upgrade for richer Discord transport diagnostics
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw channels status
+openclaw status --deep
+```
 
 #### Teams: Plugin Not Working
 **Symptoms:** Teams channel not available
@@ -537,7 +589,7 @@ openclaw plugins uninstall clawhub:<package>
 #### Official Plugin Install or Update Reports Missing Dependencies
 **Symptoms:** An official plugin is configured but missing on disk, `plugins list --json` reports dependency install problems, or update/doctor keeps revisiting the same plugin.
 
-**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers.
+**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers. v2026.5.4 adds catalog-backed install hints for missing official plugin config and improves `doctor --fix` repair of configured `plugins.allow` references.
 
 **Fix:**
 ```bash
@@ -549,6 +601,21 @@ openclaw plugins deps
 openclaw doctor --fix
 openclaw plugins update --all
 openclaw gateway restart
+```
+
+If the configured external channel uses SecretRefs and still reports `not configured` after install, upgrade to v2026.5.4+ so npm-published plugins with compiled `dist/` artifacts contribute their channel SecretRef contracts at gateway start.
+
+#### Codex Routes or Runtime Stay on Legacy `openai-codex/*`
+**Symptoms:** Primary models, fallbacks, hooks, channel overrides, or stale sessions still reference `openai-codex/*`, or native Codex routing does not select the expected runtime.
+
+**Cause:** v2026.5.5 improves `doctor --fix` repair of legacy Codex routes, mapping them to canonical `openai/*` and selecting `agentRuntime.id: "codex"` only when the Codex plugin is installed, enabled, contributes the harness, and has usable OAuth.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw config validate
+openclaw status --deep
 ```
 
 #### Official Bundled Plugin Install Blocked by Scanner
@@ -582,6 +649,13 @@ openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '
 openclaw config validate
 openclaw gateway restart
 ```
+
+#### Browser Debug/Screenshot Routes Return SSRF Policy Errors
+**Symptoms:** Browser debug, export, screenshot, snapshot, storage, or response-body routes fail on an already-open tab with an SSRF policy error.
+
+**Cause:** v2026.5.4 applies current-tab browser SSRF policy before selected-tab inspection instead of reading first and redacting later.
+
+**Fix:** Treat the denial as expected hardening. Navigate the tab to an approved URL or relax browser/network policy only after explicit operator review.
 
 #### `x_search` Stops Working After Upgrade
 **Symptoms:** xAI web search integration fails or `x_search` settings appear ignored after upgrading to v2026.4.2+.
@@ -860,8 +934,22 @@ openclaw logs | grep -i "sub-agent\|spawn"
 
 ### Session Management Issues (v2026.2.23+)
 
+#### Session Listing Is Slow or Too Large
+**Symptoms:** `openclaw sessions` or automation polling over session lists is slow on long-lived gateways.
+
+**Cause:** Older builds could enrich and print unbounded session rows by default.
+
+**Fix:**
+```bash
+# v2026.5.4+: cap output, or use --limit all intentionally
+openclaw sessions --limit 100
+openclaw sessions --limit 100 --json
+```
+
 #### Disk Space Growing from Sessions
 **Symptoms:** `~/.openclaw/agents/` directory consuming excessive disk
+
+**Cause:** Long-lived or crash-restarted gateways can accumulate orphaned transcript, compaction checkpoint, and trajectory artifacts outside `sessions.json`. v2026.5.5 expands normal cleanup to prune those artifacts.
 
 **Fix:**
 ```bash

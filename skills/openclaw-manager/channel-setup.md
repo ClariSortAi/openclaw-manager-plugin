@@ -94,7 +94,7 @@ openclaw gateway restart
 
 As of v2026.2.17, Slack supports native single-message text streaming. This is enabled by default -- the bot updates a single message in real-time rather than sending multiple messages.
 
-### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24, v2026.3.31-v2026.4.2, and v2026.4.14)
+### Slack Interactive Reply Directives (v2026.3.13+; expanded in v2026.3.24, v2026.3.31-v2026.4.2, v2026.4.14, and v2026.5.4-v2026.5.5)
 
 OpenClaw can apply opt-in interactive reply directives in shared Slack delivery flows. If your automation or plugin emits directive metadata, keep both gateway and plugin components on v2026.3.13+ so responses render as intended.
 As of v2026.3.24 stable, direct-delivery parity is restored and simple trailing `Options:` blocks can auto-render as interactive controls.
@@ -103,6 +103,7 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4-v2026.5.5, Slack progress drafts can render as Block Kit with `streaming.progress.render: "rich"`, resumed parent `message.send` calls keep their originating Slack thread context, successful visible threaded sends record bot thread participation so unmentioned replies in bot-participated threads continue as documented, and Socket Mode reconnect logs preserve structured Slack API error context instead of collapsing to `unknown error`.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -300,6 +301,8 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+As of v2026.5.4, `openclaw channels status` and `openclaw status --deep` include degraded Discord transport and gateway event-loop starvation signals, IPv4 is preferred for REST/WebSocket startup on IPv4-only networks, and failed final reply delivery marks the turn failed instead of incorrectly reporting success.
 
 ---
 
@@ -544,6 +547,7 @@ openclaw gateway restart
 ## IRC (Native)
 
 IRC is supported natively with pairing/allowlist access controls.
+IRC uses raw TCP/TLS sockets outside operator-managed forward proxy routing. Explicitly approve direct IRC egress in your network/security posture before enabling IRC on hosts that otherwise require managed proxy paths.
 
 ### Setup Steps
 
