@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.5+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.5+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, post-compaction tool-loop detection, plugin-declared skills publishing, Docker compose capability hardening, Discord transport-health visibility, and channel/provider reliability improvements, upgrade to **v2026.5.5+**.
 
 ## Common Issues
 
@@ -310,6 +310,42 @@ openclaw config set channels.telegram.botToken "123:abc..."
 openclaw gateway restart
 ```
 
+#### LINE: DMs Stop Reaching Agents After Upgrade
+**Symptoms:** LINE webhook acknowledges messages but DMs no longer reach agents after upgrading to v2026.5.5+.
+
+**Cause:** v2026.5.5 rejects `channels.line.dmPolicy: "open"` configs unless `channels.line.allowFrom` includes the wildcard `"*"`. Webhook DMs that were previously acknowledged and silently blocked now fail validation up front.
+
+**Fix:**
+```bash
+# Inspect current config
+openclaw config get channels.line.dmPolicy
+openclaw config get channels.line.allowFrom
+
+# Either keep open with explicit wildcard
+openclaw config set channels.line.allowFrom '["*"]'
+
+# Or move to a stricter policy
+openclaw config set channels.line.dmPolicy pairing
+
+openclaw config validate
+openclaw gateway restart
+```
+
+#### WhatsApp: Allowlist No Longer Matches After Upgrade
+**Symptoms:** Pairing or allowlist matching fails for senders that previously worked, after upgrading to v2026.5.4+.
+
+**Cause:** v2026.5.4 canonicalizes pairing and allowlist entries to WhatsApp's digit-only phone ids while still accepting E.164, JID, and `whatsapp:` inputs. Older entries that did not match the canonical form may need to be re-saved.
+
+**Fix:**
+```bash
+# Inspect existing allowlist
+openclaw config get channels.whatsapp.allowFrom
+
+# Re-save digits-only or canonical E.164 to canonicalize
+openclaw config set channels.whatsapp.allowFrom '["15551234567"]'
+openclaw gateway restart
+```
+
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
 
@@ -326,6 +362,18 @@ openclaw channels status
 ```
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
+
+#### Telegram: Forum-Topic `requireMention` Setting Ignored
+**Symptoms:** Per-topic `requireMention` configuration is overridden by persisted `/activate` or `/deactivate` state, so mention gating no longer matches the configured value.
+
+**Cause:** Pre-v2026.5.5 builds let persisted topic activation/deactivation state outrank explicit `requireMention` settings.
+
+**Fix:**
+```bash
+# Upgrade to current stable so explicit per-topic requireMention overrides persisted state
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
 
 #### Telegram Forum Topics Show Numeric IDs Instead of Human Names
 **Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.
@@ -371,6 +419,39 @@ uname -s  # Must be "Darwin"
 # Enable and restart
 openclaw config set channels.imessage.enabled true
 openclaw gateway restart
+```
+
+#### Discord: Channel Reports Healthy But Replies Are Slow or Missing
+**Symptoms:** Discord channel looks "running" in status, but message latency spikes, replies fail intermittently, or the bot momentarily drops without flipping to a hard error.
+
+**Cause:** v2026.5.4 added degraded transport and gateway event-loop starvation signals to channel status; older builds reported the channel as healthy even during socket resets.
+
+**Fix:**
+```bash
+# Inspect transport-health and event-loop signals
+openclaw channels status
+openclaw status --deep
+
+# Upgrade to current stable to get the new signals
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+In v2026.5.4+ Discord prefers IPv4 for REST and gateway WebSocket startup paths to avoid stalls on IPv4-only networks; v2026.5.5+ measures heartbeat ACK timeouts from the actual heartbeat send, so late initial heartbeats no longer trigger false reconnect loops.
+
+#### Discord: `/steer` or Other Plain-Text Control Commands Are Ignored
+**Symptoms:** Plain-text control commands such as `/steer` are dropped before any agent session can see them.
+
+**Cause:** Older builds silently dropped non-mention plain-text control commands in guild contexts. v2026.5.5 routes them through the normal authorization and mention gate.
+
+**Fix:**
+```bash
+# Upgrade and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Confirm allowFrom/owner expectations match expected senders
+openclaw config get channels.discord.guildAllowlist
 ```
 
 #### Discord: WebSocket Disconnects (Fixed in v2026.3.1)
@@ -667,6 +748,28 @@ openclaw doctor --fix
 openclaw status
 ```
 
+### Tool Loop / Compaction Issues (v2026.5.4+)
+
+#### Agent Hits the Same Tool Call Repeatedly After Compaction
+**Symptoms:** A run is aborted with `compaction_loop_persisted`, or you observe an agent emitting the same `(tool, args, result)` triple repeatedly after auto-compaction-retry.
+
+**Cause:** v2026.5.4 added a post-compaction loop guard in `pi-embedded-runner` that arms after auto-compaction-retry and aborts when the same `(tool, args, result)` triple repeats `windowSize` times within that window (default 3). This is intentional protection against context-overflow + compaction failing to break a tool-call loop.
+
+**Fix:**
+```bash
+# Default behavior (recommended). Tune only if needed.
+openclaw config get tools.loopDetection.enabled
+openclaw config get tools.loopDetection.postCompactionGuard.windowSize
+
+# Increase the window if a legitimate workflow naturally repeats the same triple
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 5
+
+# Disable only as a last resort
+openclaw config set tools.loopDetection.enabled false
+```
+
+If you see the abort, prefer fixing the underlying tool-call loop in the agent flow over disabling the guard.
+
 ### Skill Issues
 
 #### Repeated `Tool <name> not found` Loops After Skills Config Changes
@@ -714,6 +817,23 @@ openclaw skills search <query>
 openclaw skills install <skill-slug>
 openclaw skills update --all
 ```
+
+#### Plugin-Declared Skills Not Discovered by Agent File Walks
+**Symptoms:** A plugin declares one or more skills, but agent file-based discovery does not find their `SKILL.md` entries even though the plugin is installed and enabled.
+
+**Cause:** v2026.5.4-v2026.5.5 publishes plugin-declared skills through `~/.openclaw/plugin-skills/` so file-based discovery can find plugin `SKILL.md` files; older builds only loaded skill prompts directly without exposing them to file-walk discovery.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and re-check published plugin skills
+openclaw gateway restart
+ls ~/.openclaw/plugin-skills/
+```
+
+Inactive plugin links are cleaned up automatically; if a stale entry remains after disabling the plugin, run `openclaw doctor --fix`.
 
 #### `openclaw skills update` Fails with `Invalid skill slug`
 **Symptoms:** Updates fail on older installed skills with `Invalid skill slug` errors.
@@ -1046,6 +1166,25 @@ openclaw gateway restart
 # Verify configured model id
 openclaw config get agents.defaults.model
 ```
+
+### Codex Auth/Route Issues (v2026.5.4-v2026.5.5)
+
+#### Legacy `openai-codex/*` Models Pinned in Sessions or Channel Overrides
+**Symptoms:** After upgrade, Codex chats route through stale `openai-codex/*` ids in primary models, fallbacks, heartbeat/subagent/compaction overrides, hooks, channel overrides, or session pins.
+
+**Cause:** v2026.5.5 redirects active OpenAI/Codex use to canonical `openai/*` ids and selects `agentRuntime.id: "codex"` only when the Codex plugin is installed/enabled with usable OAuth.
+
+**Fix:**
+```bash
+# Run the Codex route repair migration
+openclaw doctor --fix
+
+# Verify routes
+openclaw config get agents.defaults.model
+openclaw config get agents.defaults.fallback
+```
+
+If Codex OAuth is missing or revoked, doctor selects `agentRuntime.id: "pi"`; sign back in (`openclaw models auth setup-token --provider openai-codex`) only when the Codex plugin is installed and enabled and you want native Codex runtime.
 
 ### Plugin SDK Breaking Change (v2026.3.2)
 

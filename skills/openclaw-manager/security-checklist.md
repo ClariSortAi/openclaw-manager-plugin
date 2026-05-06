@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.5+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,20 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Unbound WebSocket auth scope clamping | Shared-token WebSocket connects with unbound or self-declared scopes are clamped to approved scope baselines so clients cannot expand effective privileges through scope claims | v2026.5.4 |
+| Pair command requires pairing scope | The `pair` command path now requires an explicit pairing scope so callers without that scope cannot drive pairing decisions | v2026.5.4 |
+| QQBot framework command surface scoping | Private QQBot framework commands and `/bot-*` handlers stay scoped to the QQBot channel and do not leak to unrelated chat surfaces; framework command authorization decisions are preserved end-to-end | v2026.5.4 |
+| Backend message action gateway routing hardening | Hardens backend message action routing through the gateway so model-facing message actions cannot bypass channel routing/authorization checks | v2026.5.4 |
+| WhatsApp pairing/allowlist canonicalization | Pairing allowlist entries are canonicalized to digit-only WhatsApp phone ids while still accepting E.164/JID/`whatsapp:` inputs, preventing accidental allowlist mismatches against real WhatsApp Web sender ids | v2026.5.4 |
+| Browser SSRF current-tab policy expansion | Tab-scoped debug, export, and read routes (console, page errors, network requests, trace start/stop, response body, screenshot, snapshot, storage) enforce the existing-session SSRF current-URL policy before reading the active tab | v2026.5.4 |
+| Windows install-root validation expansion | `SystemRoot`/`WINDIR` env values flow through the Windows install-root validator and dangerous-host-env policy when resolving `icacls.exe`, `whoami.exe`, `reg.exe`, and `cmd.exe`; workspace `.env` and bare-name commands cannot redirect Windows ACL/registry helpers | v2026.5.4 |
+| Workspace `.env` LOCALAPPDATA isolation | `LOCALAPPDATA` is blocked from workspace `.env` and Windows update-flow portable Git path prepends resolve from the trusted process-local `LOCALAPPDATA` only, preventing workspace-supplied values from redirecting `git` discovery during `openclaw update` | v2026.5.4 |
+| Direct APNs proxy enforcement | Direct HTTP/2 APNs delivery is routed through the active managed proxy with redacted diagnostics; `openclaw proxy validate --apns-reachable` proves APNs is reachable through the proxy before deployment | v2026.5.4 |
+| Debug proxy direct-upstream block | Debug proxy direct upstream forwarding (and CONNECT tunnels) is disabled while managed proxy mode is active unless `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY=1` is explicitly set for approved local diagnostics | v2026.5.4 |
+| Docker compose capability hardening | Bundled `docker-compose.yml` drops `NET_RAW` and `NET_ADMIN` capabilities and enables `no-new-privileges` for the gateway container | v2026.5.5 |
+| Visible reply leakage prevention | Reasoning text is stripped from visible rich presentation titles, blocks, buttons, and select labels before message-tool sends so structured channel payloads cannot leak hidden planning | v2026.5.4 |
+| LINE open DM policy validation | `channels.line.dmPolicy: "open"` is rejected unless `allowFrom` includes the wildcard `"*"`, surfacing previously silent webhook DM blocks as up-front validation failures | v2026.5.5 |
+| Codex command/output sanitization | Malformed `/codex` control commands fail closed before changing bindings, permissions, model overrides, active turns, or feedback uploads; Codex app-server command readouts, failure replies, approval prompts, elicitation prompts, and `request_user_input` text are sanitized before posting back into chat | v2026.5.4 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +422,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.5+ for latest plugin install/update, file-transfer, config fail-closed, post-compaction tool-loop guard, plugin-declared skills publishing, Docker compose capability hardening, WebSocket auth scope clamping, and channel reliability hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -424,6 +438,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] If installing/updating official plugins on the beta npm channel, prefer the `2026.5.3-1` core npm hotfix when install scans flag distant `process.env` / API-send references in compiled bundled-plugin packages
+- [ ] If LINE channels run `dmPolicy: "open"`, confirm `channels.line.allowFrom` includes the wildcard `"*"` (v2026.5.5+ rejects open without it)
+- [ ] If WhatsApp `allowFrom` entries pre-date v2026.5.4, re-save them so they canonicalize to digit-only WhatsApp ids and match real sender ids
+- [ ] If using shared-token WebSocket connects, confirm declared scopes are within approved baselines (v2026.5.4 clamps unbound/self-declared scopes)
+- [ ] If running the bundled Docker compose, verify the `NET_RAW`/`NET_ADMIN` drop and `no-new-privileges` settings are present (v2026.5.5)
+- [ ] If Direct APNs is in use, run `openclaw proxy validate --apns-reachable` to confirm APNs flows through the managed proxy (v2026.5.4+)
+- [ ] If running on Windows, confirm workspace `.env` cannot override `SystemRoot`/`WINDIR`/`LOCALAPPDATA` (v2026.5.4 hardening expects trusted process-local values for ACL/registry/`cmd.exe`/`git` resolution)
+- [ ] Tool loop detection enabled: confirm `tools.loopDetection.enabled` (default true in v2026.5.4+) and tune `tools.loopDetection.postCompactionGuard.windowSize` only if needed
 - [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
@@ -582,7 +603,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.5+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

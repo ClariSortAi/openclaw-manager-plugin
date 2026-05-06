@@ -208,9 +208,13 @@ openclaw agents set-identity <id>  # Update agent identity
 
 ### Session Management (v2026.2.23+)
 ```bash
-openclaw sessions list         # List active sessions
-openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
+openclaw sessions list                   # List active sessions
+openclaw sessions list --limit 50        # Show 50 newest rows (v2026.5.4+; default cap is 100)
+openclaw sessions list --limit all       # Disable the default cap and emit pagination metadata in JSON
+openclaw sessions cleanup                # Clean up old sessions (respects disk budget)
 ```
+
+`v2026.5.4+` sessions note: `openclaw sessions` is bounded to the newest 100 rows by default with explicit `--limit <n|all>` pagination and JSON pagination metadata, preventing unbounded fan-out on large stores. The session table also surfaces the selected agent runtime/harness so terminal output matches `/status` and JSON surfaces.
 
 Session disk budget controls:
 ```bash
@@ -248,7 +252,8 @@ openclaw secrets audit           # Audit all SecretRef targets
 
 ### Proxy Validation (v2026.5.2+)
 ```bash
-openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate                     # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate --apns-reachable    # Confirm Direct APNs is reachable through the configured managed proxy (v2026.5.4+)
 ```
 
 ### Webhooks
@@ -284,6 +289,8 @@ openclaw models auth         # Configure model auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth list                                  # List saved per-agent auth profiles without dumping secrets (v2026.5.4+)
+openclaw models auth list --provider anthropic --json      # Filter by provider with machine-readable output (v2026.5.4+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -389,6 +396,26 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Slack rich (Block Kit) progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Hide raw command/exec text in preview/progress lines (v2026.5.4+)
+openclaw config set streaming.preview.commandText "status"
+openclaw config set streaming.progress.commandText "status"
+
+# Tool-progress detail in /verbose and progress drafts (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
+# Default is compact explain-mode; "raw" emits raw command/detail output
+
+# Post-compaction tool-loop guard (v2026.5.4+)
+openclaw config set tools.loopDetection.enabled true
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 3
+# Aborts a run with `compaction_loop_persisted` if the same (tool, args, result) triple repeats windowSize times after auto-compaction-retry
+
+# Bundled provider discovery compatibility (v2026.5.4+; restrictive plugins.allow handling)
+openclaw config set plugins.bundledDiscovery "compat"
+# `openclaw doctor --fix` migrates legacy restrictive allowlist configs automatically
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true

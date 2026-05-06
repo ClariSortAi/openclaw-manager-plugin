@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.5+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, post-compaction tool loop detection, plugin-declared skills publishing, Docker compose capability hardening, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.5)
 
 These changes affect new and existing installations:
 
@@ -64,6 +64,33 @@ These changes affect new and existing installations:
 22. **Thread-spawn config keys migrated** (v2026.5.2) — legacy split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
 23. **Invalid config fails closed** (v2026.5.3) — Gateway startup and hot reload no longer auto-restore invalid config; use `openclaw config validate` and `openclaw doctor --fix` for last-known-good repair.
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
+25. **LINE `dmPolicy: "open"` requires wildcard `allowFrom`** (v2026.5.5) — LINE rejects open DM configs unless `channels.line.allowFrom` includes `"*"`; webhook DMs that previously failed silently after acknowledgement now fail validation up front.
+26. **WhatsApp pairing/allowlist canonicalization** (v2026.5.4) — onboarding and pairing allowlist entries are canonicalized to WhatsApp's digit-only phone ids while still accepting E.164, JID, and `whatsapp:` inputs; mismatched stored allowlist entries from older configs may need re-saving.
+27. **Restrictive `plugins.allow` defaults** (v2026.5.4) — bundled provider discovery now honors restrictive `plugins.allow` by default for new configs; legacy restrictive allowlist configs are migrated to `plugins.bundledDiscovery: "compat"` by `openclaw doctor --fix` to preserve upgrade behavior.
+28. **`openai-codex/*` model routes are repaired to canonical `openai/*`** (v2026.5.5) — `openclaw doctor --fix` rewrites legacy `openai-codex/*` routes in primary models, fallbacks, heartbeat/subagent/compaction overrides, hooks, channel overrides, and stale session pins to canonical `openai/*`, choosing `agentRuntime.id: "codex"` only when the Codex plugin is installed/enabled with usable OAuth, otherwise `agentRuntime.id: "pi"`.
+
+## Notable Additions in v2026.5.4-v2026.5.5
+
+These are the most operationally important additions in the latest stable line:
+
+1. **`openclaw models auth list [--provider <id>] [--json]`** (v2026.5.4) — inspect saved per-agent auth profiles without dumping secrets.
+2. **`openclaw sessions --limit <n|all>`** (v2026.5.4) — bound `openclaw sessions` output to the newest 100 rows by default with explicit pagination and JSON metadata; protects gateways from unbounded session-list fan-out.
+3. **`openclaw proxy validate --apns-reachable`** (v2026.5.4) — verify Direct APNs is reachable through the configured managed proxy before deployment.
+4. **Post-compaction tool loop guard** (v2026.5.4) — `tools.loopDetection.enabled` and `tools.loopDetection.postCompactionGuard.windowSize` (default 3) abort runs that emit the same `(tool, args, result)` triple repeatedly after auto-compaction-retry, breaking compaction-driven tool loops.
+5. **Compact tool-progress detail control** (v2026.5.4) — `agents.defaults.toolProgressDetail: "raw"` (or per-agent override) restores raw command/detail output in `/verbose` and progress drafts; default is now compact explain-mode.
+6. **Streaming command-text suppression** (v2026.5.4) — `streaming.preview.commandText: "status"` and `streaming.progress.commandText: "status"` hide raw command text in preview/progress lines while keeping status visible.
+7. **Slack rich progress drafts** (v2026.5.4) — `streaming.progress.render: "rich"` renders structured Block Kit progress drafts from progress-line data.
+8. **Discord transport-health signals** (v2026.5.4) — `openclaw channels status` and `openclaw status --deep` now expose degraded Discord transport and gateway event-loop starvation signals so intermittent socket resets do not look like a healthy channel.
+9. **iOS pairing supports private LAN `ws://`** (v2026.5.5) — setup-code and manual `ws://` connects are accepted for `.local` and private LAN gateways while Tailscale/public routes stay on `wss://`; the iOS Settings screen can scan QR codes or paste full setup-code messages.
+10. **Plugin-declared skills directory** (v2026.5.4-v2026.5.5) — plugin-declared skills are published through `~/.openclaw/plugin-skills/` so agent file-based discovery picks up plugin `SKILL.md` files; inactive plugin links are cleaned up automatically.
+11. **Docker compose capability hardening** (v2026.5.5) — bundled `docker-compose.yml` drops `NET_RAW` and `NET_ADMIN` capabilities and enables `no-new-privileges`.
+12. **Slack streaming progress polish** (v2026.5.4-v2026.5.5) — Block Kit rich progress drafts trim newest-first, channels cap progress-draft tool lines, Discord/Telegram/Matrix/Slack/Teams progress drafts honor `toolProgressDetail: "raw"` for debugging.
+13. **Discord live reasoning text** (v2026.5.5) — Discord progress drafts show live reasoning text instead of a bare `Reasoning` status line.
+14. **Discord IPv4 startup preference** (v2026.5.4) — Discord REST and gateway WebSocket startup paths prefer IPv4 to avoid stalls on IPv4-only networks.
+15. **`/status` runtime visibility** (v2026.5.5) — `openclaw status` rows and `/status` chat command now show the selected agent runtime/harness plus compact Gateway process and host system uptime.
+16. **Sandbox per-runtime registry shards** (v2026.5.4) — sandbox container/browser registry entries are stored per-runtime; `openclaw doctor --fix` migrates legacy monolithic registry files.
+17. **Plugin SDK `before_agent_finalize` retry** (v2026.5.4) — workflow plugins can request one bounded extra model pass; SDK additions include `registerIfAbsent` for atomic keyed-store dedupe and plugin-owned `SessionEntry` slot projection.
+18. **Doctor Codex auth/route repair** (v2026.5.4-v2026.5.5) — `openclaw doctor --fix` rewrites legacy `openai-codex/*` routes to canonical `openai/*`, repairs missing plugin-local `openclaw` peer links, restores legacy group-chat config migrations (`routing.allowFrom`, `routing.groupChat.*`, `channels.telegram.requireMention`), and clears stale session routing state where plugin-owned bindings are outside the configured route.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -261,6 +288,7 @@ openclaw health
 | `~/.openclaw/credentials/` | Channel credentials |
 | `~/.openclaw/workspace/` | Agent workspace |
 | `~/.openclaw/skills/` | Installed skills (from ClawHub) |
+| `~/.openclaw/plugin-skills/` | Plugin-declared skills published by enabled plugins (v2026.5.4-v2026.5.5) |
 | `~/.openclaw/extensions/` | Installed plugins |
 | `~/.openclaw/secrets.json` | SecretRef credential store |
 | `/tmp/openclaw/` | Log files |
@@ -268,7 +296,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.5+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
