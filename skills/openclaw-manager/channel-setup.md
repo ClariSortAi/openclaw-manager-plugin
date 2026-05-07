@@ -103,6 +103,7 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4, `streaming.progress.render: "rich"` enables Block Kit progress drafts backed by structured progress line data, and the newest rich progress lines are kept when Block Kit limits trim long progress drafts. Slack Socket Mode reconnect logs preserve SDK error context and structured Slack API fields so startup failures no longer collapse to a bare `unknown error` (v2026.5.5).
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -169,6 +170,7 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
+`v2026.5.4+` allowlist note: setup and pairing allowlist entries are canonicalized to WhatsApp's digit-only phone IDs while still accepting E.164, JID, and `whatsapp:` inputs, so personal-phone allowlists match WhatsApp Web sender IDs after setup. Login QR output is also routed through the active runtime so `openclaw channels login --channel whatsapp` does not lose the QR behind direct stdout writes.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -234,6 +236,7 @@ openclaw gateway restart
 
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
+In v2026.5.4+, the active streaming preview is reused as the first chunk for long text finals (no transient extra bubble), shared interactive reply buttons render in reply delivery so plugin approval messages show inline keyboards, and the agent message tool accepts plugin-owned numeric forum-topic targets.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -300,6 +303,14 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Reliability (v2026.5.4-v2026.5.5)
+
+- **IPv4 preference (v2026.5.4):** Discord REST and gateway WebSocket startup paths prefer IPv4 so IPv4-only networks no longer stall before READY.
+- **Transport visibility (v2026.5.4):** degraded Discord transport and gateway event-loop starvation signals now appear in `openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs so intermittent socket resets are not mistaken for a healthy channel.
+- **Heartbeat ACK timing (v2026.5.5):** heartbeat ACK timeouts are measured from the actual heartbeat send, preventing late initial heartbeats from triggering false reconnect loops while the channel is still awaiting readiness.
+- **Plain-text control commands (v2026.5.5):** `/steer` and similar plain-text control commands route through the normal authorization and mention gate in guild channels instead of being silently dropped.
+- **Reasoning visibility (v2026.5.5):** Discord progress drafts now show live reasoning text instead of a bare `Reasoning` status line.
 
 ---
 
@@ -589,6 +600,8 @@ openclaw plugins install @openclaw/line
 openclaw plugins info line
 openclaw gateway restart
 ```
+
+`v2026.5.5+` validation note: `dmPolicy: "open"` configs without wildcard `allowFrom` (i.e. without `["*"]`) now fail validation instead of being acknowledged and silently blocked before inbound processing. Either set `allowFrom: ["*"]` to truly opt into open access (not recommended) or pick a more restrictive `dmPolicy` such as `pairing` or `allowlist`.
 
 ---
 

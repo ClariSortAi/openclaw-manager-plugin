@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.6+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,15 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Browser SSRF on tab-scoped routes | Strict current-tab URL navigation policy is enforced before tab-scoped debug, export, and read routes (console, page errors, network requests, trace start/stop, response body, screenshot, snapshot, storage) collect from an already-selected tab, so blocked tabs return a policy error instead of being read first and redacted only at response time | v2026.5.4 |
+| WebSocket scope clamp | Unbound websocket auth scopes are clamped so client-declared scope expansions cannot persist | v2026.5.4 |
+| Pair command pairing-scope tightening | The pair command requires explicit pairing scope so generic auth tokens cannot drive device pairing | v2026.5.4 |
+| Windows install-root and env hardening | Validates `SystemRoot`/`WINDIR` env values through the Windows install-root validator before resolving Windows ACL helpers, blocks `LOCALAPPDATA` overrides during portable Git path resolution in `openclaw update`, and routes the `.cmd`/`.bat` process wrapper through the shared Windows install-root resolver instead of `process.env.ComSpec` so workspace `.env` values cannot redirect `cmd.exe` selection (UNC/path-list values, attacker-controlled binaries) | v2026.5.4 |
+| QQBot framework command auth | Preserves the framework command authorization decision when converting framework command contexts into engine slash command contexts so downstream slash handlers see the actual `commandAuthorized` instead of a hardcoded `true` | v2026.5.4 |
+| Bundled `docker-compose.yml` capability hardening | Drops `NET_RAW`/`NET_ADMIN` capabilities and enables `no-new-privileges` on the gateway container | v2026.5.5 |
+| `OPENCLAW_GATEWAY_TOKEN` shadow detection | `openclaw doctor` warns when the env token would shadow a different active `gateway.auth.token` source for local CLI commands, while avoiding false positives when config and env point at the same token | v2026.5.5 |
+| Plugin runtime fetch hardening | Drops third-party symbol metadata from plain request header dictionaries before passing them into native `fetch`/`Headers`, so SDK and guarded/proxy fetch paths do not reject otherwise valid plugin requests; web-fetch dispatcher cleanup is bounded after request timeouts so timed-out fetches return tool errors instead of leaving Gateway tool lanes active | v2026.5.6 |
+| iOS pairing transport restrictions | Rejects non-loopback `ws://` setup URLs before QR/setup-code issuance; private LAN and `.local` gateways may use `ws://`, but Tailscale/public routes stay on `wss://` | v2026.5.4-v2026.5.5 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +417,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.6+ for latest Codex OAuth route revert, plugin runtime fetch fixes, web-fetch dispatcher cleanup, bundled `docker-compose.yml` capability hardening, and `--deep` doctor/status surfaces)
+- [ ] If on v2026.5.5, verify Codex OAuth routing was not silently rewritten (`openclaw config get agents.defaults.model`); recover with `openclaw models set openai-codex/gpt-5.5 && openclaw config validate` if `doctor --fix` already moved the default to `openai/*`
+- [ ] If using bundled `docker-compose.yml`, confirm `cap_drop: [NET_RAW, NET_ADMIN]` and `security_opt: [no-new-privileges:true]` are present after upgrading to v2026.5.5+
+- [ ] If `OPENCLAW_GATEWAY_TOKEN` is set, confirm it matches `gateway.auth.token` source so `openclaw doctor` does not flag it as shadowing a different active token (v2026.5.5+)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -582,7 +594,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.6+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

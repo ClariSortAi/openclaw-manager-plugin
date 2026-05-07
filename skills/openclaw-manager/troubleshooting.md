@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.6+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.6+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.6+**.
 
 ## Common Issues
 
@@ -183,6 +183,27 @@ openclaw status --deep
 ```
 
 **Note:** This is not a bug -- Anthropic blocked OAuth access for OpenClaw as a policy decision. The only supported method is direct API keys.
+
+#### Codex OAuth Route Was Rewritten After Running `doctor --fix` on v2026.5.5
+**Symptoms:** After running `openclaw doctor --fix` on v2026.5.5, the default agent's model changed from `openai-codex/gpt-5.5` (or another `openai-codex/*` route) to `openai/*`, and OAuth-only ChatGPT/Codex setups fail or are silently moved onto the OpenAI API-key route.
+
+**Cause:** v2026.5.5 introduced a `doctor --fix` repair that rewrote valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`. v2026.5.6 reverts that repair.
+
+**Fix:**
+```bash
+# Upgrade past the buggy repair
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restore the Codex OAuth PI route
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+
+# Confirm the default agent is back on the Codex OAuth route
+openclaw config get agents.defaults.model
+openclaw status --deep
+```
+
+Recovery docs upstream: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
 
 #### OAuth Token Refresh Failed (Non-Anthropic Providers)
 **Symptoms:** Token expired errors for non-Anthropic providers
@@ -373,6 +394,31 @@ openclaw config set channels.imessage.enabled true
 openclaw gateway restart
 ```
 
+#### Discord: False Reconnect Loops or Late Initial Heartbeat (Fixed in v2026.5.5)
+**Symptoms:** Discord channel keeps reconnecting shortly after startup, even though normal traffic appears healthy; logs show heartbeat ACK timeouts firing while the channel is still awaiting readiness.
+
+**Cause:** Older builds measured the heartbeat ACK timeout from the heartbeat schedule rather than the actual heartbeat send. v2026.5.5 measures it from the actual send, preventing late initial heartbeats from triggering false reconnect loops.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status
+openclaw status --deep   # Surfaces degraded Discord transport / event-loop starvation signals (v2026.5.4+)
+```
+
+#### Discord: `/steer` and Plain-Text Control Commands Are Ignored in Guild Channels
+**Symptoms:** `/steer` (and similar plain-text control commands) silently does nothing in Discord guild channels even though the agent is otherwise responsive.
+
+**Cause:** Pre-v2026.5.5 builds dropped plain-text control commands before the agent session could see them.
+
+**Fix:**
+```bash
+# Upgrade and restart so /steer routes through the normal authorization and mention gate
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
 #### Discord: WebSocket Disconnects (Fixed in v2026.3.1)
 **Symptoms:** Bot goes offline for 30+ minutes, WebSocket error 1005 or 1006 in logs
 
@@ -526,7 +572,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.6+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -765,7 +811,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.6+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -818,6 +864,81 @@ openclaw cron runs
 
 #### Cron Webhook SSRF (Security)
 **Note:** CVE-2026-27488 (patched in v2026.2.19) allowed cron webhook targets to reach private/internal endpoints. Ensure you are on v2026.2.19+ if using cron webhooks.
+
+### Provider-Specific Reasoning Issues
+
+#### xAI Grok-4.3 Fails with `Invalid reasoning effort`
+**Symptoms:** Live runs against `xai/grok-4.3` (or other native Grok Responses models) fail with provider-side `Invalid reasoning effort` errors.
+
+**Cause:** Older builds sent OpenAI-style reasoning-effort controls to native Grok Responses models, which reject that format. v2026.5.5 stops sending those controls and clamps the bundled xAI thinking profile to `off`.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw config get agents.defaults.params.thinkingLevel
+# If a higher level is configured for xAI agents, override per-agent rather than relying on the global default
+```
+
+#### Fireworks Kimi (K2.5/K2.6) Rejects Thinking Parameters
+**Symptoms:** Manual model switches to Kimi on Fireworks fail with `reasoning*`-parameter errors.
+
+**Cause:** Kimi on Fireworks is exposed as thinking-off-only in v2026.5.5+; K2.5/K2.6 requests stay on `thinking: disabled`.
+
+**Fix:**
+```bash
+# Upgrade so Control UI/`/think` pickers respect provider policy
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+### Tool-Loop Issues
+
+#### Run Aborts with `compaction_loop_persisted`
+**Symptoms:** A long-running session aborts with `compaction_loop_persisted` after auto-compaction-retry, even though the model is otherwise responsive.
+
+**Cause:** v2026.5.4 added a post-compaction loop guard in `pi-embedded-runner` that arms after auto-compaction-retry and aborts the run when the agent emits the same `(tool, args, result)` triple `windowSize` times (default 3) within that window. This targets the failure mode where context-overflow plus compaction does not break a tool-call loop.
+
+**Fix:**
+```bash
+# Tune the window if the default is too aggressive for your workload
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 5
+
+# Or disable loop detection entirely if it causes false positives
+openclaw config set tools.loopDetection.enabled false
+```
+
+### Session and Status Output Issues
+
+#### `openclaw sessions` Output Was Truncated to 100 Rows After Upgrade
+**Symptoms:** Machine polling or operator reviews that previously enumerated every session row now stop at the newest 100.
+
+**Cause:** v2026.5.4 capped default `openclaw sessions` output to the newest 100 rows and added JSON pagination metadata so repeated polling of large session stores cannot fan out into unbounded per-row enrichment work.
+
+**Fix:**
+```bash
+# Raise or remove the cap explicitly when needed
+openclaw sessions list --limit 500
+openclaw sessions list --limit all
+
+# JSON output reports the truncation/pagination state explicitly
+openclaw sessions list --json
+```
+
+#### `OPENCLAW_GATEWAY_TOKEN` Warning From `openclaw doctor`
+**Symptoms:** `openclaw doctor` warns that `OPENCLAW_GATEWAY_TOKEN` would shadow a different active `gateway.auth.token` source for local CLI commands.
+
+**Cause:** v2026.5.5 added a check that flags the env token when it does not match the active configured `gateway.auth.token` source. False positives are avoided when config and env point at the same token.
+
+**Fix:**
+```bash
+# Either align the env token with config
+openclaw config get gateway.auth.token
+
+# Or unset the env override if it is no longer needed for local CLI commands
+unset OPENCLAW_GATEWAY_TOKEN
+openclaw doctor
+```
 
 ### Sub-Agent Issues (v2026.2.17+)
 

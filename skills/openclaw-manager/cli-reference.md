@@ -10,6 +10,7 @@ openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --deep       # Guided diagnostics including recent supervisor restart handoffs (v2026.5.5+)
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
@@ -23,6 +24,7 @@ openclaw gateway restart --wait 60000  # Wait for active work before restarting 
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
+openclaw gateway status --deep         # Include recent supervisor restart handoffs (with JSON details) so clean service-managed restarts are visible (v2026.5.5+)
 ```
 
 ### Configuration
@@ -208,8 +210,10 @@ openclaw agents set-identity <id>  # Update agent identity
 
 ### Session Management (v2026.2.23+)
 ```bash
-openclaw sessions list         # List active sessions
-openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
+openclaw sessions list         # List active sessions (v2026.5.4+: capped at newest 100 rows by default)
+openclaw sessions list --limit 500    # Raise pagination cap (accepts a number or `all`) (v2026.5.4+)
+openclaw sessions list --json         # JSON output includes pagination/truncation metadata (v2026.5.4+)
+openclaw sessions cleanup      # Clean up old sessions (v2026.5.4+: also prunes orphaned transcript, compaction checkpoint, and trajectory artifacts outside `sessions.json`)
 ```
 
 Session disk budget controls:
@@ -248,7 +252,8 @@ openclaw secrets audit           # Audit all SecretRef targets
 
 ### Proxy Validation (v2026.5.2+)
 ```bash
-openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate                   # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate --apns-reachable  # Prove APNs is reachable through the configured managed proxy (v2026.5.4+)
 ```
 
 ### Webhooks
@@ -281,10 +286,15 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list                              # List saved per-agent auth profiles without dumping secrets (v2026.5.4+)
+openclaw models auth list --provider anthropic --json  # Filter by provider and emit machine-readable output (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models set openai-codex/gpt-5.5                   # Recover Codex OAuth route after v2026.5.5 doctor regression; reverted in v2026.5.6
 ```
+
+After running `openclaw models set ...` for the Codex recovery above, run `openclaw config validate` to confirm the default agent is back on the Codex OAuth PI route.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -389,6 +399,22 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Rich Block Kit progress drafts on Slack (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Hide raw command/exec text in preview/progress lines (v2026.5.4+)
+openclaw config set streaming.preview.commandText "status"
+openclaw config set streaming.progress.commandText "status"
+
+# Tool progress detail (v2026.5.4+; default is compact explain-mode summaries)
+openclaw config set agents.defaults.toolProgressDetail "raw"
+
+# Post-compaction tool-loop guard window (v2026.5.4+; default 3)
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 3
+
+# Disable loop detection entirely if it causes false positives
+openclaw config set tools.loopDetection.enabled false
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true

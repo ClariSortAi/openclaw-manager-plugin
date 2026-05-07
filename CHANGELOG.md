@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.5.4`, `v2026.5.5`, and `v2026.5.6`, including new `openclaw models auth list` CLI surface, `--deep` flags for `openclaw doctor` and `openclaw gateway status`, `openclaw sessions --limit` pagination, `openclaw proxy validate --apns-reachable`, expanded `streaming.progress.render` and `agents.defaults.toolProgressDetail` config coverage, and the `tools.loopDetection.postCompactionGuard` knob.
+- Added critical post-upgrade troubleshooting and recovery guidance for the `v2026.5.5` Codex OAuth route regression that rewrote valid `openai-codex/*` routes to `openai/*`, including the `v2026.5.6` revert and the operator recovery command (`openclaw models set openai-codex/gpt-5.5 && openclaw config validate`).
+- Added channel notes for `v2026.5.4` Discord IPv4-preferred REST/gateway startup and degraded-transport signals exposed in `openclaw channels status` / `openclaw status --deep`, Telegram interactive reply button rendering, Slack rich Block Kit progress drafts (`streaming.progress.render: "rich"`), WhatsApp onboarding phone-allowlist canonicalization, and the `v2026.5.5` LINE `dmPolicy: "open"` validation tightening.
+- Added security-checklist coverage for `v2026.5.5` bundled `docker-compose.yml` hardening (drops `NET_RAW`/`NET_ADMIN`, enables `no-new-privileges`), `OPENCLAW_GATEWAY_TOKEN` shadow detection in `openclaw doctor`, browser SSRF enforcement on tab-scoped debug/export/read routes, websocket scope-clamp and pair-command pairing-scope tightening, and Windows install-root hardening for `SystemRoot`/`WINDIR`/`LOCALAPPDATA` overrides and `.cmd`/`.bat` wrapper resolution.
+- Added troubleshooting coverage for xAI Grok Responses model rejection of OpenAI-style reasoning-effort, Discord heartbeat ACK false reconnect loops fixed in `v2026.5.5`, Fireworks Kimi thinking-disabled requirements, post-compaction tool-loop guard (`compaction_loop_persisted`), Codex `/codex bind` rebind recovery, and `openclaw sessions` default pagination changes (`--limit <n|all>`).
 - Added release-alignment coverage for upstream stable `v2026.5.3` and npm hotfix `openclaw@2026.5.3-1`, including bundled file-transfer plugin guidance, unified progress streaming, `/steer` and `/side` command notes, official plugin install/update hardening, gateway config fail-closed behavior, and WhatsApp Channel/Newsletter routing notes.
 - Added release-alignment coverage for `v2026.4.29` and `v2026.5.2`, including restricted tool-profile widening changes, visible-reply enforcement, follow-up commitments, NVIDIA provider, plugin dependency repair/`git:` installs, `openclaw proxy validate`, gateway restart controls, and thread-bindings migration guidance.
 - Added troubleshooting coverage for official plugin dependency/missing payload repair, bundled file-transfer path-policy failures, restricted-profile tool access after `v2026.4.29`, and invalid-config failures after `v2026.5.3`.
@@ -65,6 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.6+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.9`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.5.3+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
