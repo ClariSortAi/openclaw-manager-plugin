@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.7+** for the latest Codex OAuth route preservation (post v2026.5.5/v2026.5.6 doctor revert), Docker container capability hardening, channel CLI scoping, cron JSON status field, Tavily tools wiring, and Telegram `accessGroup:*` allowlist support. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -114,6 +114,41 @@ These are operationally important additions introduced after v2026.4.15:
 7. **Gateway restart controls** — `openclaw gateway restart --force` and `--wait` improve controlled restarts during active work.
 8. **Proxy validation** — `openclaw proxy validate` checks effective proxy configuration and expected destination allow/deny behavior.
 9. **Codex setup clarification** — ChatGPT/Codex subscription setups should use `openai/gpt-*` with `agentRuntime.id: "codex"` for native Codex runtime; `openai-codex/*` remains the PI OAuth route.
+
+## Notable Additions in v2026.5.4-v2026.5.7
+
+These are operationally important additions and reliability/security fixes in the latest stable releases:
+
+1. **Codex OAuth route preservation** (v2026.5.6 reverts v2026.5.5) — v2026.5.5's `doctor --fix` could rewrite valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*` and break OAuth-only GPT-5.5 setups. v2026.5.6 reverts that behavior. v2026.5.7 adds `doctor --fix` recovery for 2026.5.5-rewritten routes when only Codex OAuth auth is available. Recovery: `openclaw models set openai-codex/gpt-5.5 && openclaw config validate`.
+2. **Docker container hardening** (v2026.5.5) — bundled `docker-compose.yml` drops `NET_RAW` and `NET_ADMIN` capabilities and enables `no-new-privileges` on the gateway container.
+3. **`openclaw channels list` scoped to channels** (v2026.5.7) — base output is channel-only; `--all` includes bundled and catalog channels with installed/configured/enabled state. Model auth/usage details moved to `openclaw models auth list`, `openclaw status`, and `openclaw models list`.
+4. **`openclaw models auth list`** (v2026.5.4) — inspect saved per-agent auth profiles without dumping secrets, with optional `--provider <id>` and `--json` filters.
+5. **Cron `status` field in JSON output** (v2026.5.7) — `cron list --json` and `cron show --json` now include computed `status` (`disabled`, `running`, `ok`, `error`, `skipped`, `idle`) so external tooling does not need to reimplement cron status derivation.
+6. **Cron `payload.model` repair** (v2026.5.7) — `openclaw doctor --fix` repairs persisted cron jobs whose `payload.model` was stored as `"default"`, `"null"`, blank, or JSON `null`.
+7. **Telegram `accessGroup:*` sender allowlists** (v2026.5.7) — DM, group, native command, and callback authorization honor `accessGroup:*` allowlist entries before falling back to numeric Telegram sender IDs.
+8. **LINE `dmPolicy: "open"` validation tightened** (v2026.5.5) — LINE rejects `dmPolicy: "open"` configs without wildcard `allowFrom`, so misconfigured webhook DMs fail validation early instead of being silently blocked.
+9. **OpenAI `openai/chat-latest` alias** (v2026.5.7) — explicit direct API-key model override for trying the moving ChatGPT Instant API alias without changing the stable default.
+10. **Tavily search/extract tools** (v2026.5.7) — `tavily_search` and `tavily_extract` resolve dedicated credentials from the active runtime config snapshot so SecretRef-backed API keys reach the tools resolved.
+11. **Native command owner enforcement and Active Memory admin scope** (v2026.5.7) — native command handlers honor owner enforcement and global Active Memory toggles require admin scope.
+12. **Auto-reply skill tool authorization** (v2026.5.7) — inline skill tool dispatch in auto-reply paths is gated through `before_tool_call` authorization hooks.
+13. **Discord transport degradation signals** (v2026.5.4) — `openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs flag degraded Discord transport and event-loop starvation so intermittent socket resets do not look like a healthy running channel.
+14. **Discord voice capability auditing** (v2026.5.7) — `channels capabilities` and `channels status --probe` audit Discord voice-channel `Connect`/`Speak`/`Read Message History` permissions, including auto-join targets, so missing permissions surface before `/vc join`.
+15. **Slack rich Block Kit progress drafts** (v2026.5.4) — `streaming.progress.render: "rich"` renders Block Kit progress drafts backed by structured progress line data.
+16. **`agents.defaults.toolProgressDetail`** (v2026.5.4) — switch `/verbose` and progress drafts between compact (`"explain"`, default) and `"raw"` command/detail output for debugging.
+17. **`streaming.preview.commandText` / `streaming.progress.commandText`** (v2026.5.4) — set to `"status"` to hide command/exec text in preview/progress lines (default keeps released raw command text).
+18. **Gateway/Windows loopback hardening** (v2026.5.4) — Windows loopback gateway listener binds to `127.0.0.1` only so libuv's dual-stack `::1` behavior cannot wedge localhost HTTP requests.
+19. **Plugin migration hints** (v2026.5.4) — when `plugins.entries` or `plugins.allow` references an official external plugin that is not installed, OpenClaw emits catalog-backed `openclaw plugins install <spec>` install hints instead of telling operators to remove valid plugin config.
+20. **Per-runtime sandbox registry shards** (v2026.5.4) — sandbox container and browser registry entries are stored as per-runtime shard files; `openclaw doctor --fix` migrates legacy monolithic registry files.
+21. **Subagent retention knob** (v2026.5.4) — completed session-mode subagent registry rows honor `agents.defaults.subagents.archiveAfterMinutes` instead of a hardcoded 5-minute TTL.
+22. **Supervisor restart visibility** (v2026.5.5) — `openclaw doctor --deep` and `openclaw gateway status --deep` (including `--json`) report recent supervisor restart handoffs so service-managed clean exits are visible in guided diagnostics.
+23. **Process and host uptime in `/status`** (v2026.5.5) — `/status` shows compact Gateway process uptime and host system uptime, making restart and host-lifetime checks visible from chat.
+24. **`OPENCLAW_GATEWAY_TOKEN` shadowing warning** (v2026.5.5) — `openclaw doctor` warns when `OPENCLAW_GATEWAY_TOKEN` would shadow a different active `gateway.auth.token` source for local CLI commands.
+25. **`sessions cleanup` artifact pruning** (v2026.5.5) — prunes old unreferenced transcript, compaction checkpoint, and trajectory artifacts during normal `sessions cleanup` so gateway restart/crash orphans no longer accumulate outside `sessions.json`.
+26. **Google Meet realtime voice bridge** (v2026.5.4) — Twilio dial-in joins speak through the realtime Gemini voice bridge with paced audio streaming, backpressure-aware buffering, barge-in queue clearing, and no TwiML fallback during realtime speech.
+27. **`voice.captureSilenceGraceMs`** (v2026.5.4) — extends the default Discord voice capture post-speech silence grace to 2.5s; tunable for noisy sessions.
+28. **`OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY`** (v2026.5.4) — opt-in env override to allow direct upstream forwarding for proxy/CONNECT requests while managed proxy mode is active (otherwise blocked).
+29. **`openclaw proxy validate --apns-reachable`** (v2026.5.4) — proves APNs reachability through the managed proxy before iOS push deployment.
+30. **Post-compaction tool-loop guard** (v2026.5.4) — `pi-embedded-runner` aborts a run with `compaction_loop_persisted` when an agent emits the same `(tool, args, result)` triple `windowSize` times within the post-compaction window. Tune via `tools.loopDetection.postCompactionGuard.windowSize` (default 3); disable via existing `tools.loopDetection.enabled`.
 
 ## Notable Additions in v2026.5.3
 
@@ -268,7 +303,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.7+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

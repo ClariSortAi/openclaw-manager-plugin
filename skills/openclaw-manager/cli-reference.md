@@ -10,6 +10,7 @@ openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --deep       # Include supervisor restart handoffs in deep diagnostics (v2026.5.5+)
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
@@ -23,6 +24,7 @@ openclaw gateway restart --wait 60000  # Wait for active work before restarting 
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
+openclaw gateway status --deep         # Include recent supervisor restart handoffs (v2026.5.5+; supports --json)
 ```
 
 ### Configuration
@@ -39,15 +41,21 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 
 ### Channel Management
 ```bash
-openclaw channels list       # List configured channels
-openclaw channels status     # Show channel connection status
-openclaw channels login      # Link a channel (QR code for WhatsApp)
-openclaw channels logout     # Unlink a channel
-openclaw channels add        # Add channel account
-openclaw channels remove     # Remove channel account
+openclaw channels list           # List configured channels (channel-only since v2026.5.7)
+openclaw channels list --all     # Include bundled and catalog channels with installed/configured/enabled state (v2026.5.7+)
+openclaw channels list --json    # Machine-readable output (per-provider usage errors no longer abort the list)
+openclaw channels status         # Show channel connection status
+openclaw channels status --probe # Audit Discord voice Connect/Speak/Read Message History permissions, including auto-join targets (v2026.5.7+)
+openclaw channels capabilities   # Channel capability inventory (Discord voice permission auditing in v2026.5.7+)
+openclaw channels login          # Link a channel (QR code for WhatsApp)
+openclaw channels logout         # Unlink a channel
+openclaw channels add            # Add channel account
+openclaw channels remove         # Remove channel account
 ```
 
 `v2026.3.23+` channel-auth note: when only one login-capable channel is configured, `openclaw channels login|logout` auto-selects it.
+
+`v2026.5.7+` channel CLI note: `openclaw channels list` is channel-only by default; model auth/usage details moved to `openclaw models auth list`, `openclaw status`, and `openclaw models list`. Use `--all` for bundled and catalog channel inventory.
 
 ### Pairing & Access Control
 ```bash
@@ -91,6 +99,8 @@ openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
+openclaw cron list --json    # Includes computed `status` per job (disabled/running/ok/error/skipped/idle) (v2026.5.7+)
+openclaw cron show <id> --json  # Includes computed `status` for the job (v2026.5.7+)
 ```
 
 `v2026.3.11+` cron migration note:
@@ -248,7 +258,8 @@ openclaw secrets audit           # Audit all SecretRef targets
 
 ### Proxy Validation (v2026.5.2+)
 ```bash
-openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate                     # Verify effective proxy config and destination allow/deny behavior
+openclaw proxy validate --apns-reachable    # Prove APNs reachability through the managed proxy before iOS push deployment (v2026.5.4+)
 ```
 
 ### Webhooks
@@ -281,10 +292,15 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list                              # Inspect saved per-agent auth profiles without dumping secrets (v2026.5.4+)
+openclaw models auth list --provider anthropic --json  # Filter by provider; machine-readable output
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models set <provider/model>                       # Set the active default agent model (use to recover from v2026.5.5 Codex OAuth route rewrite)
 ```
+
+`v2026.5.6` Codex recovery note: if v2026.5.5 `doctor --fix` rewrote a working Codex OAuth route to `openai/*`, restore via `openclaw models set openai-codex/gpt-5.5 && openclaw config validate`. Upgrade to v2026.5.7+ for `doctor --fix` recovery support of 2026.5.5-rewritten routes.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -390,6 +406,30 @@ openclaw config set agents.defaults.experimental.localModelLean true
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
 
+# Slack rich Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Verbose tool progress detail level (v2026.5.4+; default "explain")
+openclaw config set agents.defaults.toolProgressDetail "raw"
+# Options: "explain" (compact summaries), "raw" (raw command/detail output)
+
+# Hide command/exec text in preview/progress lines (v2026.5.4+; default keeps released raw command text)
+openclaw config set streaming.preview.commandText "status"
+openclaw config set streaming.progress.commandText "status"
+
+# Discord voice capture silence grace (v2026.5.4+; default 2.5s, raise for noisy sessions)
+openclaw config set voice.captureSilenceGraceMs 3500
+
+# Subagent registry retention (v2026.5.4+; replaces hardcoded 5-minute TTL)
+openclaw config set agents.defaults.subagents.archiveAfterMinutes 60
+
+# Post-compaction tool-loop guard (v2026.5.4+)
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 3
+# Disable via existing tools.loopDetection.enabled
+
+# Telegram accessGroup-aware sender allowlists (v2026.5.7+)
+openclaw config set channels.telegram.allowFrom '["accessGroup:family","123456789"]'
+
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
 
@@ -456,6 +496,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY` | Set to `1` to allow direct upstream forwarding for debug proxy/CONNECT requests while managed proxy mode is active (v2026.5.4+; otherwise blocked) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -506,6 +547,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Tavily | bundled | Dedicated `tavily_search` and `tavily_extract` tools with SecretRef-aware credentials resolved from the active runtime config snapshot (v2026.5.7+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

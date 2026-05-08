@@ -247,6 +247,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+- `v2026.5.7+`: DM, group, native command, and callback authorization honor `accessGroup:*` sender allowlist entries before falling back to numeric Telegram sender IDs. Mix `accessGroup:<name>` and numeric IDs in `channels.telegram.allowFrom` to share access groups across channels.
 
 ---
 
@@ -300,6 +301,20 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice Capabilities (v2026.5.7+)
+
+`openclaw channels capabilities` and `openclaw channels status --probe` audit Discord voice-channel `Connect`, `Speak`, and `Read Message History` permissions, including auto-join targets, so missing voice permissions surface before `/vc join` rather than at join time.
+
+For noisy voice sessions, raise the post-speech silence grace (default 2.5s):
+
+```bash
+openclaw config set voice.captureSilenceGraceMs 4000
+```
+
+### Discord Transport Health Signals (v2026.5.4+)
+
+`openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs flag degraded Discord transport and gateway event-loop starvation, so intermittent socket resets do not look like a healthy running channel. Discord REST and gateway WebSocket startup paths prefer IPv4 to avoid stalling on IPv4-only networks.
 
 ---
 
@@ -555,6 +570,10 @@ openclaw config set channels.irc.dmPolicy pairing
 openclaw gateway restart
 ```
 
+### IRC Egress Note (v2026.5.4+)
+
+IRC uses raw TCP/TLS sockets that fall outside operator-managed forward proxy routing. If a managed proxy enforces egress controls, explicitly approve direct IRC egress for the configured IRC server before enabling IRC.
+
 ---
 
 ## WebChat (Native)
@@ -588,6 +607,17 @@ openclaw plugins install @openclaw/line
 ```bash
 openclaw plugins info line
 openclaw gateway restart
+```
+
+### LINE DM Policy Validation (v2026.5.5+)
+
+`v2026.5.5+` rejects `dmPolicy: "open"` configs without wildcard `allowFrom`. Misconfigured webhook DMs now fail validation early instead of being acknowledged and silently blocked before inbound processing. Either pair `open` with `allowFrom: ["*"]` (not recommended for untrusted inboxes) or switch to `pairing` / `allowlist`:
+
+```bash
+openclaw config set channels.line.dmPolicy pairing
+# or, for wildcard open access (review threat model first)
+openclaw config set channels.line.dmPolicy open
+openclaw config set channels.line.allowFrom '["*"]'
 ```
 
 ---

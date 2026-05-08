@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -195,6 +195,29 @@ openclaw models auth setup-token --provider <provider-name>
 openclaw configure
 ```
 
+#### Codex OAuth Default Model Rewritten to `openai/*` After v2026.5.5 `doctor --fix`
+**Symptoms:** After running `openclaw doctor --fix` on v2026.5.5, the default agent model switched from `openai-codex/<model>` to `openai/<model>`, and OAuth-only ChatGPT/Codex setups now hit OpenAI API-key auth or break entirely.
+
+**Cause:** v2026.5.5 introduced a Codex OAuth route repair that incorrectly rewrote valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`. v2026.5.6 reverts that behavior, and v2026.5.7 adds proper recovery for 2026.5.5-rewritten routes when only Codex OAuth auth is available.
+
+**Fix:**
+```bash
+# 1. Restore the Codex OAuth route directly
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+
+# 2. Upgrade to v2026.5.6 or later (v2026.5.7 includes the OAuth-only recovery path in doctor --fix)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# 3. Verify the active default agent model and runtime
+openclaw status
+openclaw models auth list --provider openai-codex
+```
+
+If you have already moved auth onto an OpenAI API key intentionally, `openclaw/gpt-*` with `agentRuntime.id: "codex"` is the supported ChatGPT/Codex subscription path; `openai-codex/*` remains the PI OAuth route.
+
+Recovery docs: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
+
 #### OpenAI Token Keeps Reverting to an Older Value
 **Symptoms:** You paste/save a fresh token (for example via onboarding or `models auth paste-token`), but it snaps back to an expired value after reconnect or refresh.
 
@@ -294,6 +317,25 @@ openclaw channels logout
 openclaw channels login
 ```
 
+#### Telegram: `accessGroup:*` Allowlist Entries Are Ignored
+**Symptoms:** Group memberships configured under `channels.telegram.allowFrom` like `"accessGroup:family"` are not honored — only numeric Telegram sender IDs work.
+
+**Cause:** Pre-v2026.5.7 Telegram authorization fell back to numeric sender-ID checks before group membership resolution.
+
+**Fix:**
+```bash
+# Upgrade and verify
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw status
+
+# Mix accessGroup and numeric IDs in allowFrom
+openclaw config set channels.telegram.allowFrom '["accessGroup:family","123456789"]'
+openclaw config validate
+openclaw gateway restart
+```
+
+`v2026.5.7+` honors `accessGroup:*` allowlists for DMs, groups, native commands, and callback authorization before applying numeric Telegram sender-ID checks.
+
 #### Telegram: Bot Not Responding
 **Symptoms:** Messages not processed
 
@@ -371,6 +413,43 @@ uname -s  # Must be "Darwin"
 # Enable and restart
 openclaw config set channels.imessage.enabled true
 openclaw gateway restart
+```
+
+#### Discord: Channel Status Looks Healthy But Messages Are Intermittent
+**Symptoms:** `openclaw channels status` reports Discord as running, yet inbound messages or replies sporadically drop or take much longer than usual.
+
+**Cause:** Older builds did not surface degraded Discord transport or gateway event-loop starvation as channel state.
+
+**Diagnose (v2026.5.4+):**
+```bash
+openclaw channels status
+openclaw status --deep
+```
+Both surfaces now flag degraded Discord transport and event-loop starvation; fetch-timeout logs include the same signal.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+If the host is on an IPv4-only network, v2026.5.4+ Discord REST and gateway WebSocket startup paths prefer IPv4 by default (`#77398`).
+
+#### Discord: Voice Join Fails Without Useful Errors
+**Symptoms:** `/vc join` or auto-join commands fail with permission/handshake errors that surface only at join time.
+
+**Cause:** Pre-v2026.5.7 Discord did not surface missing voice channel permissions in capability inventories.
+
+**Fix (v2026.5.7+):**
+```bash
+openclaw channels capabilities
+openclaw channels status --probe
+```
+These audit Discord voice-channel `Connect`, `Speak`, and `Read Message History` permissions, including auto-join targets.
+
+For choppy voice capture in noisy environments, raise the post-speech silence grace (default 2.5s):
+```bash
+openclaw config set voice.captureSilenceGraceMs 4000
 ```
 
 #### Discord: WebSocket Disconnects (Fixed in v2026.3.1)
@@ -526,7 +605,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.7+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -758,6 +837,32 @@ openclaw cron run <id>
 openclaw cron edit <id>
 ```
 
+#### Cron Job Status Field Missing From `cron list --json`
+**Symptoms:** External tooling parsing `openclaw cron list --json` or `openclaw cron show --json` cannot read the computed status (running/ok/error/skipped/idle/disabled) without reimplementing it.
+
+**Cause:** `status` was not a first-class field in the cron JSON output before v2026.5.7.
+
+**Fix:**
+```bash
+# Upgrade
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# v2026.5.7+ output now includes a computed `status` field
+openclaw cron list --json
+openclaw cron show <id> --json
+```
+
+#### Persisted Cron `payload.model` Stored as `"default"`/`"null"`/Blank
+**Symptoms:** Cron runtime model validation rejects scheduled jobs because `payload.model` was previously stored as the literal strings `"default"`, `"null"`, blank, or JSON `null`.
+
+**Cause:** Older builds wrote those non-canonical values; cron runtime model validation is strict by design.
+
+**Fix (v2026.5.7+):**
+```bash
+openclaw doctor --fix      # Removes the bad override while keeping cron runtime validation strict
+openclaw cron runs
+```
+
 #### One-Shot Cron Runs at Wrong Local Time
 **Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.
 
@@ -765,7 +870,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.7+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1106,6 +1211,36 @@ openclaw channels login --channel zalouser
 ```
 
 ### Service Issues (systemd)
+
+#### `OPENCLAW_GATEWAY_TOKEN` Shadows a Different Active Token
+**Symptoms:** Local CLI commands appear to authenticate against a different gateway token than what is configured under `gateway.auth.token`.
+
+**Cause:** An exported `OPENCLAW_GATEWAY_TOKEN` env value can shadow the configured token source for local CLI commands.
+
+**Diagnose (v2026.5.5+):**
+```bash
+# v2026.5.5+ doctor warns when the env value shadows a different active gateway.auth.token source
+openclaw doctor
+```
+
+**Fix:**
+```bash
+# Either unexport the stray env override
+unset OPENCLAW_GATEWAY_TOKEN
+
+# Or align the env value with the configured token
+openclaw config get gateway.auth.token
+export OPENCLAW_GATEWAY_TOKEN=<matching-token>
+```
+
+#### Gateway Restarts Look Like Stopped-Service Diagnostics
+**Symptoms:** Clean service-managed restart handoffs are reported as opaque "stopped-service" diagnostics in older builds.
+
+**Fix (v2026.5.5+):** Recent supervisor restart handoffs now appear in deep diagnostics with structured details:
+```bash
+openclaw gateway status --deep --json
+openclaw doctor --deep
+```
 
 #### Service Not Starting
 **Check:**
