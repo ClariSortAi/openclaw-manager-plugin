@@ -103,6 +103,7 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4+, Slack progress drafts can use richer Block Kit rendering with `openclaw config set streaming.progress.render "rich"`, while v2026.5.5+ preserves Socket Mode SDK error context in reconnect logs.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -169,6 +170,7 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
+`v2026.5.7+` delivery note: proactive phone-number sends use Baileys LID forward mappings when available, reducing sender-only ghost chats for LID-addressed contacts.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -247,6 +249,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+- v2026.5.7+ honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callback authorization before Telegram numeric sender-ID checks.
 
 ---
 
@@ -300,6 +303,17 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice/Status Diagnostics (v2026.5.4+)
+
+For Discord voice deployments, check transport and permission state before joining voice channels:
+
+```bash
+openclaw channels status --probe
+openclaw channels capabilities
+```
+
+v2026.5.4+ surfaces degraded Discord transport and event-loop starvation signals in status output. v2026.5.7+ audits voice-channel Connect, Speak, and Read Message History permissions, including auto-join targets, before `/vc join`.
 
 ---
 
@@ -574,6 +588,7 @@ No additional configuration needed — it runs as part of the gateway.
 ## LINE (Plugin Required)
 
 LINE is supported via the `@openclaw/line` plugin using the LINE Messaging API.
+As of v2026.5.5, `dmPolicy: "open"` is rejected unless `allowFrom` includes `"*"`, so webhook DMs fail validation instead of being acknowledged and silently blocked.
 
 ### Setup Steps
 
@@ -708,6 +723,7 @@ openclaw channels status
 - TTS/voice bubbles, Opus audio as `msg_type: "audio"` (v2026.3.1)
 - Webhook ingress rate-limiting with stale-window pruning (v2026.3.1)
 - Multi-app mention routing validation (v2026.3.2)
+- Native topic starter thread hydration for first turns/follow-ups in the same topic session (v2026.5.5)
 
 ---
 

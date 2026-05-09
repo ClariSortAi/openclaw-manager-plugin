@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, Codex OAuth repair, CLI state surfaces, and channel/provider reliability improvements, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -210,6 +210,22 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Codex OAuth Routes Changed After `doctor --fix`
+**Symptoms:** After running `doctor --fix` on v2026.5.5, ChatGPT/Codex OAuth-only setups unexpectedly move from `openai-codex/*` routes to `openai/*`, or GPT-5.5 subscription-auth turns fail.
+
+**Cause:** v2026.5.5 included an over-broad Codex repair that was reverted in v2026.5.6 and further recovered in v2026.5.7.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.6+ (prefer current stable v2026.5.7+)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restore the Codex OAuth PI route when API-key OpenAI auth is not intended
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+openclaw status --deep
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -342,6 +358,18 @@ openclaw gateway restart
 openclaw channels status
 ```
 
+#### Telegram `accessGroup:*` Allowlists Do Not Match
+**Symptoms:** Telegram DMs, groups, callback buttons, or native commands are denied even though the sender is covered by an access group.
+
+**Cause:** Builds before v2026.5.7 applied Telegram numeric sender-ID checks before honoring `accessGroup:*` sender allowlists.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw config validate
+openclaw gateway restart
+```
+
 #### iMessage: Not Working (Migrate to BlueBubbles)
 **Symptoms:** iMessage channel not receiving messages
 
@@ -400,6 +428,23 @@ openclaw plugins install @openclaw/msteams
 # Check plugin status
 openclaw plugins info msteams
 openclaw channels status
+```
+
+#### `openclaw channels list` No Longer Shows Model Auth Details
+**Symptoms:** Scripts or operator runbooks expect model auth/usage details in `openclaw channels list`, but the output now focuses on channels.
+
+**Cause:** v2026.5.7 made `openclaw channels list` channel-only and moved model auth/usage details to dedicated model/status surfaces.
+
+**Fix:**
+```bash
+# Channel inventory and state
+openclaw channels list
+openclaw channels list --all
+
+# Model/auth details
+openclaw models auth list
+openclaw models list
+openclaw status
 ```
 
 ### Pairing Issues
@@ -526,7 +571,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.7+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -551,6 +596,8 @@ openclaw plugins update --all
 openclaw gateway restart
 ```
 
+If the plugin is configured but missing after an official externalization, v2026.5.4+ `doctor --fix` emits catalog-backed install hints and includes `plugins.allow`-only official ids in repair. v2026.5.7+ also uses a stable POSIX lifecycle shell for managed install/rollback/repair/uninstall cleanup in restricted PATH environments.
+
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
 
@@ -563,6 +610,17 @@ openclaw update --channel beta
 
 # Then retry install/update
 openclaw plugins update --all
+```
+
+#### Plugin Request Fails With Invalid Header Metadata
+**Symptoms:** A plugin, debug proxy, or guarded fetch path fails with errors from native `fetch` / `Headers` about invalid header data, even though the visible header keys look valid.
+
+**Cause:** Builds before v2026.5.6 could pass third-party symbol metadata from caller-owned header dictionaries into native fetch paths.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
 ```
 
 #### File-Transfer Tool Denies a Path
@@ -758,6 +816,8 @@ openclaw cron run <id>
 openclaw cron edit <id>
 ```
 
+For automation that consumes JSON, v2026.5.7+ includes computed job `status` in `openclaw cron list --json` and `openclaw cron show --json`, so scripts no longer need to rederive disabled/running/ok/error/skipped/idle state.
+
 #### One-Shot Cron Runs at Wrong Local Time
 **Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.
 
@@ -765,7 +825,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.7+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone

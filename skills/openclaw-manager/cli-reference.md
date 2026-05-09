@@ -39,8 +39,11 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 
 ### Channel Management
 ```bash
-openclaw channels list       # List configured channels
+openclaw channels list       # List channels with installed/configured/enabled state (v2026.5.7+)
+openclaw channels list --all # Include bundled and catalog channels (v2026.5.7+)
 openclaw channels status     # Show channel connection status
+openclaw channels status --probe  # Probe channel capabilities/permissions where supported
+openclaw channels capabilities    # Inspect channel capabilities such as Discord voice permissions
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
 openclaw channels add        # Add channel account
@@ -48,6 +51,8 @@ openclaw channels remove     # Remove channel account
 ```
 
 `v2026.3.23+` channel-auth note: when only one login-capable channel is configured, `openclaw channels login|logout` auto-selects it.
+
+`v2026.5.7+` channel-list note: model auth/usage details moved out of `openclaw channels list`; use `openclaw models auth list`, `openclaw status`, or `openclaw models list` for those surfaces.
 
 ### Pairing & Access Control
 ```bash
@@ -57,7 +62,9 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.3` correction note: the npm hotfix package `openclaw@2026.5.3-1` was published on the beta dist-tag to avoid official bundled plugin scanner false positives.
+
+`v2026.5.7` stable note: latest stable is published as `v2026.5.7`; prefer it over v2026.5.5 because v2026.5.6+ fixes Codex OAuth route repair behavior.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
@@ -85,6 +92,7 @@ openclaw devices revoke <id>   # Revoke device access
 openclaw cron list           # List all cron jobs
 openclaw cron status         # Scheduler status
 openclaw cron add            # Add new job
+openclaw cron show <id>      # Show one job; --json includes computed status (v2026.5.7+)
 openclaw cron rm <id>        # Remove job
 openclaw cron enable <id>    # Enable job
 openclaw cron disable <id>   # Disable job
@@ -115,6 +123,8 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 # Restrict a cron job to specific tools only
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
+
+`v2026.5.7+` cron JSON note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, or `idle`.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -198,6 +208,10 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.3+` install-safety note: source-only plugin packages are rejected before runtime load. The `v2026.5.3-1` npm hotfix avoids false positives for official bundled plugin packages whose compiled bundles contain distant `process.env` reads and normal API sends.
 
+`v2026.5.4+` official-plugin repair note: `doctor --fix` and update flows emit catalog-backed install hints for configured-but-missing official external plugins, repair stale managed `openclaw` peer links, and recover source-only runtime shadows when reinstalling trusted official packages.
+
+`v2026.5.7+` managed install note: plugin install, rollback, repair, and uninstall npm lifecycle operations use an absolute POSIX lifecycle shell like staged package updates, avoiding restricted-PATH cleanup failures.
+
 ### Agents
 ```bash
 openclaw agents list         # List configured agents
@@ -209,6 +223,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions list --limit 100  # Bound large stores; JSON includes pagination metadata (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,6 +296,7 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list [--provider <provider>] [--json]  # Inspect saved auth profiles without secrets (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
@@ -389,6 +405,10 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+# Slack rich Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+# Use raw tool details in progress/explain surfaces for debugging (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -478,6 +498,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | WhatsApp | Baileys library, QR pairing, multi-account |
 
 `v2026.3.13+` Slack note: OpenClaw adds opt-in interactive reply directives in shared Slack delivery flows. In v2026.3.24+, direct deliveries regain rich interactive parity and simple trailing `Options:` lines can auto-render as controls.
+
+IRC uses raw TCP/TLS sockets outside operator-managed forward proxy routing; explicitly approve direct IRC egress before enabling IRC on restricted networks.
 
 ### Plugin Channels (Install Separately)
 
