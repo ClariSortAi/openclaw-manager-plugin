@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream `v2026.5.4` through `v2026.5.7`, including Google Meet/Voice Call realtime bridge notes, `openclaw models auth list`, rich Slack progress rendering, computed cron JSON status, revised `channels list --all` guidance, Codex OAuth route recovery, and new authorization hardening in native commands, Active Memory, and inline skill tools.
+- Added troubleshooting guidance for v2026.5.5 Codex OAuth route rewrites, plugin fetch/header metadata failures fixed in v2026.5.6, Telegram `accessGroup:*` allowlist behavior, and post-v2026.5.7 channel-list output changes.
+- Added security-checklist entries for Docker Compose capability drops/no-new-privileges, native command owner enforcement, Active Memory admin-scope enforcement, inline skill tool authorization, and Codex OAuth repair verification.
 - Added release-alignment coverage for upstream stable `v2026.5.3` and npm hotfix `openclaw@2026.5.3-1`, including bundled file-transfer plugin guidance, unified progress streaming, `/steer` and `/side` command notes, official plugin install/update hardening, gateway config fail-closed behavior, and WhatsApp Channel/Newsletter routing notes.
 - Added release-alignment coverage for `v2026.4.29` and `v2026.5.2`, including restricted tool-profile widening changes, visible-reply enforcement, follow-up commitments, NVIDIA provider, plugin dependency repair/`git:` installs, `openclaw proxy validate`, gateway restart controls, and thread-bindings migration guidance.
 - Added troubleshooting coverage for official plugin dependency/missing payload repair, bundled file-transfer path-policy failures, restricted-profile tool access after `v2026.4.29`, and invalid-config failures after `v2026.5.3`.
@@ -65,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.7+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/version metadata for this docs release alignment (`1.3.9`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.5.3+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.

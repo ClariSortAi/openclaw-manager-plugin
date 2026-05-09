@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.7+** for the latest official-plugin install/update repair, bundled file-transfer tooling, progress streaming, config fail-closed behavior, Codex OAuth route recovery, CLI status surfaces, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.7)
 
 These changes affect new and existing installations:
 
@@ -64,6 +64,7 @@ These changes affect new and existing installations:
 22. **Thread-spawn config keys migrated** (v2026.5.2) — legacy split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
 23. **Invalid config fails closed** (v2026.5.3) — Gateway startup and hot reload no longer auto-restore invalid config; use `openclaw config validate` and `openclaw doctor --fix` for last-known-good repair.
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
+25. **Channel listing output changed** (v2026.5.7) — `openclaw channels list` is now channel-only and reports installed/configured/enabled state; use `openclaw channels list --all` to include bundled/catalog channels, and use `openclaw models auth list`, `openclaw status`, or `openclaw models list` for model auth/usage details.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -128,6 +129,19 @@ These are operationally important additions and reliability/security fixes in th
 7. **WhatsApp Channel/Newsletter targets** — explicit `@newsletter` outbound targets use channel session metadata instead of DM routing.
 8. **Google Meet and realtime voice reliability** — Meet joins wait for realtime readiness, expose transcripts/status diagnostics, and avoid silently queued audio behind unconfigured sessions.
 9. **2026.5.3-1 npm hotfix** — the core npm package `openclaw@2026.5.3-1` on the beta dist-tag fixes official bundled plugin install-scanner false positives involving distant `process.env` and normal API send references in compiled bundles.
+
+## Notable Additions and Fixes in v2026.5.4-v2026.5.7
+
+These are operationally important additions and reliability/security fixes after v2026.5.3:
+
+1. **Google Meet / Voice Call realtime bridge** (v2026.5.4) — Twilio dial-in joins speak through the realtime Gemini voice bridge with paced audio, backpressure-aware buffering, and barge-in handling for lower-latency voice agents.
+2. **Model auth inspection** (v2026.5.4) — `openclaw models auth list [--provider] [--json]` shows saved per-agent auth profiles without dumping secrets.
+3. **Rich progress and compact tool summaries** (v2026.5.4) — Slack can render Block Kit progress drafts with `streaming.progress.render: "rich"`, and explain/progress surfaces default to compact tool summaries unless `agents.defaults.toolProgressDetail: "raw"` is set.
+4. **Official plugin repair and diagnostics** (v2026.5.4-v2026.5.7) — doctor/update/install paths better repair configured-but-missing official plugins, source-only runtime shadows, stale peer links, external channel SecretRef contracts, and restricted PATH lifecycle shells.
+5. **Codex OAuth route recovery** (v2026.5.6-v2026.5.7) — current `doctor --fix` preserves working `openai-codex/*` PI OAuth routes and can recover routes that v2026.5.5 rewrote incorrectly; if affected, run `openclaw models set openai-codex/gpt-5.5 && openclaw config validate`.
+6. **CLI status surfaces** (v2026.5.7) — `openclaw channels list` is channel-only with state columns, `--all` includes bundled/catalog channels, and `cron list --json` / `cron show --json` include computed job `status`.
+7. **Security authorization hardening** (v2026.5.7) — native command handlers honor owner enforcement, Active Memory global toggles require admin scope, and inline skill tool dispatch is gated through before-tool-call authorization hooks.
+8. **Channel reliability fixes** (v2026.5.4-v2026.5.7) — includes Discord voice permission auditing in `channels capabilities` and `channels status --probe`, Telegram `accessGroup:*` allowlist support, WhatsApp LID forwarding for proactive phone-number sends, LINE open-DM validation, and better channel hot-reload recovery.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -268,7 +282,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.7+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -537,6 +551,9 @@ openclaw models auth setup-token --provider nvidia
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# Inspect saved auth profiles without dumping secrets (v2026.5.4+)
+openclaw models auth list --json
 ```
 
 ## Error Patterns
