@@ -143,6 +143,17 @@ These are operationally important additions and reliability/security fixes after
 7. **Security authorization hardening** (v2026.5.7) — native command handlers honor owner enforcement, Active Memory global toggles require admin scope, and inline skill tool dispatch is gated through before-tool-call authorization hooks.
 8. **Channel reliability fixes** (v2026.5.4-v2026.5.7) — includes Discord voice permission auditing in `channels capabilities` and `channels status --probe`, Telegram `accessGroup:*` allowlist support, WhatsApp LID forwarding for proactive phone-number sends, LINE open-DM validation, and better channel hot-reload recovery.
 
+## Pre-release Watch: v2026.5.9-beta.1
+
+Latest stable remains **v2026.5.7**. Treat v2026.5.9-beta.1 as opt-in beta guidance unless the user is already on the beta channel:
+
+1. **Chat default reset commands** — `/think default` and `/fast default` clear per-session overrides so sessions inherit configured/provider defaults again.
+2. **Optional `oc-path` plugin** — the bundled optional plugin adds `openclaw path` for surgical `oc://` access to markdown, JSONC, and JSONL workspace files.
+3. **Runtime floor watch** — the beta raises the supported Node 22 floor to **22.16+** while still recommending Node 24; keep stable-install docs at v22.14+ unless the user opts into the beta.
+4. **Gateway/task operations** — task ledger RPC surfaces (`tasks.list`, `tasks.get`, `tasks.cancel`) are stabilized, and `openclaw gateway restart --safe --skip-deferral` can bypass safe-restart deferral when a pinned task prevents draining.
+5. **Provider/model controls** — Bedrock supports `agents.defaults.params.serviceTier` / per-model `serviceTier` (`default`, `flex`, `priority`, `reserved`), Gemini 3 Pro Preview aliases canonicalize to `google/gemini-3.1-pro-preview`, and GitHub Copilot model catalog discovery includes account entitlements with static fallback.
+6. **Discord/Talk voice updates** — Discord realtime `/vc` modes expand STT/TTS, agent-proxy, and bidi realtime sessions; OpenAI realtime defaults to `gpt-realtime-2`.
+
 ## Notable Additions in v2026.3.22-v2026.3.24
 
 These are recent operationally important additions in current stable releases:
@@ -243,7 +254,7 @@ openclaw security audit --deep
 
 ## Installation Requirements
 
-- **Node.js**: v22.14.0 or higher (Node 24 recommended; NOT Bun - causes WhatsApp/Telegram issues)
+- **Node.js**: v22.14.0 or higher for current stable (Node 24 recommended; v2026.5.9 beta requires v22.16+; NOT Bun - causes WhatsApp/Telegram issues)
 - **macOS**: Native support
 - **Linux**: Native support (systemd recommended)
 - **Windows**: WSL2 required (Ubuntu recommended)

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added beta-watch coverage for upstream `v2026.5.9-beta.1`, including `/think default` and `/fast default`, the optional `oc-path` / `openclaw path` surface, beta Node 22.16+ runtime-floor warning, Bedrock `serviceTier`, task ledger/restart notes, and Discord realtime voice updates.
 - Added release-alignment coverage for upstream `v2026.5.4` through `v2026.5.7`, including Google Meet/Voice Call realtime bridge notes, `openclaw models auth list`, rich Slack progress rendering, computed cron JSON status, revised `channels list --all` guidance, Codex OAuth route recovery, and new authorization hardening in native commands, Active Memory, and inline skill tools.
 - Added troubleshooting guidance for v2026.5.5 Codex OAuth route rewrites, plugin fetch/header metadata failures fixed in v2026.5.6, Telegram `accessGroup:*` allowlist behavior, and post-v2026.5.7 channel-list output changes.
 - Added security-checklist entries for Docker Compose capability drops/no-new-privileges, native command owner enforcement, Active Memory admin-scope enforcement, inline skill tool authorization, and Codex OAuth repair verification.
@@ -68,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated README/version metadata for this docs release alignment (`1.3.10`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.7+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.9`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.5.3+` while preserving minimum safe baseline at `v2026.3.1`.

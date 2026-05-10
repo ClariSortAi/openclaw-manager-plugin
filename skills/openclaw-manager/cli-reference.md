@@ -21,6 +21,7 @@ openclaw gateway stop        # Stop gateway
 openclaw gateway restart     # Restart gateway
 openclaw gateway restart --wait 60000  # Wait for active work before restarting (v2026.5.2+)
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
+openclaw gateway restart --safe --skip-deferral  # Beta v2026.5.9+: bypass a stuck safe-restart deferral
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
@@ -70,6 +71,8 @@ openclaw pairing approve <channel> <code>  # Approve sender
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
+/think default      # Beta v2026.5.9+: clear session thinking override and inherit defaults
+/fast default       # Beta v2026.5.9+: clear session fast-mode override and inherit defaults
 ```
 
 ### Exec Policy (v2026.4.12+)
@@ -300,6 +303,7 @@ openclaw models auth list [--provider <provider>] [--json]  # Inspect saved auth
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw path <oc://...>     # Beta v2026.5.9+: optional oc-path plugin for markdown/JSONC/JSONL oc:// reads
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -398,6 +402,9 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
+
+# Bedrock service tier (v2026.5.9-beta.1 watch; values: default, flex, priority, reserved)
+openclaw config set agents.defaults.params.serviceTier "priority"
 
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true

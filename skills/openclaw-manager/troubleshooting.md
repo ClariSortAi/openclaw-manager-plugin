@@ -82,6 +82,9 @@ openclaw gateway status --require-rpc
 # v2026.5.2+: wait for a bounded restart window, then force if required
 openclaw gateway restart --wait 60s
 openclaw gateway restart --force
+
+# v2026.5.9 beta: bypass a safe-restart deferral gate pinned by stale task state
+openclaw gateway restart --safe --skip-deferral
 ```
 
 Check logs for active task run ids before forcing a restart.
@@ -695,7 +698,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs. Current stable accepts Node v22.14.0+, while the v2026.5.9 beta raises the Node 22 floor to v22.16.0+.
 
 **Fix:**
 ```bash
@@ -703,7 +706,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# Stable: v22.14.0+ required; v2026.5.9 beta: v22.16.0+ required; Node 24 recommended
 
 # Retry update after runtime upgrade
 openclaw update
