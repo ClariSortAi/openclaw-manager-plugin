@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.7+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,18 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Docker compose container hardening | Bundled `docker-compose.yml` drops `NET_RAW` / `NET_ADMIN` capabilities and enables `no-new-privileges` on the gateway container | v2026.5.4 |
+| Browser SSRF current-tab enforcement | Tab-scoped debug, export, and read routes (console, page errors, network requests, trace start/stop, response body, screenshot, snapshot, storage) enforce the current-URL navigation policy before collecting from an already-selected tab, so blocked tabs return a policy error instead of being read first | v2026.5.4 |
+| Restrictive `plugins.allow` scoping | Bundled provider discovery honors restrictive `plugins.allow` by default for new configs; doctor migrates legacy restrictive allowlist configs to `plugins.bundledDiscovery: "compat"` so upgrade behavior is preserved while operators decide whether to widen | v2026.5.4 |
+| Windows registry/cmd helper trust | `reg.exe` lookups and `.cmd`/`.bat` process wrappers resolve only from the canonical Windows install root; `SystemRoot`/`WINDIR` env values are validated and added to the dangerous-host-env policy. Workspace `.env` overrides (including `LOCALAPPDATA`) cannot redirect `icacls`, `whoami`, `git`, or `cmd.exe` | v2026.5.4 |
+| WebChat short-lived media tickets | Assistant media fetches use scoped short-lived tickets in chat image URLs instead of exposing long-lived auth tokens | v2026.5.4 |
+| Exec approvals split-string / env-P carrier detection | Approval explanations detect `env -S` split-string command-carrier risks combined with other env short options, and unwrap BSD/macOS `env -P <path>` before approval-command checks | v2026.5.4 |
+| Debug proxy direct-forward gating | Debug proxy direct upstream forwarding is disabled for proxy requests and CONNECT tunnels while managed proxy mode is active unless `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY=1` is explicitly set | v2026.5.4 |
+| QQBot command authorization | Framework command authorization decisions carry into engine slash-command contexts so downstream handlers see `commandAuthorized` matching the resolved sender authorization instead of a hardcoded true; private commands stay off the framework surface | v2026.5.4 |
+| Active Memory admin-scope global toggles | Global Active Memory toggles require admin scope so non-admin users cannot flip global recall behavior | v2026.5.7 |
+| Auto-reply skill dispatch authorization | Inline skill tool dispatch in auto-reply paths is gated through `before_tool_call` authorization hooks | v2026.5.7 |
+| Native command owner enforcement | Native command handlers honor owner-enforcement boundaries so non-owner senders cannot reach owner-only command surfaces | v2026.5.7 |
+| Codex approval pre-guardian default | In Codex approval modes, the pre-guardian native `PermissionRequest` hook is no longer installed by default so Codex's reviewer can approve safe commands first; `allow-always` decisions are remembered per identical payload within the active session window and plugin approval requests validate/render their actual allowed decisions | v2026.5.7 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +420,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.7+ for latest plugin install/update, file-transfer, config fail-closed, Codex/`openai-codex/*` route repair, Docker container hardening, and channel reliability)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -424,6 +436,9 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] If installing/updating official plugins on the beta npm channel, prefer the `2026.5.3-1` core npm hotfix when install scans flag distant `process.env` / API-send references in compiled bundled-plugin packages
+- [ ] If running the bundled `docker-compose.yml`, confirm the gateway container drops `NET_RAW`/`NET_ADMIN` and enables `no-new-privileges` after the v2026.5.4 hardening update
+- [ ] If upgrading from v2026.5.5, verify Codex OAuth routing was not silently rewritten — run `openclaw doctor --fix` (v2026.5.7+ recovers the rewritten `openai/*` routes back toward `openai-codex/*`) and confirm with `openclaw models auth list`
+- [ ] If new configs use a restrictive `plugins.allow`, decide whether `plugins.bundledDiscovery: "compat"` should remain after `openclaw doctor --fix` migration or whether allowlist-scoped discovery is the intended behavior
 - [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
@@ -582,7 +597,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.7+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

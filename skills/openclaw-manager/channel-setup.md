@@ -103,6 +103,8 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4, `streaming.progress.render: "rich"` renders Block Kit progress drafts backed by structured progress-line data; long drafts trim oldest lines first so the newest rich progress stays visible.
+As of v2026.5.5, Slack Socket Mode reconnect logs preserve SDK error context and structured Slack API fields, so startup failures no longer collapse to a bare `unknown error`.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -169,6 +171,8 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
+`v2026.5.7+` LID-routing note: proactive phone-number sends route through Baileys LID forward mappings when available, so LID-addressed contacts receive agent messages instead of creating sender-only ghost chats.
+`v2026.5.4+` allowlist note: setup and pairing allowlist entries are canonicalized to WhatsApp's digit-only phone ids while still accepting E.164, JID, and `whatsapp:` inputs.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -229,6 +233,10 @@ openclaw gateway restart
   }
 }
 ```
+
+### Telegram `accessGroup:*` Allowlists (v2026.5.7+)
+
+DM, group, native command, and callback authorization now honor `accessGroup:*` sender allowlists before applying Telegram's numeric sender-ID checks. Use group-style entries in `allowFrom` to grant access by configured group membership rather than per-user numeric IDs.
 
 ### Telegram Streaming (v2026.3.2+)
 
@@ -294,6 +302,13 @@ openclaw gateway restart
   }
 }
 ```
+
+### Discord Voice Channels (v2026.5.4-v2026.5.7)
+
+- `openclaw channels capabilities` and `openclaw channels status --probe` audit Discord voice-channel permissions (Connect, Speak, Read Message History), including auto-join targets, so missing permissions surface before `/vc join` (v2026.5.7+).
+- `voice.captureSilenceGraceMs` tunes post-speech silence handling for noisy Discord sessions; the default grace was extended to 2.5 s in v2026.5.7 to reduce choppy capture.
+- Degraded Discord transport and gateway event-loop starvation now show up in `openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs (v2026.5.4+).
+- Discord prefers IPv4 for REST and gateway WebSocket startup, so IPv4-only networks no longer stall before Gateway READY and inbound message dispatch (v2026.5.4+).
 
 ### Discord Interactive UI (v2026.2.16+)
 
@@ -589,6 +604,8 @@ openclaw plugins install @openclaw/line
 openclaw plugins info line
 openclaw gateway restart
 ```
+
+`v2026.5.5+` config note: `dmPolicy: "open"` requires a wildcard `allowFrom` entry. Configs that set `"open"` without `"*"` are rejected at validation so webhook DMs fail upfront instead of being acknowledged and then silently blocked before inbound processing.
 
 ---
 

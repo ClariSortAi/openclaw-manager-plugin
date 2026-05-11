@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, channel/provider reliability improvements, and Codex/`openai-codex/*` OAuth route repair, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -85,6 +85,21 @@ openclaw gateway restart --force
 ```
 
 Check logs for active task run ids before forcing a restart.
+
+#### Localhost Clients Cannot Reach Gateway on `::1` (Windows)
+**Symptoms:** After upgrading to v2026.5.4+ on Windows, tools or clients that previously connected to `[::1]:18789` time out or get connection refused; `127.0.0.1` still works.
+
+**Cause:** v2026.5.4 binds the default loopback gateway listener only to `127.0.0.1` on Windows so libuv's dual-stack `::1` behavior cannot wedge localhost HTTP requests.
+
+**Fix:**
+```bash
+# Point clients at 127.0.0.1 instead of ::1 / localhost (which may resolve to ::1)
+# Or, if dual-stack is required, bind explicitly:
+openclaw config set gateway.bind "0.0.0.0"   # caution: not loopback-only
+openclaw gateway restart
+```
+
+Keep `loopback` and `127.0.0.1` for local-only setups unless dual-stack binding is intentional.
 
 #### Port 18789 Already in Use
 **Symptoms:** Gateway fails to start, port conflict
@@ -210,6 +225,26 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Default Model Silently Switched from `openai-codex/*` to `openai/*` After Upgrading to v2026.5.5
+**Symptoms:** OAuth-only ChatGPT/Codex setups suddenly try to use the standard OpenAI API key path; default agent model changed from `openai-codex/gpt-5.5` to `openai/gpt-5.5` (or similar) without operator action.
+
+**Cause:** v2026.5.5's `doctor --fix` repair rewrote valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`, which could break OAuth-only setups or accidentally move users onto the OpenAI API-key route. The repair was reverted in v2026.5.6, and v2026.5.7 added explicit recovery in `doctor --fix` for the rewritten routes.
+
+**Fix:**
+```bash
+# Upgrade to current stable (v2026.5.7+ recovers rewritten openai/* routes back to openai-codex/*)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Recovery command if 2026.5.5 already changed your default model
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+
+# Re-check saved auth profiles per provider
+openclaw models auth list --provider openai-codex
+```
+
+Recovery docs: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -244,6 +279,24 @@ openclaw gateway status
 - `groups:history`, `im:history`, `mpim:history`
 - `users:read`, `app_mentions:read`
 - `reactions:read`, `reactions:write`
+
+#### `openclaw channels list` Output Looks Smaller After Upgrade to v2026.5.7
+**Symptoms:** Channel listing drops model auth/usage details that previously appeared, or third-party tooling that scraped the table no longer finds those columns.
+
+**Cause:** v2026.5.7 re-scoped `openclaw channels list` to channel info only. Model auth and usage details moved to dedicated commands.
+
+**Fix:**
+```bash
+# Include bundled and catalog channels
+openclaw channels list --all
+
+# Read model auth/usage from the new homes
+openclaw models auth list
+openclaw status
+openclaw models list
+```
+
+Channel-only output now renders installed/configured/enabled flags so external tooling can read state without reimplementing channel-status derivation.
 
 #### Slack: Interactive Buttons/Modals Stop Working After Upgrade
 **Symptoms:** Message replies work, but button actions or modal submissions are ignored/denied.
@@ -370,6 +423,34 @@ uname -s  # Must be "Darwin"
 
 # Enable and restart
 openclaw config set channels.imessage.enabled true
+openclaw gateway restart
+```
+
+#### Discord Voice `/vc join` Silently Fails or Sounds Choppy
+**Symptoms:** `/vc join` does nothing, or voice capture is choppy on noisy servers.
+
+**Cause:** Discord voice requires Connect, Speak, and Read Message History permissions; v2026.5.4-v2026.5.7 surface missing permissions and add tunables for voice capture.
+
+**Fix:**
+```bash
+# Audit voice permissions (v2026.5.7+)
+openclaw channels capabilities
+openclaw channels status --probe
+
+# Tune post-speech silence handling for noisy sessions (v2026.5.4+; default 2.5s in v2026.5.7+)
+openclaw config set voice.captureSilenceGraceMs 2500
+
+openclaw gateway restart
+```
+
+#### xAI Grok Native-Responses Models Fail with `Invalid reasoning effort`
+**Symptoms:** Live Docker/Gateway runs against `xai/grok-4.3` (or other native Grok Responses models) fail with `Invalid reasoning effort` or similar reasoning-parameter errors.
+
+**Cause:** Older builds sent OpenAI-style reasoning effort controls to native Grok Responses models. v2026.5.5 stops sending those controls and clamps the bundled xAI thinking profile to `off` for native Grok Responses runs.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway restart
 ```
 
@@ -526,7 +607,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.7+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -731,6 +812,18 @@ openclaw skills update --all
 
 ### Cron Job Issues
 
+#### Cron Job Saved with `"default"` / `"null"` / Blank Model Override
+**Symptoms:** Cron `payload.model` is stored as `"default"`, `"null"`, blank, or JSON `null`; jobs fail strict model validation or never pick up the agent default.
+
+**Cause:** Older builds could persist bad `payload.model` strings that the cron runtime then rejected.
+
+**Fix (v2026.5.7+):**
+```bash
+# doctor --fix removes the bad override; cron runtime model validation stays strict
+openclaw doctor --fix
+openclaw cron list --json
+```
+
 #### Cron Job Not Running
 **Symptoms:** Scheduled job doesn't execute at expected time
 
@@ -765,7 +858,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.7+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -815,6 +908,22 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw doctor --fix
 openclaw cron runs
 ```
+
+#### Run Aborts with `compaction_loop_persisted`
+**Symptoms:** After auto-compaction retry, the run aborts with `compaction_loop_persisted` instead of continuing.
+
+**Cause:** v2026.5.4 added a post-compaction loop guard that arms after auto-compaction-retry. It aborts when the agent emits the same `(tool, args, result)` triple `windowSize` times within the guarded window — addressing the failure mode where context-overflow + compaction does not break a tool-call loop.
+
+**Fix / Tune:**
+```bash
+# Tune the guard window size (default 3)
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 5
+
+# Disable loop detection entirely (not recommended)
+openclaw config set tools.loopDetection.enabled false
+```
+
+If the abort is masking a real bug, capture the repeating tool triple from logs before tuning.
 
 #### Cron Webhook SSRF (Security)
 **Note:** CVE-2026-27488 (patched in v2026.2.19) allowed cron webhook targets to reach private/internal endpoints. Ensure you are on v2026.2.19+ if using cron webhooks.
