@@ -39,7 +39,8 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 
 ### Channel Management
 ```bash
-openclaw channels list       # List configured channels
+openclaw channels list       # List configured channels (channel-only in v2026.5.7+)
+openclaw channels list --all # Include bundled/catalog channels and installed/configured/enabled state (v2026.5.7+)
 openclaw channels status     # Show channel connection status
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
@@ -57,7 +58,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.7` stable note: latest stable is published as `v2026.5.7`. The older npm hotfix package `openclaw@2026.5.3-1` remains relevant only for installs pinned near v2026.5.3.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
@@ -83,6 +84,7 @@ openclaw devices revoke <id>   # Revoke device access
 ### Cron Jobs
 ```bash
 openclaw cron list           # List all cron jobs
+openclaw cron show <id>      # Show one cron job and computed status (JSON status in v2026.5.7+)
 openclaw cron status         # Scheduler status
 openclaw cron add            # Add new job
 openclaw cron rm <id>        # Remove job
@@ -93,6 +95,8 @@ openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
 ```
 
+`v2026.5.7+` cron JSON note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as disabled/running/ok/error/skipped/idle, so external tooling should read that field instead of reimplementing status derivation.
+
 `v2026.3.11+` cron migration note:
 
 ```bash
@@ -101,6 +105,8 @@ openclaw doctor --fix
 ```
 
 `v2026.3.13+` cron reliability note: isolated cron nested-lane deadlocks are fixed in the current stable line. If isolated jobs stall, upgrade and run `openclaw doctor --fix`.
+
+`v2026.5.7+` cron repair note: `openclaw doctor --fix` repairs persisted jobs whose `payload.model` was stored as `"default"`, `"null"`, blank, or JSON `null` by removing the invalid override while keeping runtime validation strict.
 
 `v2026.3.23+` cron note:
 
@@ -209,6 +215,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions list --limit 50   # Limit rows (v2026.5.4+; use --limit all for full output)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,6 +288,7 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list [--provider <id>] [--json]  # Inspect saved auth profiles without secrets (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
@@ -377,7 +385,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +397,10 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+# Slack rich Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+# Debug raw command/detail output in progress drafts when needed (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true

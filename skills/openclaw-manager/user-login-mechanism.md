@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.7+` note: current stable includes recovery for v2026.5.5 Codex OAuth route rewrites; if `doctor --fix` moved a working `openai-codex/*` setup onto `openai/*`, upgrade and rerun `openclaw doctor --fix`, then validate config.
 
 **Process:**
 1. Run the command
@@ -229,6 +230,7 @@ openclaw models auth setup-token --provider vercel-ai
 
 ```bash
 openclaw models list
+openclaw models auth list  # v2026.5.4+: inspect saved auth profiles without secrets
 openclaw status --deep  # Includes provider health checks
 ```
 

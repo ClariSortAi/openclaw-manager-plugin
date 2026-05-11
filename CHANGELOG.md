@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.5.4` through `v2026.5.7`, including Google Meet/Voice Call realtime bridge notes, `openclaw models auth list`, bounded `openclaw sessions list --limit`, rich Slack progress drafts, `agents.defaults.toolProgressDetail`, channel-list `--all`, cron JSON `status`, cron model repair, Codex OAuth-route recovery, and channel reliability fixes.
+- Added pre-release watch coverage for `v2026.5.9-beta.1` through `v2026.5.10-beta.3`, including Node 22.16+ beta floor, BlueBubbles beta removal watch, `/think default`/`/fast default`, optional `openclaw path`, gateway restart `--safe --skip-deferral`, `/context map`, Slack unfurl/reply-broadcast config, private skill archive upload gating, and Talk/Discord realtime voice updates.
+- Added troubleshooting coverage for v2026.5.7 channel-list behavior, Codex OAuth-route recovery after v2026.5.5 rewrites, Discord voice permission probes, cron JSON status/model repair, and stable recovery from official bundled plugin install scanner false positives.
+- Added security-checklist hardening entries for Windows loopback binding, Docker Compose dropped capabilities/no-new-privileges, native command owner enforcement, Active Memory admin-scope controls, inline skill authorization hooks, Telegram `accessGroup:*` allowlist enforcement, and beta-only private skill archive upload risk.
 - Added release-alignment coverage for upstream stable `v2026.5.3` and npm hotfix `openclaw@2026.5.3-1`, including bundled file-transfer plugin guidance, unified progress streaming, `/steer` and `/side` command notes, official plugin install/update hardening, gateway config fail-closed behavior, and WhatsApp Channel/Newsletter routing notes.
 - Added release-alignment coverage for `v2026.4.29` and `v2026.5.2`, including restricted tool-profile widening changes, visible-reply enforcement, follow-up commitments, NVIDIA provider, plugin dependency repair/`git:` installs, `openclaw proxy validate`, gateway restart controls, and thread-bindings migration guidance.
 - Added troubleshooting coverage for official plugin dependency/missing payload repair, bundled file-transfer path-policy failures, restricted-profile tool access after `v2026.4.29`, and invalid-config failures after `v2026.5.3`.
@@ -65,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.7+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated README/plugin metadata for this docs release alignment (`1.3.9`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.15+` to `v2026.5.3+` while preserving minimum safe baseline at `v2026.3.1`.
 - Updated README/version metadata for this docs release alignment (`1.3.8`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.4.14+` to `v2026.4.15+` while preserving minimum safe baseline at `v2026.3.1`.
