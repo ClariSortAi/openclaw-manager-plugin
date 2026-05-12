@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.7+** (v2026.5.5 had a Codex OAuth route-rewrite regression that v2026.5.6 reverted and v2026.5.7 fully repairs — see the Codex OAuth recovery section below).
 
 ## Common Issues
 
@@ -193,7 +193,32 @@ openclaw status --deep
 openclaw models auth setup-token --provider <provider-name>
 # Or re-run configure
 openclaw configure
+
+# Inspect saved per-agent auth profiles without dumping secrets (v2026.5.4+)
+openclaw models auth list
+openclaw models auth list --provider <provider-name> --json
 ```
+
+#### Default Agent Switched to `openai/gpt-*` After v2026.5.5 Doctor Run (Codex OAuth Route Rewrite)
+**Symptoms:** After running `openclaw doctor --fix` on v2026.5.5, ChatGPT/Codex OAuth users see their default agent silently swap from `openai-codex/gpt-5.5` to `openai/gpt-5.5`. OAuth-only setups start failing because the route now wants an OpenAI API key.
+
+**Cause:** v2026.5.5 introduced a `doctor --fix` repair that rewrote valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`. v2026.5.6 reverted the rewrite. v2026.5.7's `doctor --fix` preserves working `openai-codex/*` PI routes and recovers v2026.5.5-rewritten routes when only Codex OAuth auth is available.
+
+**Fix:**
+```bash
+# Upgrade past the regression first
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Pin default agent back to the Codex OAuth PI route
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+
+# Re-run doctor on v2026.5.7+ to repair any remaining stale references
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+Upstream recovery doc: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
 
 #### OpenAI Token Keeps Reverting to an Older Value
 **Symptoms:** You paste/save a fresh token (for example via onboarding or `models auth paste-token`), but it snaps back to an expired value after reconnect or refresh.
@@ -272,6 +297,31 @@ openclaw channels login
 # Scan QR in WhatsApp → Settings → Linked Devices
 ```
 
+#### WhatsApp: Proactive Phone-Number Sends Land in "Ghost Chats"
+**Symptoms:** Agent sends a message to a configured phone number, but the recipient (an LID-addressed WhatsApp contact) never sees it; the gateway shows a new sender-only chat.
+
+**Cause:** Pre-v2026.5.7 builds did not route proactive phone-number sends through Baileys LID forward mappings, so LID-addressed contacts ended up in sender-only ghost chats.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+#### WhatsApp: Personal-Phone Allowlist No Longer Matches Incoming Senders
+**Symptoms:** Recently upgraded; previously-working `channels.whatsapp.allowFrom` entries stop matching incoming senders.
+
+**Cause:** v2026.5.4 canonicalizes setup/pairing allowlist entries to WhatsApp's digit-only phone ids. Manual entries in legacy formats still work for new setup, but stored personal-phone allowlists may need a re-run of onboarding.
+
+**Fix:**
+```bash
+# Re-run onboarding to canonicalize stored entries
+openclaw configure
+
+# Verify
+openclaw config get channels.whatsapp.allowFrom
+```
+
 #### WhatsApp: Disconnected Loop
 **Symptoms:** Keeps reconnecting, not stable
 
@@ -327,6 +377,19 @@ openclaw channels status
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
 
+#### Telegram: Sender Allowlist Should Accept Labeled Groups Instead of Enumerated IDs
+**Symptoms:** Operators want to grant a labeled group of senders (DMs, groups, native commands, callback authorization) without enumerating each numeric chat id.
+
+**Cause:** `accessGroup:*` allowlist support is v2026.5.7+.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw config set channels.telegram.allowFrom '["accessGroup:family", "+15551234567"]'
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Telegram Forum Topics Show Numeric IDs Instead of Human Names
 **Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.
 
@@ -340,6 +403,26 @@ openclaw gateway restart
 
 # Re-check forum-topic behavior
 openclaw channels status
+```
+
+#### LINE: Config Validation Rejects `dmPolicy: "open"`
+**Symptoms:** Upgrade to v2026.5.5+; LINE channel fails validation with an `allowFrom` error even though the channel had been accepting traffic before.
+
+**Cause:** v2026.5.5 hardened LINE config validation so `dmPolicy: "open"` requires `allowFrom: ["*"]` explicitly. Webhook DMs without a wildcard were previously acknowledged and silently blocked downstream.
+
+**Fix:**
+```bash
+# Pick the actual intent:
+
+# Truly open (DANGEROUS — exposes to spam/abuse)
+openclaw config set channels.line.dmPolicy open
+openclaw config set channels.line.allowFrom '["*"]'
+
+# Safer alternative
+openclaw config set channels.line.dmPolicy pairing
+
+openclaw config validate
+openclaw gateway restart
 ```
 
 #### iMessage: Not Working (Migrate to BlueBubbles)
@@ -370,6 +453,51 @@ uname -s  # Must be "Darwin"
 
 # Enable and restart
 openclaw config set channels.imessage.enabled true
+openclaw gateway restart
+```
+
+#### Discord: `/steer` and Other Plain-Text Commands Silently Dropped in Guilds
+**Symptoms:** Plain-text control commands such as `/steer <guidance>` appear to do nothing in Discord servers; bot replies normally to other messages.
+
+**Cause:** Pre-v2026.5.5 builds dropped plain-text control commands before they reached agent authorization. v2026.5.5 routes them through normal authorization and mention gating.
+
+**Fix:**
+```bash
+# Upgrade and restart
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Confirm the channel's mention/access controls actually permit the sender
+openclaw config get channels.discord.allowFrom
+openclaw pairing list
+```
+
+#### Discord Voice: `/vc join` Fails or Audio Capture Choppy
+**Symptoms:** Voice channel join fails with permission errors, or live captured audio breaks up mid-utterance.
+
+**Cause:** v2026.5.7 added voice-channel permission audits to `channels capabilities` and `channels status --probe`, including auto-join targets. The default post-speech silence grace is 2.5s; noisy sessions may need a longer grace.
+
+**Fix:**
+```bash
+# Audit Discord voice permissions
+openclaw channels capabilities
+openclaw channels status --probe
+
+# Add missing Connect / Speak / Read Message History to the bot role, then retest
+
+# Tune capture silence grace for noisy channels (v2026.5.7+)
+openclaw config set channels.discord.voice.captureSilenceGraceMs 3500
+openclaw gateway restart
+```
+
+#### Discord: Cross-Channel `message(action="send")` Returns `Unknown Channel`
+**Symptoms:** Agent tool sends targeting `discord:channel:<id>` fail with `Unknown Channel`.
+
+**Cause:** Pre-v2026.5.7 builds parsed `discord:channel:<id>` as a legacy Discord DM target instead of a channel send.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw gateway restart
 ```
 
@@ -440,6 +568,69 @@ openclaw pairing list
 ```
 
 ### Plugin Issues
+
+#### `openclaw channels list` No Longer Shows Model Auth / Bundled Channels
+**Symptoms:** After upgrading to v2026.5.7+, `openclaw channels list` only lists currently configured channels and no longer includes bundled/catalog channels or model auth/usage details.
+
+**Cause:** v2026.5.7 narrowed `openclaw channels list` to channels-only with installed/configured/enabled state. Model auth and usage details moved to dedicated commands.
+
+**Fix:**
+```bash
+# Surface bundled and catalog channels explicitly
+openclaw channels list --all
+
+# Inspect model auth profiles
+openclaw models auth list
+openclaw models auth list --provider openai --json
+
+# Inspect model usage/state
+openclaw status
+openclaw models list
+```
+
+#### Bundled Provider Discovery Failures After Upgrade
+**Symptoms:** A previously-discovered bundled provider stops appearing after upgrading to v2026.5.4+; restrictive `plugins.allow` configs no longer surface the provider.
+
+**Cause:** v2026.5.4 honors restrictive `plugins.allow` for bundled provider discovery by default. `doctor --fix` migrates legacy restrictive allowlist configs to `plugins.bundledDiscovery: "compat"` to preserve prior upgrade behavior.
+
+**Fix:**
+```bash
+openclaw doctor --fix
+
+# Inspect the resolved setting
+openclaw config get plugins.bundledDiscovery
+
+# If the migration didn't fire (e.g. fresh install), enable compat explicitly
+openclaw config set plugins.bundledDiscovery "compat"
+openclaw gateway restart
+```
+
+#### `openclaw status` Shows Restart Loop That Was Actually a Clean Supervisor Handoff
+**Symptoms:** `openclaw status` reports the gateway as stopped/restarted but the systemd or service supervisor performed a clean restart.
+
+**Cause:** v2026.5.5 added supervisor restart-handoff reporting in `openclaw doctor --deep` and `openclaw gateway status --deep` so clean service-managed restarts no longer look like opaque stopped-service states.
+
+**Fix:**
+```bash
+openclaw gateway status --deep
+openclaw doctor --deep
+```
+
+#### `OPENCLAW_GATEWAY_TOKEN` Shadows Configured `gateway.auth.token`
+**Symptoms:** Local CLI commands authenticate with a different token than the configured gateway, leading to confusing 401s during local operations.
+
+**Cause:** v2026.5.5 added a `doctor --fix` warning when `OPENCLAW_GATEWAY_TOKEN` would shadow a different active `gateway.auth.token` source for local CLI commands.
+
+**Fix:**
+```bash
+# See the warning
+openclaw doctor --fix
+
+# Either unset the env override or align it with configured auth
+unset OPENCLAW_GATEWAY_TOKEN
+# or
+export OPENCLAW_GATEWAY_TOKEN="$(openclaw config get gateway.auth.token)"
+```
 
 #### Plugin Not Loading
 **Symptoms:** Installed plugin doesn't appear in `plugins list`
@@ -865,13 +1056,43 @@ openclaw logs | grep -i "sub-agent\|spawn"
 
 **Fix:**
 ```bash
-# Clean up old sessions
+# Clean up old sessions; v2026.5.4+ also prunes orphan transcript,
+# compaction checkpoint, and trajectory artifacts
 openclaw sessions cleanup
 
 # Set disk budget to auto-manage
 openclaw config set session.maintenance.maxDiskBytes 1073741824
 openclaw config set session.maintenance.highWaterBytes 858993459
 ```
+
+#### `openclaw sessions` Output Now Truncates to 100 Rows
+**Symptoms:** Automation that scrapes `openclaw sessions list` only sees the newest 100 rows after upgrading.
+
+**Cause:** v2026.5.4 caps the default `openclaw sessions` output to the newest 100 rows so machine polling does not fan out into unbounded per-row enrichment work. JSON output now includes pagination metadata.
+
+**Fix:**
+```bash
+# Raise the limit explicitly
+openclaw sessions list --limit 500
+openclaw sessions list --limit all --json
+```
+
+#### `compaction_loop_persisted` Aborts a Long Tool Loop
+**Symptoms:** A long-running agent run aborts with `compaction_loop_persisted` after auto-compaction-retry.
+
+**Cause:** v2026.5.4 added a post-compaction loop guard in `pi-embedded-runner` that aborts when the agent emits the same `(tool, args, result)` triple `windowSize` times (default 3) within the post-compaction window. This catches the failure mode where a context-overflow + compaction does not break a tool-call loop.
+
+**Fix:**
+```bash
+# Inspect or tune the loop guard window
+openclaw config get tools.loopDetection.postCompactionGuard.windowSize
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 4
+
+# Or disable loop detection entirely (NOT recommended for production)
+openclaw config set tools.loopDetection.enabled false
+```
+
+If the same triple is legitimately required more than three times in a row, raise `windowSize` instead of disabling loop detection — the guard exists to protect against context-overflow / compaction loops that previously burned tokens silently.
 
 ### Tools Profile Issues (v2026.3.2+)
 

@@ -169,6 +169,8 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
+`v2026.5.4+` allowlist note: WhatsApp onboarding canonicalizes setup and pairing allowlist entries to WhatsApp's digit-only phone ids while still accepting E.164, JID, and `whatsapp:` inputs, so personal-phone allowlists match WhatsApp Web sender ids after setup. Re-run `openclaw configure` if existing entries no longer match incoming senders.
+`v2026.5.7+` LID note: proactive sends to a phone number are routed through Baileys LID forward mappings when available, so LID-addressed contacts receive agent messages instead of creating sender-only ghost chats. Captioned `MEDIA:` directive auto-replies are no longer preceded by an empty media message.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -247,6 +249,8 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+- `v2026.5.7+`: sender allowlists honor `accessGroup:*` entries for DMs, groups, native commands, and callback authorization before applying numeric sender-id checks. Use `accessGroup:<name>` to grant a labeled group of senders without enumerating individual chat ids.
+- `v2026.5.7+`: the polling watchdog is tied to `getUpdates` liveness, so unrelated outbound Bot API calls cannot mask a wedged inbound poller.
 
 ---
 
@@ -300,6 +304,12 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Reliability and Voice (v2026.5.4-v2026.5.7)
+
+- `v2026.5.4+`: REST and gateway WebSocket startup paths prefer IPv4, so IPv4-only networks no longer stall before Gateway READY. Degraded Discord transport and event-loop starvation signals are surfaced in `openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs.
+- `v2026.5.5+`: heartbeat ACK timeouts are measured from the actual heartbeat send so late initial heartbeats no longer trigger false reconnect loops; plain text control commands such as `/steer` are routed through normal authorization and mention gating instead of being dropped silently before an agent can see them; live reasoning text shows in progress drafts.
+- `v2026.5.7+`: voice-channel permission audits ship in `openclaw channels capabilities` and `openclaw channels status --probe`, including auto-join targets. The default post-speech silence grace is 2.5 seconds; tune with `channels.discord.voice.captureSilenceGraceMs` for noisy sessions. Provider-prefixed targets like `discord:channel:<id>` are parsed as channel sends, not legacy DM targets.
 
 ---
 
@@ -555,6 +565,10 @@ openclaw config set channels.irc.dmPolicy pairing
 openclaw gateway restart
 ```
 
+### Egress Note (v2026.5.4+)
+
+IRC uses raw TCP/TLS sockets outside operator-managed forward proxy routing. Direct IRC egress should be explicitly approved by your network policy before enabling the channel.
+
 ---
 
 ## WebChat (Native)
@@ -589,6 +603,10 @@ openclaw plugins install @openclaw/line
 openclaw plugins info line
 openclaw gateway restart
 ```
+
+### LINE Access Policy Validation (v2026.5.5+)
+
+`dmPolicy: "open"` now requires `allowFrom: ["*"]` explicitly. Webhook DMs with `dmPolicy: "open"` but no wildcard `allowFrom` are rejected at config-validation time instead of being acknowledged and silently blocked before inbound processing. Set both keys together if you genuinely intend an open policy, or pick `pairing`/`allowlist` instead.
 
 ---
 
@@ -708,6 +726,7 @@ openclaw channels status
 - TTS/voice bubbles, Opus audio as `msg_type: "audio"` (v2026.3.1)
 - Webhook ingress rate-limiting with stale-window pruning (v2026.3.1)
 - Multi-app mention routing validation (v2026.3.2)
+- Native topic starter thread IDs are hydrated before session routing (v2026.5.5+), so first turns and follow-ups stay in the same topic session.
 
 ---
 

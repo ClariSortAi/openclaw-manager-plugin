@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.7+**. (v2026.5.5 contained a Codex OAuth-route rewrite regression that v2026.5.6 reverted and v2026.5.7 fully repairs — see the Codex recovery note below.)
 
 ### Known Critical Vulnerabilities
 
@@ -128,11 +128,41 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Gateway loopback Windows binding | Default loopback gateway listener binds only to `127.0.0.1` on Windows so libuv dual-stack `::1` behavior cannot wedge localhost HTTP requests | v2026.5.4 |
+| Bundled provider discovery defaults | Restrictive `plugins.allow` configs honor bundled provider discovery by default; `doctor --fix` migrates legacy configs to `plugins.bundledDiscovery: "compat"` to preserve upgrade behavior without widening trust | v2026.5.4 |
+| iOS pairing transport guard | Non-loopback `ws://` setup URLs are rejected before QR/setup-code issuance; Tailscale/public routes stay on `wss://` while private LAN/`.local` may use `ws://` (v2026.5.5) | v2026.5.4-v2026.5.5 |
+| Control UI media tickets | Assistant media fetches mint short-lived scoped tickets and render ticketed URLs instead of exposing long-lived auth tokens in chat image URLs | v2026.5.4 |
+| Compaction loop guard | `pi-embedded-runner` aborts repeated `(tool, args, result)` cycles after auto-compaction-retry with `compaction_loop_persisted`; tune via `tools.loopDetection.postCompactionGuard.windowSize` (default 3) | v2026.5.4 |
+| Browser SSRF on existing-session screenshots | Strict SSRF current-URL checks run before existing-session screenshots, matching existing-session snapshot handling | v2026.5.4 |
+| WhatsApp allowlist canonicalization | Onboarding canonicalizes setup/pairing allowlist entries to WhatsApp digit-only phone ids so personal-phone allowlists match WhatsApp Web sender ids after setup | v2026.5.4 |
+| Docker Compose container hardening | Bundled `docker-compose.yml` drops `NET_RAW` and `NET_ADMIN` capabilities and enables `no-new-privileges` | v2026.5.5 |
+| LINE `dmPolicy: "open"` validation | LINE `dmPolicy: "open"` without wildcard `allowFrom` fails config validation instead of being acknowledged and silently blocked later | v2026.5.5 |
+| Codex OAuth route preservation | `doctor --fix` preserves working `openai-codex/*` PI routes and recovers v2026.5.5-rewritten `openai/*` routes when only Codex OAuth auth is available | v2026.5.6-v2026.5.7 |
+| Exec approval shell explainer | Tree-sitter-backed shell command explainer for future approval/command-review surfaces; `env -S` split-string command-carrier and POSIX `exec`/`env -P` carriers are unwrapped before approval-command checks | v2026.5.4 |
+| Telegram allowlist groups | Telegram sender allowlists honor `accessGroup:*` for DMs, groups, native commands, and callback authorization before numeric sender-id checks; polling watchdog tied to `getUpdates` liveness | v2026.5.7 |
+| Native command owner enforcement | Native command handlers honor owner enforcement; Active Memory global toggles require admin scope; auto-reply inline skill tool dispatch gates through before-tool-call authorization hooks | v2026.5.7 |
+| Device pairing scope | `pair` command requires pairing scope | v2026.5.4 |
+| WebSocket auth scope clamping | Unbound websocket auth scopes are clamped at the gateway | v2026.5.4 |
+| QQBot framework command isolation | QQBot streaming command auth gated; private commands stay off framework surface; `/bot-*` command handlers and native specs scope to the QQBot channel and do not leak onto unrelated chat surfaces | v2026.5.4 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
 - The Dutch Data Protection Authority warned about serious cybersecurity and privacy risks and estimated ~20% of available plugins may contain malware
 - Meta banned OpenClaw over security concerns
+
+### Codex OAuth Route Rewrite Recovery (v2026.5.5 regression)
+
+`openclaw@2026.5.5` introduced a `doctor --fix` repair that could rewrite valid `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`, breaking OAuth-only GPT-5 setups or moving operators onto the OpenAI API-key route unintentionally. v2026.5.6 reverted that repair; v2026.5.7 further preserves working `openai-codex/*` PI routes and recovers v2026.5.5-rewritten routes when only Codex OAuth auth is available.
+
+If you upgraded through v2026.5.5 and your default agent now points at `openai/gpt-*`, recover with:
+
+```bash
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+openclaw gateway restart
+```
+
+See the upstream recovery note: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
 
 ### Breaking Change: `auth: "none"` Permanently Removed
 
@@ -408,7 +438,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.7+ for latest plugin install/update, file-transfer, config fail-closed, channel reliability hardening, Codex OAuth route preservation, and refreshed `openclaw channels list` / `openclaw models auth list` surfaces)
+- [ ] If you passed through v2026.5.5, confirm that `doctor --fix` did not rewrite a working `openai-codex/*` default to `openai/*` (recover via `openclaw models set openai-codex/gpt-5.5`)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -424,6 +455,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] If installing/updating official plugins on the beta npm channel, prefer the `2026.5.3-1` core npm hotfix when install scans flag distant `process.env` / API-send references in compiled bundled-plugin packages
+- [ ] If running the bundled docker-compose stack, ensure `NET_RAW`/`NET_ADMIN` capabilities are dropped and `no-new-privileges` is enabled (default in v2026.5.5+); mirror those settings in any custom Compose overrides
 - [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
@@ -582,7 +614,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.7+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
