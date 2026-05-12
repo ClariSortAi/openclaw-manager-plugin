@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Codex OAuth repair, channel/model CLI clarity, official plugin repair, and channel/provider reliability improvements, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -210,6 +210,25 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Codex OAuth Routes Break After `doctor --fix`
+**Symptoms:** ChatGPT/Codex subscription setups stop working after upgrade or repair, or `openai-codex/*` model refs were rewritten to `openai/*` and now require an API key.
+
+**Cause:** v2026.5.5 had an over-broad Codex route repair. v2026.5.6/v2026.5.7 preserve working `openai-codex/*` PI routes and recover rewritten GPT-5 routes when only Codex OAuth is available.
+
+**Fix:**
+```bash
+# Upgrade to current stable first
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Let doctor repair Codex OAuth route intent
+openclaw doctor --fix
+openclaw config validate
+
+# If v2026.5.5 changed your default model and you need the PI OAuth route:
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -226,6 +245,24 @@ openclaw gateway status
 ```
 
 ### Channel Issues
+
+#### Channel List No Longer Shows Model Auth or Usage Details
+**Symptoms:** `openclaw channels list` output appears shorter than older automation expected, or model auth/usage columns are missing.
+
+**Cause:** In v2026.5.7, `openclaw channels list` became channel-only. Bundled/catalog inventory moved behind `--all`; model auth and usage details moved to dedicated model/status commands.
+
+**Fix:**
+```bash
+# Channel inventory including bundled/catalog state
+openclaw channels list --all
+
+# Model auth profile status without secrets
+openclaw models auth list --json
+
+# Runtime health and provider/model state
+openclaw status --deep
+openclaw models list
+```
 
 #### Slack: missing_scope Error
 **Symptoms:** Bot receives messages but can't reply
@@ -327,6 +364,22 @@ openclaw channels status
 
 If failures persist behind a webhook endpoint, verify Telegram webhook secret configuration; v2026.3.13+ rejects invalid/missing secrets before request body parsing.
 
+#### Telegram `accessGroup:*` Allowlist Does Not Work
+**Symptoms:** Telegram group or DM senders configured through `accessGroup:*` are denied, or callbacks/native commands do not honor the expected group access rule.
+
+**Cause:** Builds before v2026.5.7 did not consistently apply `accessGroup:*` before numeric sender-ID checks.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-check effective channel access config
+openclaw config get channels.telegram
+openclaw config validate
+openclaw gateway restart
+```
+
 #### Telegram Forum Topics Show Numeric IDs Instead of Human Names
 **Symptoms:** Topic-aware conversations appear with numeric topic ids in context/status output, especially after restart.
 
@@ -386,6 +439,21 @@ openclaw gateway restart
 ```
 
 If still on v2026.2.24, force restart: `openclaw gateway restart`
+
+#### Discord Voice Join Fails or Cannot Hear/Speak
+**Symptoms:** `/vc join` fails, joins silently, or the bot cannot capture or speak in a Discord voice channel.
+
+**Cause:** Missing Connect/Speak/Read Message History permissions or auto-join target config issues.
+
+**Fix:**
+```bash
+# v2026.5.7+: probe voice permissions and channel capabilities
+openclaw channels capabilities
+openclaw channels status --probe
+
+# Fix Discord role/channel permissions, then restart
+openclaw gateway restart
+```
 
 #### Teams: Plugin Not Working
 **Symptoms:** Teams channel not available
@@ -526,7 +594,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.7+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -550,6 +618,8 @@ openclaw doctor --fix
 openclaw plugins update --all
 openclaw gateway restart
 ```
+
+If this persists on current stable, also run `openclaw doctor --fix`; v2026.5.4-v2026.5.7 improved repair for stale official npm/ClawHub installs, missing peer links, source-only shadows, and restricted npm lifecycle shells.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -765,7 +835,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.7+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -871,6 +941,21 @@ openclaw sessions cleanup
 # Set disk budget to auto-manage
 openclaw config set session.maintenance.maxDiskBytes 1073741824
 openclaw config set session.maintenance.highWaterBytes 858993459
+```
+
+#### Session Listing Is Slow or Too Large
+**Symptoms:** `openclaw sessions list` or status polling is slow on long-lived gateways with many sessions.
+
+**Fix:**
+```bash
+# v2026.5.4+: bound session output
+openclaw sessions list --limit 100
+
+# Only request every row when needed
+openclaw sessions list --limit all
+
+# Prune old unreferenced artifacts
+openclaw sessions cleanup
 ```
 
 ### Tools Profile Issues (v2026.3.2+)

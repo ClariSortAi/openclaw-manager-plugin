@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.7+** for the latest channel/model CLI surfaces, Codex OAuth repair behavior, Discord voice probes, Telegram allowlist fixes, official-plugin repair hardening, and channel/provider reliability updates. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.7)
 
 These changes affect new and existing installations:
 
@@ -64,10 +64,12 @@ These changes affect new and existing installations:
 22. **Thread-spawn config keys migrated** (v2026.5.2) — legacy split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
 23. **Invalid config fails closed** (v2026.5.3) — Gateway startup and hot reload no longer auto-restore invalid config; use `openclaw config validate` and `openclaw doctor --fix` for last-known-good repair.
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
+25. **`channels list` is channel-only by default** (v2026.5.7) — model auth and usage details moved to `openclaw models auth list`, `openclaw status`, and `openclaw models list`; use `openclaw channels list --all` for bundled/catalog channel inventory.
+26. **LINE `dmPolicy: "open"` now validates wildcard access** (v2026.5.5) — open DM configs without wildcard `allowFrom` fail validation instead of being acknowledged and silently blocked.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
-These are recent operationally important additions in the latest stable releases:
+These are operationally important additions from these stable milestones:
 
 1. **Chat-native `/tasks` board** (v2026.4.1) — users can inspect session background work and recent task status directly from chat.
 2. **Per-job cron tool allowlists** (v2026.4.1) — cron jobs can scope available tools via `--tools`, reducing blast radius for scheduled automations.
@@ -90,7 +92,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes from this stable milestone:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -117,7 +119,7 @@ These are operationally important additions introduced after v2026.4.15:
 
 ## Notable Additions in v2026.5.3
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes from this stable milestone:
 
 1. **Bundled file-transfer plugin** — provides `file_fetch`, `dir_list`, `dir_fetch`, and `file_write` tools for paired-node binary file operations, with default-deny per-node path policy under `plugins.entries.file-transfer.config.nodes`, operator approval, symlink traversal refused by default, and a 16 MB round-trip ceiling.
 2. **Unified progress streaming** — `streaming.mode: "progress"` adds shared progress-draft behavior with auto single-word labels across Discord, Telegram, Matrix, Slack, and Microsoft Teams.
@@ -129,9 +131,33 @@ These are operationally important additions and reliability/security fixes in th
 8. **Google Meet and realtime voice reliability** — Meet joins wait for realtime readiness, expose transcripts/status diagnostics, and avoid silently queued audio behind unconfigured sessions.
 9. **2026.5.3-1 npm hotfix** — the core npm package `openclaw@2026.5.3-1` on the beta dist-tag fixes official bundled plugin install-scanner false positives involving distant `process.env` and normal API send references in compiled bundles.
 
+## Notable Additions in v2026.5.4-v2026.5.7
+
+These are operationally important additions and repair notes in the latest stable release:
+
+1. **Channel and model auth CLI split** — `openclaw channels list` is channel-focused; use `openclaw channels list --all` for bundled/catalog inventory and `openclaw models auth list [--provider <id>] [--json]` for saved auth profile status without exposing secrets.
+2. **Bounded session listing** — `openclaw sessions list --limit <n|all>` and JSON pagination metadata keep large session stores from causing unbounded status work.
+3. **Cron JSON status and repair** — `cron list --json` and `cron show --json` include computed status, while `openclaw doctor --fix` removes bad persisted cron model overrides such as `"default"` or JSON `null`.
+4. **Codex OAuth route recovery** — v2026.5.6/v2026.5.7 preserve working `openai-codex/*` PI routes and recover v2026.5.5-rewritten `openai/*` GPT-5 routes when only Codex OAuth is available.
+5. **Discord voice probes** — `openclaw channels capabilities` and `openclaw channels status --probe` audit voice permissions such as Connect, Speak, and Read Message History before `/vc join`.
+6. **Rich progress controls** — Slack supports `streaming.progress.render: "rich"` Block Kit progress drafts, and `agents.defaults.toolProgressDetail: "raw"` enables debugging raw command/detail output in progress lines.
+7. **Telegram `accessGroup:*` allowlists** — Telegram authorization now honors `accessGroup:*` for DMs, groups, native commands, and callbacks before numeric sender-id checks.
+8. **Official plugin lifecycle repair** — plugin update/install/repair paths better handle managed npm/ClawHub packages, stale peer links, source-only shadows, and restricted shell environments.
+9. **Diagnostics and runtime visibility** — `openclaw status`, `openclaw gateway status --deep`, sessions tables, and Control UI surfaces expose runtime/harness labels, supervisor restart handoffs, and partial/degraded channel states.
+10. **Windows, Docker, and browser hardening** — Docker Compose drops extra capabilities/no-new-privileges, Windows host env probing is pinned to trusted install roots, and existing-session browser SSRF checks cover additional tab routes.
+
+## Latest Prerelease Watch (v2026.5.10-beta.5)
+
+These are beta-only and should not replace the stable recommendation until promoted:
+
+1. **Slack delivery controls** — `unfurlLinks`, `unfurlMedia`, and `replyBroadcast` config for bot replies and thread broadcasts.
+2. **Private skill archive upload** — trusted Gateway clients can upload zip-backed skills only when `skills.install.allowUploadedArchives` is explicitly enabled.
+3. **Context map command** — `/context map` sends a treemap image of current session context contributors.
+4. **Agent-to-agent and message-tool policy overrides** — per-agent `session.agentToAgent.maxPingPongTurns`, `tools.message.crossContext`, and `tools.message.actions.allow` controls are under beta validation.
+
 ## Notable Additions in v2026.3.22-v2026.3.24
 
-These are recent operationally important additions in current stable releases:
+These are operationally important additions from these stable milestones:
 
 1. **Native skills lifecycle commands** — `openclaw skills search|install|update` now provides first-class ClawHub workflows from the core CLI.
 2. **Tracked ClawHub plugin installs** — `openclaw plugins install clawhub:<package>` records source metadata for cleaner updates/uninstalls.
@@ -149,7 +175,7 @@ These are recent operationally important additions in current stable releases:
 
 ## Notable Additions in v2026.3.28-v2026.3.31
 
-These are recent operationally important additions in the latest stable releases:
+These are operationally important additions from these stable milestones:
 
 1. **Task-flow control surface** (v2026.3.31) — `openclaw flows list|show|cancel` adds first-class visibility/control over detached background work.
 2. **`openclaw config schema`** (v2026.3.28) — prints the generated JSON schema for `openclaw.json`, which helps CI/config-lint workflows.
@@ -268,7 +294,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.7+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -394,14 +420,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models now default to `"adaptive"` thinking level. Override if needed:
 
 ```bash
 # Check current thinking level

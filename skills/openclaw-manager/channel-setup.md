@@ -54,6 +54,7 @@
     "socket_mode_enabled": true,
     "event_subscriptions": {
       "bot_events": [
+        "app_home_opened",
         "app_mention",
         "message.channels",
         "message.groups",
@@ -103,6 +104,8 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4-v2026.5.7, Slack supports rich Block Kit progress drafts via `streaming.progress.render: "rich"`, raw progress debugging via `agents.defaults.toolProgressDetail: "raw"`, better Socket Mode error fields in logs, and thread/DM route fixes for isolated sessions.
+Prerelease watch in v2026.5.10-beta.5: `unfurlLinks`, `unfurlMedia`, and `replyBroadcast` config can suppress Slack previews or opt into Slack parent-channel thread broadcasts.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -247,6 +250,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 
 - Webhook secret validation now happens before body parsing, so invalid or missing secrets are rejected earlier.
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
+- In v2026.5.7+, Telegram honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callback authorization before numeric sender-id checks.
 
 ---
 
@@ -300,6 +304,15 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice Checks (v2026.5.7+)
+
+```bash
+openclaw channels capabilities
+openclaw channels status --probe
+```
+
+Use these before `/vc join` to catch missing Connect, Speak, or Read Message History permissions and auto-join target issues.
 
 ---
 
@@ -574,6 +587,8 @@ No additional configuration needed — it runs as part of the gateway.
 ## LINE (Plugin Required)
 
 LINE is supported via the `@openclaw/line` plugin using the LINE Messaging API.
+
+In v2026.5.5+, `dmPolicy: "open"` must include wildcard `allowFrom`; invalid open DM configs fail validation instead of silently acknowledging and blocking inbound DMs.
 
 ### Setup Steps
 

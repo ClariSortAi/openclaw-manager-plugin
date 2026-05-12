@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.7+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| LINE open-DM validation | `dmPolicy: "open"` without wildcard `allowFrom` fails validation instead of silently acknowledging and blocking DMs | v2026.5.5 |
+| Docker Compose hardening | Bundled compose drops `NET_RAW`/`NET_ADMIN` and enables `no-new-privileges` for the gateway container | v2026.5.5 |
+| Native command owner enforcement | Native command handlers honor owner enforcement and Active Memory global toggles require admin scope | v2026.5.7 |
+| Telegram access-group authorization | `accessGroup:*` sender allowlists are enforced for DMs, groups, native commands, and callbacks | v2026.5.7 |
+| Browser and Windows host hardening | Existing-session browser tab routes enforce current-URL SSRF policy, and Windows helper resolution pins trusted install-root paths instead of workspace/env overrides | v2026.5.4-v2026.5.7 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +413,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.7+ for latest plugin install/update, Codex OAuth repair, channel/model CLI, and channel reliability hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -424,6 +429,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] If installing/updating official plugins on the beta npm channel, prefer the `2026.5.3-1` core npm hotfix when install scans flag distant `process.env` / API-send references in compiled bundled-plugin packages
+- [ ] If upgrading through v2026.5.5, run current `openclaw doctor --fix` and verify Codex OAuth routes because v2026.5.6/v2026.5.7 repair the temporary `openai-codex/*` rewrite behavior
+- [ ] If using LINE with `dmPolicy: "open"`, confirm wildcard `allowFrom` is intentional and explicit
+- [ ] If using Docker Compose, refresh compose files or manually drop `NET_RAW`/`NET_ADMIN` and set `no-new-privileges`
+- [ ] If using Telegram group access controls, prefer `accessGroup:*` allowlists where group-scoped authorization is intended
 - [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
@@ -582,13 +591,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.7+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation
