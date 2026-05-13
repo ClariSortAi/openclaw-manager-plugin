@@ -39,7 +39,8 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 
 ### Channel Management
 ```bash
-openclaw channels list       # List configured channels
+openclaw channels list       # List configured channels (channel-only in v2026.5.7+)
+openclaw channels list --all # Include bundled/catalog channels and install/config/enabled state (v2026.5.7+)
 openclaw channels status     # Show channel connection status
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
@@ -57,13 +58,15 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.7` stable note: current stable is published as `v2026.5.7`. The older `v2026.5.3-1` npm hotfix corrected official bundled-plugin scanner false positives and is superseded by current stable builds.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
 ```
+
+Beta watch: v2026.5.9+ adds `/think default` and `/fast default` for clearing session overrides back to inherited defaults.
 
 ### Exec Policy (v2026.4.12+)
 ```bash
@@ -91,6 +94,7 @@ openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
+openclaw cron show <id> --json  # Show one job; computed status is included in v2026.5.7+
 ```
 
 `v2026.3.11+` cron migration note:
@@ -209,6 +213,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions --limit <n|all>  # Bound session output or request all rows (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,6 +286,7 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list [--provider <id>] [--json]  # Inspect saved auth profiles without secrets (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
@@ -377,7 +383,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +395,10 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Rich Slack progress drafts and raw detail override (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+openclaw config set agents.defaults.toolProgressDetail "raw"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -449,7 +459,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 |----------|---------|
 | `OPENCLAW_STATE_DIR` | Override state directory |
 | `OPENCLAW_CONFIG_PATH` | Override config file path |
-| `OPENCLAW_GATEWAY_TOKEN` | Gateway auth token |
+| `OPENCLAW_GATEWAY_TOKEN` | Gateway auth token; v2026.5.5+ status/doctor warns when this shadows a different configured token source |
 | `OPENCLAW_GATEWAY_PORT` | Override gateway port (default: 18789) |
 | `OPENCLAW_DISABLE_BONJOUR` | Set to `1` to disable mDNS discovery |
 | `OPENCLAW_SHELL` | Override shell runtime (v2026.3.1+) |

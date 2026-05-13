@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.7+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, Codex OAuth route recovery, official plugin install/update repair, richer status diagnostics, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -210,6 +210,27 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Codex OAuth Routes Changed After `doctor --fix`
+**Symptoms:** ChatGPT/Codex subscription-backed setups stop working after upgrade or repair, or a default model that used `openai-codex/*` was rewritten to `openai/*`.
+
+**Cause:** v2026.5.5 included an over-broad Codex route repair. v2026.5.6-v2026.5.7 preserve working `openai-codex/*` PI OAuth routes and can recover affected routes when only Codex OAuth auth is available.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.7+ first
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Let current doctor repair stale session/model pins
+openclaw doctor --fix
+openclaw config validate
+
+# If the default model was rewritten and should use Codex OAuth:
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+```
+
+For ChatGPT/Codex subscription setups that intentionally use the native Codex runtime with standard OpenAI model ids, keep `openai/gpt-*` plus `agentRuntime.id: "codex"` as documented in the provider guide.
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -222,6 +243,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Reload secrets/config and verify auth surfaces
 openclaw secrets reload
+openclaw gateway status
+```
+
+#### Local CLI Uses the Wrong Gateway Token
+**Symptoms:** Local CLI commands fail auth or keep using an unexpected bearer after token rotation, especially when `OPENCLAW_GATEWAY_TOKEN` is exported in the shell.
+
+**Cause:** An environment token can shadow the active `gateway.auth.token` config/SecretRef. v2026.5.5+ warns about mismatches in status/doctor output.
+
+**Fix:**
+```bash
+openclaw status --all
+openclaw doctor --deep
+
+# If the env var is stale, remove it for this shell and retry
+unset OPENCLAW_GATEWAY_TOKEN
 openclaw gateway status
 ```
 
@@ -284,7 +320,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.14.0+ for current stable (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -481,6 +517,7 @@ openclaw gateway restart
 # Inspect current plugin/channel state
 openclaw plugins list
 openclaw channels list
+openclaw channels list --all  # v2026.5.7+: include bundled/catalog channel state
 
 # Disable or remove conflicting plugin/channel before retrying
 openclaw plugins disable <plugin-id>
@@ -526,7 +563,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.7+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -546,6 +583,20 @@ openclaw plugins list --json
 openclaw plugins deps
 
 # Repair configured official plugin installs and stale manifests
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+```
+
+#### Configured Official Channel Shows as Missing Plugin
+**Symptoms:** Feishu, WhatsApp, Discord, Codex, diagnostics, or another official externalized plugin/channel is configured but status reports a missing plugin after a package-manager upgrade.
+
+**Cause:** Official channels and providers increasingly ship as externalized plugins. Current stable builds add exact install hints, dependency repair, managed npm peer-link recovery, and `doctor --fix` handling for configured official plugins.
+
+**Fix:**
+```bash
+openclaw plugins list --json
+openclaw plugins deps
 openclaw doctor --fix
 openclaw plugins update --all
 openclaw gateway restart
@@ -645,7 +696,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.14.0+ required for current stable; Node 24 recommended. Beta v2026.5.9+ requires v22.16.0+.)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -765,7 +816,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.7+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -799,6 +850,22 @@ openclaw doctor --fix
 # Re-check cron definitions and run history
 openclaw cron list
 openclaw cron runs
+```
+
+#### Cron JSON Status Missing or Model Override Invalid
+**Symptoms:** Automation has to infer job state, or cron jobs fail strict model validation because `payload.model` is stored as `"default"`, `"null"`, blank, or JSON `null`.
+
+**Cause:** Older builds lacked computed status in cron JSON and could persist invalid default-like model overrides.
+
+**Fix:**
+```bash
+# v2026.5.7+: JSON includes computed status
+openclaw cron list --json
+openclaw cron show <id> --json
+
+# Repair bad persisted model overrides
+openclaw doctor --fix
+openclaw config validate
 ```
 
 #### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+ / tag `v2026.3.13-1`)

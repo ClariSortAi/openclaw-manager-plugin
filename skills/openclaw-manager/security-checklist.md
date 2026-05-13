@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest stable hardening and recovery tooling, prefer **v2026.5.7+**.
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Windows host environment hardening | Blocks workspace `.env` values and unsafe Windows env pivots from redirecting ACL, registry, update, and command-wrapper helpers | v2026.5.4 |
+| Browser current-tab SSRF enforcement | Applies current-tab URL navigation policy before debug/export/read/screenshot/snapshot/storage routes collect data from an existing tab | v2026.5.4 |
+| Native command and skill authorization | Native command handlers honor owner enforcement, and inline skill tool dispatch is gated through before-tool-call authorization hooks | v2026.5.7 |
+| Active Memory admin controls | Global Active Memory toggles require admin scope | v2026.5.7 |
+| Telegram access-group allowlists | Telegram `accessGroup:*` sender allowlists are honored for DMs, groups, native commands, and callbacks before numeric sender-ID checks | v2026.5.7 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +413,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.7+ for latest stable plugin repair, file-transfer, config fail-closed, Codex route recovery, and channel reliability hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -418,6 +423,9 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If upgrading to v2026.5.2+, run `openclaw doctor --fix` to migrate legacy thread-spawn config to `threadBindings.spawnSessions`
 - [ ] If enabling file-transfer, configure `plugins.entries.file-transfer.config.nodes` as default-deny per node and keep `followSymlinks` disabled unless the node path policy has been reviewed
 - [ ] Validate config before restart because v2026.5.3+ fails closed instead of auto-restoring invalid config
+- [ ] On Windows gateways, confirm workspace `.env` files cannot influence `SystemRoot`, `WINDIR`, `LOCALAPPDATA`, command-wrapper, registry, update, or ACL helper resolution (v2026.5.4+)
+- [ ] If browser tools are enabled, verify current-tab debug/export/read/screenshot/snapshot/storage routes respect browser SSRF policy (v2026.5.4+)
+- [ ] If using Telegram allowlists, prefer stable IDs and verify `accessGroup:*` entries behave as intended after v2026.5.7+
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
@@ -582,13 +590,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.7+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus 4.6 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation

@@ -176,6 +176,8 @@ Check channel connection status:
 ```bash
 openclaw channels status
 openclaw channels list
+# v2026.5.7+: include bundled/catalog channel state
+openclaw channels list --all
 ```
 
 ---
@@ -229,6 +231,7 @@ openclaw models auth setup-token --provider vercel-ai
 
 ```bash
 openclaw models list
+openclaw models auth list  # v2026.5.4+: saved auth profiles without secrets
 openclaw status --deep  # Includes provider health checks
 ```
 
