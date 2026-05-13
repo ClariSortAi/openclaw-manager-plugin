@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.3+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.7+** (which restores Codex OAuth routing after the v2026.5.5 doctor regression was reverted in v2026.5.6).
 
 ### Known Critical Vulnerabilities
 
@@ -128,6 +128,26 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | File-transfer path policy | Bundled file-transfer operations require default-deny per-node allowed paths, operator approval, canonical preflight checks, and symlink traversal is refused unless explicitly enabled | v2026.5.3 |
 | Invalid config fail-closed behavior | Gateway startup and hot reload stop auto-restoring invalid config; `openclaw doctor --fix` owns safe repair/migration behavior | v2026.5.3 |
 | Source-only plugin package rejection | Source-only plugin packages are rejected before runtime load so installs must provide runtime-ready package artifacts | v2026.5.3 |
+| Tab-scoped browser SSRF enforcement | Existing current-tab URL navigation policy is enforced before tab-scoped debug/export/read routes (console, page errors, network requests, trace start/stop, response body, screenshot, snapshot, storage) collect from an already-selected tab, so blocked tabs return a policy error instead of being read first and redacted only at response time | v2026.5.4 |
+| Windows install-root env hardening | `SystemRoot`/`WINDIR`/`LOCALAPPDATA` workspace `.env` overrides and bare command names can no longer redirect Windows ACL helpers (`icacls.exe`/`whoami.exe`), registry probes (`reg.exe`), the `.cmd`/`.bat` process wrapper, or portable Git resolution during `openclaw update` | v2026.5.4 |
+| Unbound WebSocket auth scope clamping | Clamps unbound WebSocket auth scopes during shared-token handshakes so caller-declared scopes cannot widen permissions | v2026.5.4 |
+| Pair/device pairing scope enforcement | Pair command flows require pairing scope before issuing pairing tokens | v2026.5.4 |
+| ZaloUser startup name-matching gating | Hardens Zalo Personal startup name-matching against unintended `dangerouslyAllowNameMatching`-like widening | v2026.5.4 |
+| Backend message-action gateway routing | Hardens backend message action gateway routing against malformed callers | v2026.5.4 |
+| QQBot framework command authorization preservation | Framework command contexts preserve the channel-resolved `isAuthorizedSender` decision when converted into engine slash command contexts instead of defaulting to `true` | v2026.5.4 |
+| QQBot streaming command authorization | Streaming command auth is gated and `/bot-*` framework handlers stay scoped to the QQBot channel | v2026.5.4 |
+| Codex chat-surface sanitization | Codex app-server command readouts, failure replies, approval prompts, elicitation prompts, and `request_user_input` text are sanitized before posting back into chat, while `/codex` control commands fail closed on malformed payloads before changing bindings/permissions/model overrides | v2026.5.4 |
+| Codex bound-turn integrity | Codex preserves local bound-turn image paths, rejects stale same-thread turn notifications, enforces option-only user input prompts, and returns failed dynamic tool results as unsuccessful tool calls | v2026.5.4 |
+| Control UI media ticketing | Assistant media fetches in Control UI render short-lived scoped tickets instead of exposing long-lived auth tokens in chat image URLs | v2026.5.4 |
+| Direct APNs egress through managed proxy | Direct HTTP/2 APNs delivery routes through the active managed proxy with redacted proxy diagnostics; `openclaw proxy validate --apns-reachable` proves APNs is reachable through the proxy before deployment | v2026.5.4 |
+| Debug proxy direct-forward lockout | Debug proxy direct upstream forwarding is disabled for proxy requests and CONNECT tunnels while managed proxy mode is active unless `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY=1` is explicitly set for approved local diagnostics | v2026.5.4 |
+| Active-Memory admin scope | Global Active-Memory toggles require admin scope | v2026.5.7 |
+| Auto-reply tool dispatch authorization | Inline skill tool dispatch from auto-reply runs through `before_tool_call` authorization hooks | v2026.5.7 |
+| Native command owner enforcement | Owner enforcement applied to native command handlers | v2026.5.7 |
+| Tavily credentials resolved from runtime snapshot | `tavily_search`/`tavily_extract` resolve credentials from the active runtime snapshot so SecretRef-backed API keys (including `exec` SecretRefs) do not reach the tools unresolved | v2026.5.7 |
+| Docker compose container hardening | Bundled `docker-compose.yml` drops `NET_RAW` and `NET_ADMIN` capabilities and sets `no-new-privileges` on the gateway container | v2026.5.5 |
+| iOS pairing transport rules | Non-loopback `ws://` setup URLs are rejected before QR/setup-code issuance; private LAN/`.local` gateways stay on `ws://` while Tailscale/public routes use `wss://`. Explicit gateway passwords win over stale bootstrap tokens in mixed-auth reconnects | v2026.5.5 |
+| LINE policy validation | LINE rejects `dmPolicy: "open"` without `allowFrom: ["*"]` so misconfigured open webhooks fail validation instead of being silently blocked downstream | v2026.5.5 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -408,7 +428,12 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.3+ for latest plugin install/update, file-transfer, config fail-closed, and channel reliability hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.7+ for latest plugin install/update, file-transfer, config fail-closed, restored Codex OAuth routing, and channel reliability hardening)
+- [ ] If a v2026.5.5 `openclaw doctor --fix` rewrote `openai-codex/*` ChatGPT/Codex OAuth routes to `openai/*`, recover with `openclaw models set openai-codex/gpt-5.5 && openclaw config validate` (rewrite reverted in v2026.5.6, repair preserved in v2026.5.7)
+- [ ] Docker compose deployments use bundled v2026.5.5+ container hardening (`no-new-privileges`, dropped `NET_RAW`/`NET_ADMIN`)
+- [ ] iOS pairing flows use `wss://` for Tailscale/public routes and only fall back to `ws://` on loopback or `.local`/private-LAN gateways (v2026.5.5+)
+- [ ] If using LINE with `dmPolicy: "open"`, also set `channels.line.allowFrom: ["*"]` so v2026.5.5+ validation passes
+- [ ] Codex bound-turn flows are running on v2026.5.4+ so app-server prompts and `/codex` control commands fail closed on malformed payloads before changing bindings/permissions/model overrides
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -582,7 +607,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.3+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.7+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

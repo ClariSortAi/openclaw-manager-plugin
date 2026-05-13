@@ -103,6 +103,7 @@ As of v2026.4.2, Slack thread-context filtering is tightened around effective co
 As of v2026.4.14, interactive block actions and modal submits enforce global owner `allowFrom` policy with stricter sender-id and channel-type validation; audit `channels.slack.allowFrom` if interactive flows stop unexpectedly after upgrade.
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
+As of v2026.5.4, Slack progress drafts support `streaming.progress.render: "rich"` for Block Kit progress lines (newest lines preserved when Block Kit limits trim long drafts), and `streaming.preview.commandText`/`streaming.progress.commandText` can be set to `"status"` to hide raw command/exec text in preview progress lines. Slack socket-mode startup retry logs now preserve structured Slack API error context instead of reporting bare `unknown error`.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -169,6 +170,8 @@ openclaw channels status
 
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
+`v2026.5.4+` group routing note: inbound WhatsApp group dispatch defaults to the shared group/channel visible-reply (message-tool-only) mode without overriding direct-chat harness defaults.
+`v2026.5.7+` LID routing note: proactive phone-number sends are routed through Baileys LID forward mappings when available, so LID-addressed contacts receive agent messages instead of creating sender-only ghost chats.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -234,6 +237,7 @@ openclaw gateway restart
 
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
+In v2026.5.7+, Telegram `accessGroup:*` sender allowlists are honored for DMs, groups, native commands, and callback authorization before Telegram's numeric sender-ID checks apply.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -300,6 +304,21 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice (v2026.5.7+)
+
+Discord voice-channel permission audits run inside `openclaw channels capabilities` and `openclaw channels status --probe`, including auto-join targets, so missing `Connect`, `Speak`, or `Read Message History` permissions surface before `/vc join`. Voice capture defaults to a 2.5 s post-speech silence grace; tune via `voice.captureSilenceGraceMs` for noisy sessions:
+
+```bash
+openclaw config set voice.captureSilenceGraceMs 2500
+```
+
+### Discord Reliability (v2026.5.4-v2026.5.5)
+
+- Discord REST and gateway WebSocket startup paths prefer IPv4 (v2026.5.4), unblocking IPv4-only networks that previously stalled before Gateway READY and inbound dispatch.
+- Heartbeat ACK timeouts are measured from the actual heartbeat send (v2026.5.5), preventing false reconnect loops when initial heartbeats arrive late while the channel is still awaiting readiness.
+- Plain-text control commands like `/steer` are routed through the normal authorization and mention gate (v2026.5.5) instead of being silently dropped before an agent session sees them.
+- Degraded transport and gateway event-loop starvation signals show up in `openclaw channels status`, `openclaw status --deep`, and fetch-timeout logs (v2026.5.4), so intermittent socket resets no longer look like a healthy running channel.
 
 ---
 
@@ -588,6 +607,16 @@ openclaw plugins install @openclaw/line
 ```bash
 openclaw plugins info line
 openclaw gateway restart
+```
+
+### LINE Policy Validation (v2026.5.5+)
+
+LINE rejects `dmPolicy: "open"` without a wildcard `allowFrom: ["*"]` entry up front — webhook DMs now fail validation instead of being acknowledged and silently blocked downstream. If you intend open access, configure both keys explicitly:
+
+```bash
+openclaw config set channels.line.dmPolicy open
+openclaw config set channels.line.allowFrom '["*"]'
+openclaw config validate
 ```
 
 ---

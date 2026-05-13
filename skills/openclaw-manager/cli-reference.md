@@ -4,14 +4,19 @@
 
 ### Status & Health
 ```bash
-openclaw status              # Quick status summary
+openclaw status              # Quick status summary (v2026.5.5+ includes gateway/host uptime, runtime/harness in session rows)
 openclaw status --all        # Full diagnosis with log tail
 openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
+openclaw doctor --deep       # Includes recent supervisor restart handoffs (v2026.5.5+)
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
+
+`v2026.5.5+` status note: `openclaw status` adds compact Gateway process uptime and host system uptime; session rows include the selected agent runtime/harness so terminal status matches the `/status` runtime line.
+
+`v2026.5.5+` env-shadow note: `openclaw doctor` warns when `OPENCLAW_GATEWAY_TOKEN` would shadow a different active `gateway.auth.token` source for local CLI commands; no warning is emitted when config and env point at the same token.
 
 ### Gateway Management
 ```bash
@@ -22,6 +27,7 @@ openclaw gateway restart     # Restart gateway
 openclaw gateway restart --wait 60000  # Wait for active work before restarting (v2026.5.2+)
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
+openclaw gateway status --deep  # Includes recent supervisor restart handoffs and JSON details (v2026.5.5+)
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
 ```
 
@@ -39,8 +45,11 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 
 ### Channel Management
 ```bash
-openclaw channels list       # List configured channels
+openclaw channels list       # List configured channels (channel-only since v2026.5.7)
+openclaw channels list --all # Include bundled and catalog channels with installed/configured/enabled state (v2026.5.7+)
 openclaw channels status     # Show channel connection status
+openclaw channels status --probe  # Probe Discord voice perms / extended channel capabilities (v2026.5.7+)
+openclaw channels capabilities    # Show channel capability matrix incl. Discord voice perms (v2026.5.7+)
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
 openclaw channels add        # Add channel account
@@ -48,6 +57,8 @@ openclaw channels remove     # Remove channel account
 ```
 
 `v2026.3.23+` channel-auth note: when only one login-capable channel is configured, `openclaw channels login|logout` auto-selects it.
+
+`v2026.5.7+` channel-list note: `openclaw channels list` is channel-only — model auth/usage details moved to `openclaw models auth list`, `openclaw status`, and `openclaw models list`. Use `--all` to surface bundled and catalog channels with state columns.
 
 ### Pairing & Access Control
 ```bash
@@ -83,7 +94,10 @@ openclaw devices revoke <id>   # Revoke device access
 ### Cron Jobs
 ```bash
 openclaw cron list           # List all cron jobs
+openclaw cron list --json    # JSON output incl. computed status (disabled/running/ok/error/skipped/idle) in v2026.5.7+
 openclaw cron status         # Scheduler status
+openclaw cron show <id>      # Show job details
+openclaw cron show <id> --json  # JSON output incl. computed status (v2026.5.7+)
 openclaw cron add            # Add new job
 openclaw cron rm <id>        # Remove job
 openclaw cron enable <id>    # Enable job
@@ -92,6 +106,10 @@ openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
 openclaw cron edit <id>      # Edit job settings
 ```
+
+`v2026.5.4+` cron timeout note: explicit job `timeoutSeconds` drives both the CLI no-output and embedded LLM idle watchdogs instead of being capped by resume defaults.
+
+`v2026.5.7+` cron-doctor note: `openclaw doctor --fix` repairs persisted cron jobs whose `payload.model` was stored as `"default"`, `"null"`, blank, or JSON `null` by removing the bad override, while keeping cron runtime model validation strict.
 
 `v2026.3.11+` cron migration note:
 
@@ -209,8 +227,12 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions list --limit <n|all>  # Bound row count; default 100 in v2026.5.4+
+openclaw sessions list --json  # JSON output incl. pagination metadata (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
+
+`v2026.5.4+` session-cleanup note: `openclaw sessions cleanup` also prunes old unreferenced transcript, compaction checkpoint, and trajectory artifacts so gateway restart or crash orphans no longer accumulate indefinitely outside `sessions.json`.
 
 Session disk budget controls:
 ```bash
@@ -281,9 +303,13 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list                                  # Inspect saved per-agent auth profiles (v2026.5.4+)
+openclaw models auth list --provider <id>                  # Filter to one provider (v2026.5.4+)
+openclaw models auth list --json                           # Machine-readable output (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models set <provider/model>                       # Switch the default agent model (v2026.5.6+ Codex recovery uses this)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -389,6 +415,33 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+
+# Slack Block Kit rich progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+
+# Hide raw command/exec text in preview and progress lines (v2026.5.4+)
+openclaw config set streaming.preview.commandText "status"
+openclaw config set streaming.progress.commandText "status"
+
+# Surface raw command/detail output in tool-progress lines (v2026.5.4+)
+openclaw config set agents.defaults.toolProgressDetail "raw"
+# Options: "compact" (default explain-mode summary), "raw"
+
+# Post-compaction tool-call loop guard (v2026.5.4+)
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 3
+
+# Sub-agent registry retention (v2026.5.4+)
+openclaw config set agents.defaults.subagents.archiveAfterMinutes 1440
+
+# Discord voice capture silence grace for noisy sessions (v2026.5.7+)
+openclaw config set voice.captureSilenceGraceMs 2500
+
+# Google Meet realtime strategy (v2026.5.4+)
+openclaw config set plugins.entries.voice-call.config.realtime.strategy "agent"
+# Options: "agent" (default; STT -> OpenClaw agent -> TTS), "bidi" (direct realtime voice)
+
+# Legacy bundled-discovery compatibility for restrictive plugins.allow (v2026.5.4+)
+openclaw config set plugins.bundledDiscovery "compat"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true

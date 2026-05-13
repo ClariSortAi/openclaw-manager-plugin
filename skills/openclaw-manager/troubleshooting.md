@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.7+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, restored Codex OAuth routing (after the v2026.5.5 doctor regression was reverted in v2026.5.6), and channel/provider reliability improvements, upgrade to **v2026.5.7+**.
 
 ## Common Issues
 
@@ -167,6 +167,27 @@ openclaw configure
 # Or set directly
 openclaw models auth setup-token --provider anthropic
 ```
+
+#### OpenAI Codex OAuth Routes Rewritten by v2026.5.5 Doctor
+**Symptoms:** After running `openclaw doctor --fix` on v2026.5.5, the default agent model switched from a working `openai-codex/*` ChatGPT/Codex OAuth route to an `openai/*` route, and OAuth-only GPT-5.5 setups stop working or unexpectedly move to the OpenAI API-key path.
+
+**Cause:** v2026.5.5 added an over-eager doctor repair that rewrote valid `openai-codex/*` routes to `openai/*`. v2026.5.6 reverts the rewrite, and v2026.5.7 explicitly preserves working `openai-codex/*` PI routes during `doctor --fix` while recovering 2026.5.5-rewritten `openai/*` GPT-5 routes when only Codex OAuth auth is available.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.6+ (prefer v2026.5.7+)
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restore the Codex OAuth default model
+openclaw models set openai-codex/gpt-5.5
+openclaw config validate
+openclaw gateway restart
+
+# Confirm with deep status
+openclaw status --deep
+```
+
+Recovery docs: https://docs.openclaw.ai/providers/openai#check-and-recover-codex-oauth-routing
 
 #### Anthropic OAuth Token Rejected
 **Symptoms:** `OAuth token rejected`, `unauthorized`, or auth failures when using Anthropic models
@@ -373,6 +394,39 @@ openclaw config set channels.imessage.enabled true
 openclaw gateway restart
 ```
 
+#### Discord: `/vc join` Fails with Missing Voice Permissions
+**Symptoms:** `/vc join` or auto-join voice targets fail with permission errors, or voice activity drops mid-session.
+
+**Cause:** Older builds did not audit Discord voice-channel permissions before joining. v2026.5.7+ surfaces missing `Connect`, `Speak`, or `Read Message History` permissions in capability checks.
+
+**Fix:**
+```bash
+# Check voice capability for the configured guild/channels
+openclaw channels capabilities
+openclaw channels status --probe
+
+# Grant the missing Discord role permissions, then retry /vc join
+```
+
+For choppy voice capture in noisy Discord sessions, tune the post-speech silence grace (default 2.5 s in v2026.5.7+):
+```bash
+openclaw config set voice.captureSilenceGraceMs 2500
+openclaw gateway restart
+```
+
+#### Discord: Startup Stalls on IPv4-Only Networks (Fixed in v2026.5.4)
+**Symptoms:** Discord channel never reaches READY on hosts where IPv6 is disabled or unreachable.
+
+**Cause:** Older builds let DNS prefer IPv6 for Discord REST and WebSocket startup, stalling before Gateway READY and inbound message dispatch.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.4+ which prefers IPv4 on Discord startup paths
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --probe
+```
+
 #### Discord: WebSocket Disconnects (Fixed in v2026.3.1)
 **Symptoms:** Bot goes offline for 30+ minutes, WebSocket error 1005 or 1006 in logs
 
@@ -420,6 +474,43 @@ openclaw pairing approve <channel> <code>
 # Or switch to allowlist mode
 openclaw config set channels.<channel>.dmPolicy allowlist
 openclaw config set channels.<channel>.allowFrom '["user1", "user2"]'
+```
+
+#### iOS Pairing Rejects `ws://` Setup URL
+**Symptoms:** iOS Gateway settings or QR scan rejects a non-loopback `ws://` setup URL before QR/setup-code issuance, or refuses to scan/paste a setup-code message that points at a public host.
+
+**Cause:** v2026.5.5 hardens iOS pairing transport: non-loopback `ws://` URLs are rejected before issuance; only loopback and private LAN/`.local` gateways may use `ws://` for setup-code/manual connects. Tailscale and public routes must use `wss://`.
+
+**Fix:**
+```bash
+# For Tailscale/public routes, configure TLS and use wss://
+openclaw config set gateway.bind 0.0.0.0
+openclaw config set gateway.auth.allowTailscale true
+openclaw config set gateway.security.hsts true
+openclaw gateway restart
+
+# Then issue a wss:// setup link from the gateway host
+```
+
+For mixed-auth reconnects, prefer explicit gateway passwords (v2026.5.5+ chooses the password over stale bootstrap tokens).
+
+#### LINE Webhook DMs Rejected as Invalid Config
+**Symptoms:** After upgrading to v2026.5.5+, LINE webhook DMs fail validation up front instead of being acknowledged and silently blocked.
+
+**Cause:** v2026.5.5 rejects `dmPolicy: "open"` without a wildcard `allowFrom: ["*"]` entry, so the misconfiguration is now surfaced at validation time.
+
+**Fix:**
+```bash
+# Pick one explicit posture
+openclaw config set channels.line.dmPolicy open
+openclaw config set channels.line.allowFrom '["*"]'
+
+# Or switch to allowlist with explicit IDs
+openclaw config set channels.line.dmPolicy allowlist
+openclaw config set channels.line.allowFrom '["U12345..."]'
+
+openclaw config validate
+openclaw gateway restart
 ```
 
 #### Pairing Code Not Arriving
@@ -816,6 +907,35 @@ openclaw doctor --fix
 openclaw cron runs
 ```
 
+#### Cron Job Fails Runtime Model Validation After Bad `payload.model`
+**Symptoms:** Cron jobs error at execution because `payload.model` was stored as the literal `"default"`, `"null"`, blank, or JSON `null`.
+
+**Cause:** Older builds could persist invalid model overrides on cron jobs; cron runtime model validation is strict, so these jobs fail before doing work.
+
+**Fix:**
+```bash
+# v2026.5.7+ doctor strips the bad override while keeping runtime validation strict
+openclaw doctor --fix
+
+# Re-check job definitions
+openclaw cron list --json
+openclaw cron show <id> --json
+```
+
+#### Cron Job Stalls Past Custom `timeoutSeconds`
+**Symptoms:** A cron job configured with an explicit `timeoutSeconds` keeps running past its budget, hitting resume-default watchdog limits instead of the job-specific one.
+
+**Cause:** Pre-v2026.5.4 builds capped LLM idle watchdog timeouts at the resume default rather than honoring per-job `timeoutSeconds`.
+
+**Fix:**
+```bash
+# Upgrade so explicit cron timeouts drive both CLI no-output and embedded LLM idle watchdogs
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-set timeout if not already configured
+openclaw cron edit <id>
+```
+
 #### Cron Webhook SSRF (Security)
 **Note:** CVE-2026-27488 (patched in v2026.2.19) allowed cron webhook targets to reach private/internal endpoints. Ensure you are on v2026.2.19+ if using cron webhooks.
 
@@ -839,6 +959,44 @@ openclaw config set agents.defaults.subagents.maxSpawnDepth 3
 openclaw config set agents.defaults.subagents.maxChildrenPerAgent 10
 
 openclaw gateway restart
+```
+
+#### Agent Loops on the Same Tool After Auto-Compaction
+**Symptoms:** Long-running turns spiral on the same `(tool, args, result)` triple after a context-overflow auto-compaction retry instead of progressing.
+
+**Cause:** Context-overflow plus auto-compaction-retry did not previously break tool-call loops; v2026.5.4 adds a post-compaction guard that aborts the run with `compaction_loop_persisted` when the window threshold is hit.
+
+**Fix:**
+```bash
+# Upgrade so the post-compaction guard is available
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Tune the repeat window (default 3) or disable entirely
+openclaw config set tools.loopDetection.postCompactionGuard.windowSize 3
+# To disable both loop guards entirely:
+openclaw config set tools.loopDetection.enabled false
+
+openclaw gateway restart
+```
+
+#### `openclaw channels list` No Longer Shows Model Auth/Usage
+**Symptoms:** Operators or scripts expect model auth or usage columns in `openclaw channels list` output after upgrading to v2026.5.7+.
+
+**Cause:** v2026.5.7 makes `openclaw channels list` channel-only and moves model auth/usage details to dedicated commands.
+
+**Fix:**
+```bash
+# Channels view (defaults to configured; add --all for bundled and catalog channels)
+openclaw channels list
+openclaw channels list --all
+
+# Inspect saved per-agent auth profiles (v2026.5.4+ command)
+openclaw models auth list
+openclaw models auth list --provider <id> --json
+
+# Model availability and usage details
+openclaw models list
+openclaw status
 ```
 
 #### Sub-Agent Not Responding
