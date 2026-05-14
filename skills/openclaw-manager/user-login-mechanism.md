@@ -125,6 +125,8 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.7+` note: `openclaw channels list --all` separates configured channels from bundled/catalog channel availability, and `openclaw models auth list [--provider <id>] [--json]` inspects saved auth profiles without exposing secrets.
+`v2026.5.12 beta` note: `openclaw models auth login --provider openai` starts ChatGPT/Codex account login by default; pass `--method api-key` when direct OpenAI API-key setup is intended.
 
 **Process:**
 1. Run the command
@@ -229,6 +231,7 @@ openclaw models auth setup-token --provider vercel-ai
 
 ```bash
 openclaw models list
+openclaw models auth list --json
 openclaw status --deep  # Includes provider health checks
 ```
 

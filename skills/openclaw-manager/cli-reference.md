@@ -40,7 +40,11 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 ### Channel Management
 ```bash
 openclaw channels list       # List configured channels
+openclaw channels list --all # Include bundled/catalog channels and install/config/enabled state (v2026.5.7+)
 openclaw channels status     # Show channel connection status
+openclaw channels status --channel <name>  # Filter status to one channel (v2026.5.12 beta)
+openclaw channels status --probe           # Include deeper channel probes where supported
+openclaw channels capabilities             # Show channel capabilities and permission probes
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
 openclaw channels add        # Add channel account
@@ -57,7 +61,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.7` stable note: current stable is published as `v2026.5.7`; the older `openclaw@2026.5.3-1` npm hotfix is superseded by current stable builds.
 
 ### Chat Commands (v2026.5.3+)
 ```bash
@@ -90,6 +94,8 @@ openclaw cron enable <id>    # Enable job
 openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
+openclaw cron show <id>      # Show one job; --json includes computed status (v2026.5.7+)
+openclaw cron get <id>       # Beta alias/direct getter for one job (v2026.5.12 beta)
 openclaw cron edit <id>      # Edit job settings
 ```
 
@@ -209,6 +215,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions list --limit <n|all>  # Bound output for large stores (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,7 +288,10 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list [--provider <id>] [--json]  # Inspect saved auth profiles without secrets (v2026.5.4+)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
+openclaw config set agents.defaults.model "openai/chat-latest"  # Optional direct OpenAI API-key trial alias (v2026.5.7+)
+openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key setup (v2026.5.12 beta; default login starts ChatGPT/Codex account auth)
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
@@ -377,7 +387,7 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.7)
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +399,9 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+# Rich Slack progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+openclaw config set agents.defaults.toolProgressDetail "compact"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -430,6 +443,9 @@ openclaw config set plugins.slots.memory "memory-core"
 
 # Bundled file-transfer plugin (v2026.5.3+; default-deny path policy)
 openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '["/approved/path"]'
+
+# Beta ACP runtime fallbacks (v2026.5.12 beta)
+openclaw config set acp.fallbacks '["claude-cli","pi"]'
 ```
 
 ## Health Endpoints (v2026.3.1+)
