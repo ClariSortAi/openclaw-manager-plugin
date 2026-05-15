@@ -40,7 +40,9 @@ openclaw config schema       # Print generated JSON schema for openclaw.json (v2
 ### Channel Management
 ```bash
 openclaw channels list       # List configured channels
+openclaw channels list --all # List bundled/catalog channels with configured/enabled state (v2026.5.7+)
 openclaw channels status     # Show channel connection status
+openclaw channels status --channel <name>  # Probe one channel only (v2026.5.12+)
 openclaw channels login      # Link a channel (QR code for WhatsApp)
 openclaw channels logout     # Unlink a channel
 openclaw channels add        # Add channel account
@@ -57,12 +59,13 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.3` stable note: current stable is published as `v2026.5.3`; the npm hotfix package `openclaw@2026.5.3-1` is published on the beta dist-tag.
+`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
-### Chat Commands (v2026.5.3+)
+### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
+/context map        # Send a treemap image of current session context contributors (v2026.5.12+)
 ```
 
 ### Exec Policy (v2026.4.12+)
@@ -90,6 +93,8 @@ openclaw cron enable <id>    # Enable job
 openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
+openclaw cron show <id>      # Show one job; --json includes computed status (v2026.5.7+)
+openclaw cron get <id>       # Inspect one stored cron job (v2026.5.12+)
 openclaw cron edit <id>      # Edit job settings
 ```
 
@@ -115,6 +120,8 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 # Restrict a cron job to specific tools only
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
+
+`v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -188,6 +195,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
+`v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -209,6 +218,7 @@ openclaw agents set-identity <id>  # Update agent identity
 ### Session Management (v2026.2.23+)
 ```bash
 openclaw sessions list         # List active sessions
+openclaw sessions list --limit 25  # Bound session table output (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
 ```
 
@@ -281,7 +291,12 @@ openclaw logs                # View logs
 openclaw message             # Send messages
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
+openclaw models auth list    # List saved auth profiles without secrets (v2026.5.4+)
+openclaw models auth list --provider openai --json
+openclaw models auth login --provider openai          # ChatGPT/Codex account login by default (v2026.5.12+)
+openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key login
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
+openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
@@ -377,7 +392,10 @@ openclaw config get plugins.entries.firecrawl.config.webFetch
 # ACP dispatch (v2026.3.2+ — enabled by default)
 openclaw config set acp.dispatch.enabled false
 
-# Adaptive thinking (v2026.3.1+ — "adaptive" default for Claude 4.6)
+# ACP runtime fallbacks (v2026.5.12+)
+openclaw config set acp.fallbacks '["<backup-runtime-id>"]'
+
+# Adaptive thinking (v2026.3.1+; current Claude 4.7 examples use "adaptive")
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -389,6 +407,9 @@ openclaw config set agents.defaults.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
+# Rich Slack Block Kit progress drafts (v2026.5.4+)
+openclaw config set streaming.progress.render "rich"
+openclaw config set agents.defaults.toolProgressDetail "compact"
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -399,6 +420,23 @@ openclaw config set threadBindings.spawnSessions true
 # Optional inferred follow-up commitments (v2026.4.29+)
 openclaw config set commitments.enabled true
 openclaw config set commitments.maxPerDay 5
+
+# Per-sender tool policies (v2026.5.12+)
+# Confirm the exact policy path with `openclaw config schema`, then use canonical
+# channel-scoped sender keys such as slack:U12345678 for requester-specific denials.
+
+# Per-agent message tool restrictions (v2026.5.12+)
+openclaw config set agents.list.public-bot.tools.message.crossContext false
+openclaw config set agents.list.public-bot.tools.message.actions.allow '["send"]'
+
+# Slack unfurl and reply-broadcast controls (v2026.5.12+)
+openclaw config set channels.slack.unfurlLinks false
+openclaw config set channels.slack.unfurlMedia false
+openclaw config set channels.slack.replyBroadcast false
+
+# Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
+openclaw config set skills.install.allowUploadedArchives false
+
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500

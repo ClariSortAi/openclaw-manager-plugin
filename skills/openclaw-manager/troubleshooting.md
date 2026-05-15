@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.3+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.3+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, official plugin install/update repair, progress streaming, and channel/provider reliability improvements, upgrade to **v2026.5.3+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
 
 ## Common Issues
 
@@ -166,6 +166,22 @@ openclaw gateway restart
 openclaw configure
 # Or set directly
 openclaw models auth setup-token --provider anthropic
+```
+
+#### OpenAI Auth Login Uses ChatGPT/Codex Instead of API Key
+**Symptoms:** `openclaw models auth login --provider openai` starts a browser/device-code ChatGPT or Codex account login, but you intended to paste a direct OpenAI API key.
+
+**Cause:** In v2026.5.12+, `models auth login --provider openai` defaults to the ChatGPT/Codex account login path. Direct API-key auth must be requested explicitly.
+
+**Fix:**
+```bash
+# Direct OpenAI API-key setup
+openclaw models auth login --provider openai --method api-key
+# or
+openclaw models auth setup-token --provider openai
+
+# Inspect saved auth profiles without revealing secrets
+openclaw models auth list --provider openai
 ```
 
 #### Anthropic OAuth Token Rejected
@@ -309,6 +325,23 @@ openclaw config get channels.telegram
 openclaw config set channels.telegram.botToken "123:abc..."
 openclaw gateway restart
 ```
+
+#### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
+**Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
+
+**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and verify the single affected channel first
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -526,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -550,6 +583,26 @@ openclaw doctor --fix
 openclaw plugins update --all
 openclaw gateway restart
 ```
+
+#### Configured Channel or Provider Disappears After Upgrade
+**Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
+
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+
+**Fix:**
+```bash
+# Inspect configured/installed dependency state
+openclaw channels list --all
+openclaw plugins list --json
+openclaw plugins deps
+
+# Repair managed official plugin installs and stale records
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+```
+
+If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -765,7 +818,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.3+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
