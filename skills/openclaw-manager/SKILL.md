@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.3+** for the latest official-plugin install/update hardening, bundled file-transfer tooling, progress streaming, config fail-closed behavior, and channel/provider reliability updates. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.12+** for the latest externalized-plugin repair paths, Telegram polling/spooling reliability, Codex/OpenAI auth fixes, Gateway protocol v4 compatibility, and broad security/provenance hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.3)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.12)
 
 These changes affect new and existing installations:
 
@@ -64,6 +64,8 @@ These changes affect new and existing installations:
 22. **Thread-spawn config keys migrated** (v2026.5.2) — legacy split subagent/ACP thread-spawn toggles are replaced by `threadBindings.spawnSessions`; run `openclaw doctor --fix` after upgrade.
 23. **Invalid config fails closed** (v2026.5.3) — Gateway startup and hot reload no longer auto-restore invalid config; use `openclaw config validate` and `openclaw doctor --fix` for last-known-good repair.
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
+25. **Core runtime dependency cones externalized** (v2026.5.12) — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependencies moved out of the core package. After upgrade, use `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all` to repair configured channels/providers that are missing managed runtime dependencies.
+26. **OpenAI auth login default changed** (v2026.5.12) — `openclaw models auth login --provider openai` starts the ChatGPT/Codex account login by default. Use `--method api-key` or `openclaw models auth setup-token --provider openai` for direct OpenAI API-key setups.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -90,7 +92,7 @@ These are operationally important additions and hardening updates in newer stabl
 
 ## Notable Additions in v2026.4.15
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes in v2026.4.15:
 
 1. **Anthropic default model refresh** — default Anthropic selections, `opus` aliases, Claude CLI defaults, and bundled image understanding now align to Claude Opus 4.7.
 2. **Google bundled TTS support** — the bundled `google` plugin now supports text-to-speech, voice selection, WAV output, and PCM telephony output.
@@ -117,7 +119,7 @@ These are operationally important additions introduced after v2026.4.15:
 
 ## Notable Additions in v2026.5.3
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes introduced in v2026.5.3:
 
 1. **Bundled file-transfer plugin** — provides `file_fetch`, `dir_list`, `dir_fetch`, and `file_write` tools for paired-node binary file operations, with default-deny per-node path policy under `plugins.entries.file-transfer.config.nodes`, operator approval, symlink traversal refused by default, and a 16 MB round-trip ceiling.
 2. **Unified progress streaming** — `streaming.mode: "progress"` adds shared progress-draft behavior with auto single-word labels across Discord, Telegram, Matrix, Slack, and Microsoft Teams.
@@ -128,6 +130,40 @@ These are operationally important additions and reliability/security fixes in th
 7. **WhatsApp Channel/Newsletter targets** — explicit `@newsletter` outbound targets use channel session metadata instead of DM routing.
 8. **Google Meet and realtime voice reliability** — Meet joins wait for realtime readiness, expose transcripts/status diagnostics, and avoid silently queued audio behind unconfigured sessions.
 9. **2026.5.3-1 npm hotfix** — the core npm package `openclaw@2026.5.3-1` on the beta dist-tag fixes official bundled plugin install-scanner false positives involving distant `process.env` and normal API send references in compiled bundles.
+
+## Notable Additions in v2026.5.4-v2026.5.7
+
+These stable releases filled several operational gaps after v2026.5.3:
+
+1. **Richer status surfaces** — `openclaw models auth list`, `openclaw channels list --all`, runtime labels in `openclaw status` / `openclaw sessions`, Discord voice probes, and computed cron JSON `status` make automation and diagnostics less guessy.
+2. **Slack and progress visibility** — rich Block Kit progress drafts via `streaming.progress.render: "rich"` and `agents.defaults.toolProgressDetail` keep long-running tool/status updates readable.
+3. **Codex route recovery** — v2026.5.6-v2026.5.7 repair the v2026.5.5 `openai-codex/*` rewrite regression so OAuth-only ChatGPT/Codex setups keep the intended PI route.
+4. **Channel reliability** — Feishu topic routing, LINE validation, Matrix approval retries, Discord voice/status probes, Telegram `accessGroup:*`, WhatsApp Channel/Newsletter targets, and Slack thread/media behavior all receive focused fixes.
+5. **Security hardening** — native command owner enforcement, Active Memory admin scope, inline skill authorization, Docker Compose capability drops, Windows exec-approval guarded-copy fallback, and plugin lifecycle shell repair reduce upgrade and multi-user risk.
+
+## Notable Additions in v2026.5.12
+
+These are operationally important additions and reliability/security fixes in the latest stable release:
+
+1. **Leaner installs through externalized packages** — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones install only when configured, reducing core install size but making `openclaw plugins deps` / `doctor --fix` important after upgrade.
+2. **Telegram isolated ingress** — Bot API polling runs in an isolated worker with durable local spooling, better liveness detection, safer group-media handling, and preserved HTML/Markdown formatting for streamed and scheduled replies.
+3. **ACP fallback backends** — `acp.fallbacks` lets ACP turns try configured backup runtimes before user-visible output is emitted.
+4. **Cron and channel inspection** — `openclaw cron get <id>` inspects one stored job, and `openclaw channels status --channel <name>` probes one channel without waking unrelated monitors.
+5. **Per-sender tool policy controls** — channel-scoped sender policies can restrict dangerous tools by requester identity across core, bundled, plugin, group, and per-agent surfaces.
+6. **Context and session visibility** — `/context map`, Gateway protocol v4 `deltaText`/`replace` frames, ACP lineage metadata, and richer sessions/status rows improve diagnostics for long-running or nested work.
+7. **Slack delivery controls** — `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, and mention/source metadata help tune thread visibility and link-preview behavior.
+8. **Plugin and install hardening** — pnpm 11 support, peer-dependency preservation, install scans scoped to plugin-owned runtime entrypoints, source/git install fixes, and managed plugin repair keep official and third-party plugins less brittle.
+9. **Security/provenance pass** — sandbox Windows home-root blocking, structured SecretRef env resolution, node pairing approval, delegated-session tool restriction inheritance, transcript redaction, Slack/QQBot approval authorization, browser/CDP auth, command approval parsing, hook authority limits, and webhook/rate-limit hardening landed across the stable line.
+
+## Prerelease Watch: v2026.5.14-beta.2
+
+Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
+
+1. **Codex migration** — the bundled `codex-cli` backend is being removed in favor of the Codex app-server route on `openai/*`, with legacy `codex-cli/*` model refs repaired during migration.
+2. **Per-agent bootstrap overrides** — agents can override `contextInjection`, `bootstrapMaxChars`, and `bootstrapTotalMaxChars` while inheriting defaults when omitted.
+3. **Command-turn facts and message queue steering** — channels/plugins expose normalized command-turn metadata, and mid-turn prompts can steer active runs by default via `/queue steer`.
+4. **WhatsApp status reactions and Telnyx realtime voice** — channel status-reaction lifecycles and voice-call realtime media streaming are in active beta.
+5. **Expanded parser/input hardening** — provider catalog paths, node platform IDs, shell operands, canvas snapshots, malformed JSON/base64/Host surfaces, link-understanding SSRF, and workflow scaffold sanitization continue to harden.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -268,7 +304,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.3+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.12+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -394,14 +430,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.6, Sonnet 4.6):
+For Anthropic models (Opus 4.7, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.6 models now default to `"adaptive"` thinking level. Override if needed:
+Claude 4.7 models use `"adaptive"` thinking level by default in current examples. Override if needed:
 
 ```bash
 # Check current thinking level
