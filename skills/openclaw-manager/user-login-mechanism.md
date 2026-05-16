@@ -225,6 +225,8 @@ openclaw models auth setup-token --provider minimax
 openclaw models auth setup-token --provider vercel-ai
 ```
 
+`v2026.5.16-beta.2` prerelease watch: xAI is adding Grok OAuth login for SuperGrok subscribers, allowing `xai/*` models and xAI media/tool providers to authenticate without `XAI_API_KEY`. Keep stable guidance on API-key setup until this leaves prerelease.
+
 ### Verifying Model Authentication
 
 ```bash

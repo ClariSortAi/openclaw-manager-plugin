@@ -811,6 +811,20 @@ openclaw cron run <id>
 openclaw cron edit <id>
 ```
 
+#### Need to Block Automation Until a Manual Cron Run Finishes
+**Symptoms:** CI or an operator script triggers `openclaw cron run <id>` but has to poll broad run history to know when that specific manual run completes.
+
+**Cause:** Stable builds through v2026.5.12 do not expose exact manual-run blocking/filtering controls.
+
+**Fix:**
+```bash
+# v2026.5.16-beta.2 prerelease watch only
+openclaw cron run <id> --wait
+openclaw cron runs --run-id <run-id>
+```
+
+Use current stable behavior for production automation until the `--wait` and exact run-id filtering controls are promoted from prerelease.
+
 #### One-Shot Cron Runs at Wrong Local Time
 **Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.
 
