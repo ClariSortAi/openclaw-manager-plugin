@@ -254,6 +254,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
 - v2026.5.7+ honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callbacks before numeric sender-ID checks.
 - v2026.5.12+ keeps polling liveness tied to `getUpdates` and preserves reply-aware context through isolated polling/spooling, making duplicate pollers and token-rotation skips easier to diagnose.
+- v2026.5.16-beta.2 prerelease watch adds opt-in `messages.groupChat.ambientTurns: "room_event"` handling for quiet room-context ambient chatter. Keep mention/allowlist guidance unchanged for stable deployments.
 
 ---
 

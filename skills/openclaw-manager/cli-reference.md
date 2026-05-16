@@ -123,6 +123,16 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
 
+`v2026.5.16-beta.2` prerelease watch:
+
+```bash
+# Block until one manually queued run finishes; inspect --help for beta timeout/poll flags.
+openclaw cron run <id> --wait
+
+# Inspect exactly one run id in cron history when debugging automation.
+openclaw cron runs --run-id <run-id>
+```
+
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
 openclaw flows list          # List background task flows

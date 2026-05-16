@@ -142,6 +142,15 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
 
+#### Prerelease Hardening Watch (v2026.5.16-beta.2)
+
+Do not treat prerelease fixes as stable remediation targets, but track these areas for upcoming upgrades:
+
+- Media and files: sniff payload bytes instead of trusting image MIME/filename hints, rejecting spoofed image/zip inputs before agent-visible staging.
+- Plugins and package metadata: reject malformed `package.json` `openclaw.extensions`, package metadata outside the plugin root, and npm package `files` negations that omit advertised runtime entries.
+- Persistence repair: normalize malformed auth profile, cron, session, pairing, commitment, task, plugin-extension, and transcript checkpoint rows on load or via `openclaw doctor --fix`.
+- Codex native execution: enforce OpenClaw `before_tool_call` policy on Codex app-server shell and approval paths.
+
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
 - The Dutch Data Protection Authority warned about serious cybersecurity and privacy risks and estimated ~20% of available plugins may contain malware
