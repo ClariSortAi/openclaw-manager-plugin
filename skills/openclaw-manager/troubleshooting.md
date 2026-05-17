@@ -168,6 +168,8 @@ openclaw configure
 openclaw models auth setup-token --provider anthropic
 ```
 
+In v2026.5.16-beta.4 prerelease builds, missing API key errors include the checked credential source (environment variable, auth profile, or config path). Use that source detail to repair the specific SecretRef/profile instead of rotating unrelated credentials.
+
 #### OpenAI Auth Login Uses ChatGPT/Codex Instead of API Key
 **Symptoms:** `openclaw models auth login --provider openai` starts a browser/device-code ChatGPT or Codex account login, but you intended to paste a direct OpenAI API key.
 
@@ -209,6 +211,21 @@ openclaw status --deep
 openclaw models auth setup-token --provider <provider-name>
 # Or re-run configure
 openclaw configure
+```
+
+#### xAI Grok OAuth Login Not Available
+**Symptoms:** `xai/*` models require `XAI_API_KEY`, or `openclaw models auth login --provider xai` is unavailable.
+
+**Cause:** xAI Grok OAuth for SuperGrok subscribers is a v2026.5.16-beta.4 prerelease feature. Stable `v2026.5.12` setups should continue using API-key auth.
+
+**Fix:**
+```bash
+# Stable path
+openclaw models auth setup-token --provider xai
+
+# Beta-only SuperGrok OAuth path
+openclaw models auth login --provider xai
+openclaw models auth list --provider xai
 ```
 
 #### OpenAI Token Keeps Reverting to an Older Value
@@ -278,6 +295,24 @@ openclaw gateway restart
 ```
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
+
+#### Slack: Assistant Threads Do Not Appear in Beta
+**Symptoms:** Slack's assistant surface is missing, suggested prompts do not render, or assistant threads do not keep thread-scoped context.
+
+**Cause:** Slack assistant thread lifecycle support is a v2026.5.16-beta.4 prerelease feature and requires a current Slack app manifest plus Socket Mode/event subscriptions aligned with the beta setup flow.
+
+**Fix:**
+```bash
+# Verify Slack still loads as a managed externalized plugin/channel
+openclaw plugins deps
+openclaw channels status --channel slack
+
+# Refresh the manifest from current OpenClaw setup guidance, then validate policy
+openclaw config validate
+openclaw gateway restart
+```
+
+Keep `channels.slack.allowFrom` and pairing-owner policy enabled while testing assistant views; assistant threads should not bypass normal sender authorization.
 
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
@@ -810,6 +845,24 @@ openclaw cron run <id>
 # Fix timezone if needed
 openclaw cron edit <id>
 ```
+
+#### Manual Cron Test Needs Automation Proof
+**Symptoms:** An automation starts `openclaw cron run <id>` but cannot reliably tell when that specific manual run completed.
+
+**Cause:** Older stable builds only enqueue or start the manual run and require broader `cron runs` inspection. The v2026.5.16-beta.4 prerelease adds `openclaw cron run --wait` plus exact `cron.runs --run-id` filtering.
+
+**Fix:**
+```bash
+# Stable path: run, then inspect recent history manually
+openclaw cron run <id>
+openclaw cron runs
+
+# Beta-only blocking proof path
+openclaw cron run <id> --wait
+openclaw cron runs --run-id <run-id>
+```
+
+Use timeout and poll-interval controls in beta automation so a stuck job fails closed instead of waiting indefinitely.
 
 #### One-Shot Cron Runs at Wrong Local Time
 **Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.

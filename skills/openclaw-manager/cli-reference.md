@@ -93,6 +93,8 @@ openclaw cron enable <id>    # Enable job
 openclaw cron disable <id>   # Disable job
 openclaw cron run <id>       # Run job immediately (debug)
 openclaw cron runs           # View run history
+openclaw cron run <id> --wait  # Prerelease v2026.5.16-beta.4: block until the manual run finishes
+openclaw cron runs --run-id <run-id>  # Prerelease v2026.5.16-beta.4: exact run-history filter
 openclaw cron show <id>      # Show one job; --json includes computed status (v2026.5.7+)
 openclaw cron get <id>       # Inspect one stored cron job (v2026.5.12+)
 openclaw cron edit <id>      # Edit job settings
@@ -122,6 +124,8 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 ```
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
+
+`v2026.5.16-beta.4` prerelease cron note: `openclaw cron run --wait` adds blocking/manual-run proof for automation, with timeout and poll-interval controls. Pair it with `openclaw cron runs --run-id <run-id>` when you need exact evidence for one queued run.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -256,6 +260,8 @@ openclaw secrets apply           # Apply credential changes
 openclaw secrets audit           # Audit all SecretRef targets
 ```
 
+`v2026.5.16-beta.4` prerelease security note: accepted audit findings can be recorded under `security.audit.suppressions`. Suppressed findings are removed from the active summary but still appear in JSON output with active-suppression notices for auditability.
+
 ### Proxy Validation (v2026.5.2+)
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
@@ -295,6 +301,7 @@ openclaw models auth list    # List saved auth profiles without secrets (v2026.5
 openclaw models auth list --provider openai --json
 openclaw models auth login --provider openai          # ChatGPT/Codex account login by default (v2026.5.12+)
 openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key login
+openclaw models auth login --provider xai             # Prerelease v2026.5.16-beta.4: SuperGrok OAuth login
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
@@ -437,6 +444,12 @@ openclaw config set channels.slack.replyBroadcast false
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
 
+# Security audit suppressions (prerelease v2026.5.16-beta.4)
+# Keep accepted-risk entries specific and review them on each upgrade.
+openclaw config get security.audit.suppressions
+
+# Quiet unmentioned group-chat room context (prerelease v2026.5.16-beta.4)
+openclaw config set messages.groupChat.unmentionedInbound "room_event"
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500

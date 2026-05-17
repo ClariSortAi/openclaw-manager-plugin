@@ -141,6 +141,9 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Audit suppressions | Prerelease support for `security.audit.suppressions` keeps accepted findings out of the active summary while preserving suppressed entries in JSON output with suppression notices | v2026.5.16-beta.4 |
+| Gateway malformed-target hardening | Prerelease hardening rejects malformed HTTP/WebSocket request targets with auth failure responses instead of crashing gateway URL parsing (`GHSA-6hc3-f4rg-377m`) | v2026.5.16-beta.4 |
+| Exec approval realpath binding | Prerelease hardening binds path allowlists, safe-bin trust, skill auto-allow, Allow Always persistence, and approval audit metadata to executable realpaths so retargeted symlinks do not retain approvals | v2026.5.16-beta.4 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -435,6 +438,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
+- [ ] If testing v2026.5.16 beta audit suppressions, keep `security.audit.suppressions` entries specific, ticketed, and reviewed after every upgrade; do not use suppressions as a substitute for fixing dangerous findings
+- [ ] If testing v2026.5.16 beta unmentioned group room events, verify `messages.groupChat.unmentionedInbound: "room_event"` is paired with group allowlists and message-tool-only visible output expectations
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)

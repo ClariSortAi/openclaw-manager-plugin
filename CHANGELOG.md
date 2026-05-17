@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added prerelease-watch coverage for upstream `v2026.5.16-beta.4`, including `openclaw cron run --wait`, `cron runs --run-id`, `security.audit.suppressions`, xAI Grok OAuth, Slack assistant threads, group-chat `room_event` context, media-generation lifecycle/provider changes, restart-readiness diagnostics, localized setup flows, and Mac remote setup notes.
+- Added troubleshooting/auth guidance for beta xAI OAuth login, Slack assistant thread setup checks, source-specific missing API key errors, and automation proof for manual cron runs.
+- Added security-checklist entries for beta audit suppressions, malformed gateway request target hardening, exec approval realpath binding, and safe rollout checks for group-chat room-event context.
 - Added release-alignment coverage for upstream stable `v2026.5.12` and prerelease watch `v2026.5.14-beta.2`, including externalized Slack/WhatsApp/Bedrock/Anthropic Vertex dependency guidance, Telegram isolated polling/spooling, ACP fallbacks, `cron get`, `channels status --channel`, per-sender tool policy notes, `/context map`, Slack unfurl/reply-broadcast controls, Gateway protocol v4, and latest security/provenance hardening.
 - Added release-alignment coverage for upstream stable `v2026.5.4` through `v2026.5.7`, including `models auth list`, `channels list --all`, bounded session output, rich Slack progress drafts, computed cron JSON status, Codex OAuth route recovery, Telegram `accessGroup:*`, Discord voice probes, and channel/plugin reliability fixes.
 - Added troubleshooting coverage for v2026.5.12 externalized official plugin dependency repair, Telegram polling/formatting/group-media regressions, and OpenAI auth login behavior changes.
@@ -69,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated README/version metadata for this docs release alignment (`1.3.10`).
+- Updated prerelease-watch references from `v2026.5.14-beta.2` to `v2026.5.16-beta.4` while keeping `v2026.5.12+` as the recommended stable OpenClaw target.
 - Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.12+` while preserving minimum safe baseline at `v2026.3.1`.
 - Refreshed current Anthropic model examples from Sonnet/Opus 4.6 to 4.7 across onboarding and CLI guidance.
 - Updated README/version metadata for this docs release alignment (`1.3.9`).
