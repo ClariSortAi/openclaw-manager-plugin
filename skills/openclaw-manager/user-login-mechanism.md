@@ -212,6 +212,9 @@ openclaw models auth setup-token --provider openai
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
 
+# xAI / Grok OAuth for SuperGrok subscribers (prerelease v2026.5.16-beta.4)
+openclaw models auth login --provider xai
+
 # Kilo Code (v2026.2.23+)
 openclaw models auth setup-token --provider kilocode
 
@@ -413,6 +416,8 @@ With `per-account-channel-peer`, you can link identities across channels so the 
   ```bash
   openclaw models auth setup-token --provider <provider-name>
   ```
+- In v2026.5.16-beta.4 prerelease builds, missing-key errors include the checked credential source. Repair the named env SecretRef, auth profile, or config path before rotating unrelated provider keys.
+- For xAI/Grok, stable setups use `openclaw models auth setup-token --provider xai`; SuperGrok OAuth via `openclaw models auth login --provider xai` is beta-only until it reaches a stable OpenClaw release.
 
 ### Pairing Issues
 

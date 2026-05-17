@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of the v2026.5.16-beta.4 prerelease, Slack assistant thread lifecycle support adds assistant-view manifest entries, suggested prompts, thread-scoped assistant sessions, and Slack-provided assistant context. Treat this as beta-only until stable; if testing it, refresh your Slack app manifest from the current OpenClaw setup output and verify assistant views, Socket Mode events, and existing `allowFrom`/pairing policy together.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -803,6 +804,16 @@ With `per-account-channel-peer`, you can link identities across channels so the 
 | `allowlist` | Only listed groups (default) |
 | `open` | Any group (requires mention) |
 | `disabled` | Groups blocked |
+
+### Quiet Room-Event Context (Prerelease v2026.5.16-beta.4)
+
+Beta builds can classify unmentioned room chatter as quiet context instead of a normal visible reply turn:
+
+```bash
+openclaw config set messages.groupChat.unmentionedInbound "room_event"
+```
+
+Use this only where always-on room awareness is intentional. Visible output for those unmentioned events should go through the message tool, and group `allowlist`/mention policy should still be tested before enabling in shared rooms.
 
 ### Example: Strict Access
 ```bash
