@@ -193,6 +193,8 @@ openclaw plugins doctor        # Check plugin health
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
+`v2026.5.16-beta.7` prerelease watch: typed simple tool-plugin authoring adds `defineToolPlugin` plus `openclaw plugins init`, `openclaw plugins build`, and `openclaw plugins validate`. Do not rely on these commands in stable runbooks until they are promoted to a stable release.
+
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
@@ -260,6 +262,8 @@ openclaw secrets audit           # Audit all SecretRef targets
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
+
+`v2026.5.16-beta.7` prerelease watch: HTTPS managed forward-proxy endpoints and scoped `proxy.tls.caFile` CA trust are in beta for proxy endpoint TLS. Keep stable production proxy runbooks on validated stable behavior until this lands.
 
 ### Webhooks
 ```bash
@@ -497,6 +501,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
+
+`v2026.5.16-beta.7` prerelease watch: Docker/Podman image builds add `OPENCLAW_IMAGE_APT_PACKAGES` as the runtime-neutral extra apt package build arg while preserving `OPENCLAW_DOCKER_APT_PACKAGES` as a legacy fallback.
 
 ## Official Plugins & Channels
 

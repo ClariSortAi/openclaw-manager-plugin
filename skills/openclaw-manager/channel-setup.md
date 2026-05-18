@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+Prerelease watch: v2026.5.16-beta.7 marks legacy `interactive`/Slack directive producer APIs as deprecated while adapting rich controls before native rendering; plugin authors should test channel capability metadata before moving beta output paths into production.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 

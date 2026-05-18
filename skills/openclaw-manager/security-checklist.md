@@ -441,6 +441,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Using direct API keys, not Anthropic OAuth tokens
 - [ ] POST `/hooks/agent` sessionKey override behavior reviewed (rejected by default since v2026.2.12)
 - [ ] If installing/updating official plugins on the beta npm channel, prefer the `2026.5.3-1` core npm hotfix when install scans flag distant `process.env` / API-send references in compiled bundled-plugin packages
+- [ ] If testing `v2026.5.16-beta.7`, preflight Node v22.19+ or Node 24, audit typed tool plugins built with the beta `defineToolPlugin`/`plugins init|build|validate` flow, and verify proxy TLS CA trust (`proxy.tls.caFile`) before routing managed HTTPS forward-proxy traffic
 - [ ] Config validated before restart: `openclaw config validate`
 
 ### Network Security
