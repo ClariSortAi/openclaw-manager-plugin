@@ -155,15 +155,17 @@ These are operationally important additions and reliability/security fixes in th
 8. **Plugin and install hardening** — pnpm 11 support, peer-dependency preservation, install scans scoped to plugin-owned runtime entrypoints, source/git install fixes, and managed plugin repair keep official and third-party plugins less brittle.
 9. **Security/provenance pass** — sandbox Windows home-root blocking, structured SecretRef env resolution, node pairing approval, delegated-session tool restriction inheritance, transcript redaction, Slack/QQBot approval authorization, browser/CDP auth, command approval parsing, hook authority limits, and webhook/rate-limit hardening landed across the stable line.
 
-## Prerelease Watch: v2026.5.14-beta.2
+## Prerelease Watch: v2026.5.16-beta.7
 
 Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
 
-1. **Codex migration** — the bundled `codex-cli` backend is being removed in favor of the Codex app-server route on `openai/*`, with legacy `codex-cli/*` model refs repaired during migration.
-2. **Per-agent bootstrap overrides** — agents can override `contextInjection`, `bootstrapMaxChars`, and `bootstrapTotalMaxChars` while inheriting defaults when omitted.
-3. **Command-turn facts and message queue steering** — channels/plugins expose normalized command-turn metadata, and mid-turn prompts can steer active runs by default via `/queue steer`.
-4. **WhatsApp status reactions and Telnyx realtime voice** — channel status-reaction lifecycles and voice-call realtime media streaming are in active beta.
-5. **Expanded parser/input hardening** — provider catalog paths, node platform IDs, shell operands, canvas snapshots, malformed JSON/base64/Host surfaces, link-understanding SSRF, and workflow scaffold sanitization continue to harden.
+1. **Node 22 floor may rise** — the beta raises the minimum supported Node.js 22 line to 22.19. Keep stable runbooks at v22.14+ until this lands in stable, but preflight beta upgrades against Node 22.19+ or Node 24.
+2. **Typed tool plugin authoring** — `defineToolPlugin` plus `openclaw plugins init`, `openclaw plugins build`, and `openclaw plugins validate` are in beta for simple tool plugins with generated manifests and context factories.
+3. **Proxy and image build changes** — HTTPS managed forward-proxy endpoints and scoped `proxy.tls.caFile` CA trust are in beta; Docker/Podman image builds add runtime-neutral `OPENCLAW_IMAGE_APT_PACKAGES` while retaining `OPENCLAW_DOCKER_APT_PACKAGES` as a legacy fallback.
+4. **Browser modal handling** — browser snapshots surface pending/recent modal dialogs, actions can return `blockedByDialog`, and `browser dialog --dialog-id` can answer pending dialogs.
+5. **Gateway/channel reliability** — restart traces attribute startup/config/runtime/resource costs, plugin-service startup overlaps with channel sidecars while `/readyz` remains gated, final channel payloads are preserved after preview updates, and Telegram topic/HTTP 421 fallback handling is tighter.
+6. **Plugin/message API migration pressure** — channel renderers gain presentation capability limits, rich controls are adapted before native rendering, and legacy `interactive`/Slack directive producer APIs are marked deprecated.
+7. **Runtime parity and diagnostics** — QA-Lab adds runtime parity tiers, tool coverage reporting, and release-check gates for OpenClaw dynamic-tool drift; useful for operators validating prerelease runtime behavior before rollout.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 

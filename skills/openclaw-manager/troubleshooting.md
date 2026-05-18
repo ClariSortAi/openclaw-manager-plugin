@@ -705,6 +705,8 @@ openclaw update
 openclaw status
 ```
 
+Prerelease watch: `v2026.5.16-beta.7` raises the minimum supported Node.js 22 line to 22.19. If you test beta releases, upgrade Node to v22.19+ or Node 24 before updating; stable `v2026.5.12` runbooks still use v22.14+.
+
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
 
