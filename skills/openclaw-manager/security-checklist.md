@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.18+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,12 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Node runtime floor enforcement | Source launcher enforces Node.js 22.19+, preventing unsupported Node 22.14-22.18 runtimes from starting managed source/runtime paths | v2026.5.18 |
+| Browser current-tab URL allowlist enforcement | Browser `/act` evaluate/batch actions and `/highlight` routes enforce current-tab URL allowlists while leaving tab-management actions available | v2026.5.18 |
+| Codex denied-tool fail-closed behavior | Codex app-server disables native code, app, environment, and user MCP surfaces when chat or sender policy denies tools | v2026.5.18 |
+| Inline skill policy pipeline | Inline `command-dispatch: tool` skill dispatch applies configured allow, deny, sandbox, sender, group, and subagent restrictions before owner-only filtering | v2026.5.18 |
+| Media decoder hardening | Image metadata probing avoids external decoder delegates for unrecognized bytes and stops fallback chaining after real processing errors | v2026.5.18 |
+| Telegram thread and log privacy hardening | Telegram fails topic sends closed on missing thread ids, redacts nested raw-update identifiers/user metadata, and preserves topic/reply context across delivery paths | v2026.5.18 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +427,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.18+ for latest Node floor enforcement, externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Node.js is v22.19.0+ on Node 22 deployments (Node 24 recommended for new installs)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -599,7 +606,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.18+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

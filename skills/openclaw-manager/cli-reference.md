@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.18` stable note: current stable is published as `v2026.5.18`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -189,6 +189,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate <path>  # Validate plugin manifest/tool metadata (v2026.5.18+)
+openclaw plugins build <path>     # Build/package a typed simple tool plugin (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -206,6 +209,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
 
 `v2026.5.3+` install-safety note: source-only plugin packages are rejected before runtime load. The `v2026.5.3-1` npm hotfix avoids false positives for official bundled plugin packages whose compiled bundles contain distant `process.env` reads and normal API sends.
+
+`v2026.5.18+` plugin-authoring note: use `openclaw plugins init`, `validate`, and `build` for typed simple tool plugins instead of hand-assembling manifest metadata.
 
 ### Agents
 ```bash
@@ -261,6 +266,12 @@ openclaw secrets audit           # Audit all SecretRef targets
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
 
+`v2026.5.18+` proxy TLS note: managed forward-proxy endpoints may use HTTPS, with scoped proxy endpoint CA trust via:
+
+```bash
+openclaw config set proxy.tls.caFile "/path/to/proxy-ca.pem"
+```
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -300,6 +311,13 @@ openclaw models auth setup-token --provider openai         # Direct OpenAI API k
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+### Browser Commands (v2026.5.18+)
+```bash
+openclaw browser dialog --dialog-id <id> <answer-or-dismiss-options>  # Answer a pending modal dialog
+```
+
+Browser snapshots now surface pending and recently handled modal dialogs; actions that open a modal can return `blockedByDialog`.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -494,6 +512,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Runtime-neutral Docker/Podman image build arg for extra apt packages (v2026.5.18+; supersedes legacy `OPENCLAW_DOCKER_APT_PACKAGES`) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
