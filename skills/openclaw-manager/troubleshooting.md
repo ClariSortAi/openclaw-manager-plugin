@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.18+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.18+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/topic reliability, Codex/OpenAI auth recovery, Gateway protocol compatibility, plugin developer tooling, and channel/provider reliability improvements, upgrade to **v2026.5.18+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -342,6 +342,23 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Topic Replies Drop, Retry Into Base Chat, or Media Groups Lose Context
+**Symptoms:** Replies from forum topics land in the wrong place, `message thread not found` errors retry into the base chat, HTTP 421 delivery failures drop replies, or generated media completions lose their originating topic.
+
+**Cause:** Older builds had weaker topic-origin preservation and retry behavior around requester handoff, skipped-message hooks, Telegram edge-node routing, and deleted/missing topic ids.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and probe Telegram only
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+In v2026.5.18+, topic sends fail closed when Telegram reports `message thread not found`, HTTP 421 sends retry on a fresh fallback transport, and topic ids are preserved across media/requester handoff paths.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +576,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.18+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +620,21 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Plugin Development Build or Manifest Validation Fails
+**Symptoms:** A new simple tool plugin installs locally but fails manifest validation, tool declaration loading, or package build checks.
+
+**Cause:** v2026.5.18 adds typed plugin authoring commands and stricter generated manifest/tool metadata validation. Hand-built manifests may omit fields that the typed workflow now generates.
+
+**Fix:**
+```bash
+# Scaffold or normalize the plugin through the typed workflow
+openclaw plugins init
+openclaw plugins validate <plugin-path>
+openclaw plugins build <plugin-path>
+```
+
+Use `openclaw plugins doctor` after install; v2026.5.18+ also warns when a configured runtime needs a missing owner plugin.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,12 +730,14 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
 ```
+
+As of v2026.5.18, the source launcher enforces the Node.js 22.19 floor directly, so old Node 22.14-22.18 runtimes fail before the gateway or source install starts.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -818,7 +852,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.18+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1098,6 +1132,19 @@ openclaw gateway restart
 
 # Verify configured model id
 openclaw config get agents.defaults.model
+```
+
+### Browser Automation Issues (v2026.5.18+)
+
+#### Browser Action Is Blocked by a Modal Dialog
+**Symptoms:** Browser actions stop with `blockedByDialog`, or snapshots show a pending modal/alert/confirm dialog.
+
+**Cause:** v2026.5.18 surfaces pending and recently handled modal dialogs in browser snapshots instead of letting actions appear to hang behind them.
+
+**Fix:**
+```bash
+# Inspect the snapshot for the dialog id, then answer or dismiss it
+openclaw browser dialog --dialog-id <id> <answer-or-dismiss-options>
 ```
 
 ### Plugin SDK Breaking Change (v2026.3.2)
