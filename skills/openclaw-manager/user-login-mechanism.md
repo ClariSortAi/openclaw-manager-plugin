@@ -120,11 +120,12 @@ openclaw channels login --account secondary
 
 `v2026.3.23+` note: if only one login-capable channel is configured, `openclaw channels login`/`logout` auto-selects it.
 `v2026.3.24+` note: for containerized deployments, you can run auth/channel commands inside the active container with `openclaw --container <name-or-id> ...` or by setting `OPENCLAW_CONTAINER`.
-`v2026.3.31+` note: trusted-proxy mode now rejects mixed shared-token configurations, and local-direct fallback requires the configured gateway token instead of implicit same-host auth.
+`v2026.3.31+` / `v2026.5.18+` note: trusted-proxy mode rejects mixed shared-token configurations and implicit same-host auth. Current stable allows only the documented same-host `gateway.auth.password` local-direct fallback; token fallback remains rejected.
 `v2026.4.2+` note: after upgrade, run `openclaw doctor --fix` if your config used legacy `tools.web.x_search.*` or `tools.web.fetch.firecrawl.*` paths; those moved to plugin-owned config trees.
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.18+` note: upgrade Node.js to v22.19.0+ before OpenClaw updates on the Node 22 line; Node 24 remains recommended.
 
 **Process:**
 1. Run the command
