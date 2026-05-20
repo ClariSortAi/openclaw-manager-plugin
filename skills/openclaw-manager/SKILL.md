@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.12+** for the latest externalized-plugin repair paths, Telegram polling/spooling reliability, Codex/OpenAI auth fixes, Gateway protocol v4 compatibility, and broad security/provenance hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.18+** for the latest stable rollup: Node 22.19 runtime floor, externalized-plugin repair paths, Telegram/Discord reliability, Codex/OpenAI runtime fixes, Gateway protocol/startup diagnostics, and broad security/provenance hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.12)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.18)
 
 These changes affect new and existing installations:
 
@@ -53,7 +53,7 @@ These changes affect new and existing installations:
 11. **Very old config auto-migrations removed** (v2026.3.28) — legacy keys older than roughly two months are no longer silently rewritten by runtime load or doctor; outdated keys now fail validation and must be fixed explicitly.
 12. **MiniMax legacy model IDs removed** (v2026.3.28) — old M2/M2.1/M2.5/VL-01 catalog entries were removed; move MiniMax model selections to the M2.7 catalog.
 13. **Dangerous install findings now fail closed** (v2026.3.31) — plugin installs and gateway-backed skill dependency installs with built-in dangerous-code `critical` findings now block by default unless explicitly overridden.
-14. **Trusted-proxy auth tightened** (v2026.3.31) — mixed shared-token configs are rejected, and local-direct fallback now requires the configured gateway token instead of implicit same-host authentication.
+14. **Trusted-proxy auth tightened** (v2026.3.31, clarified in v2026.5.18) — mixed shared-token configs are rejected. Same-host local-direct access no longer gets implicit trust; in current stable, only the documented `gateway.auth.password` fallback is allowed for same-host callers, while token fallback remains rejected and forwarded-header requests stay on the trusted-proxy path.
 15. **`nodes.run` shell wrapper removed** (v2026.3.31) — node-shell execution should use `exec host=node`; keep node-specific behavior on `nodes invoke` and dedicated node actions.
 16. **xAI `x_search` config moved** (v2026.4.2) — migrate from legacy `tools.web.x_search.*` to `plugins.entries.xai.config.xSearch.*`; auth now lives under `plugins.entries.xai.config.webSearch.apiKey` (or `XAI_API_KEY`).
 17. **Firecrawl `web_fetch` config moved** (v2026.4.2) — migrate from `tools.web.fetch.firecrawl.*` to `plugins.entries.firecrawl.config.webFetch.*`; run `openclaw doctor --fix` to rewrite legacy keys.
@@ -66,6 +66,7 @@ These changes affect new and existing installations:
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
 25. **Core runtime dependency cones externalized** (v2026.5.12) — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependencies moved out of the core package. After upgrade, use `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all` to repair configured channels/providers that are missing managed runtime dependencies.
 26. **OpenAI auth login default changed** (v2026.5.12) — `openclaw models auth login --provider openai` starts the ChatGPT/Codex account login by default. Use `--method api-key` or `openclaw models auth setup-token --provider openai` for direct OpenAI API-key setups.
+27. **Node.js 22 floor raised** (v2026.5.18) — OpenClaw now requires Node.js **v22.19.0+** on the Node 22 line. Upgrade Node before `openclaw update` or package-manager reinstalls; Node 24 remains recommended for new installs.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -143,7 +144,7 @@ These stable releases filled several operational gaps after v2026.5.3:
 
 ## Notable Additions in v2026.5.12
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes from the v2026.5.12 stable release:
 
 1. **Leaner installs through externalized packages** — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones install only when configured, reducing core install size but making `openclaw plugins deps` / `doctor --fix` important after upgrade.
 2. **Telegram isolated ingress** — Bot API polling runs in an isolated worker with durable local spooling, better liveness detection, safer group-media handling, and preserved HTML/Markdown formatting for streamed and scheduled replies.
@@ -155,15 +156,27 @@ These are operationally important additions and reliability/security fixes in th
 8. **Plugin and install hardening** — pnpm 11 support, peer-dependency preservation, install scans scoped to plugin-owned runtime entrypoints, source/git install fixes, and managed plugin repair keep official and third-party plugins less brittle.
 9. **Security/provenance pass** — sandbox Windows home-root blocking, structured SecretRef env resolution, node pairing approval, delegated-session tool restriction inheritance, transcript redaction, Slack/QQBot approval authorization, browser/CDP auth, command approval parsing, hook authority limits, and webhook/rate-limit hardening landed across the stable line.
 
-## Prerelease Watch: v2026.5.14-beta.2
+## Notable Additions in v2026.5.18
+
+These are operationally important additions and reliability/security fixes in the latest stable rollup:
+
+1. **Runtime and install floor** — Node.js 22 minimum is now v22.19.0; Docker/Podman image builds can use `OPENCLAW_IMAGE_APT_PACKAGES` for extra apt packages while the older `OPENCLAW_DOCKER_APT_PACKAGES` fallback remains supported.
+2. **Typed tool-plugin workflow** — plugin authors can use `defineToolPlugin` plus `openclaw plugins init`, `openclaw plugins validate`, and `openclaw plugins build` for generated manifest metadata and typed simple tool plugins.
+3. **Gateway and update reliability** — startup tracing, restart readiness, update-check deferral, service-manager recovery hints, npm freshness bypasses, and package-swap repair make upgrades and managed plugin installs less brittle.
+4. **Telegram and Discord delivery fixes** — Telegram isolated polling/topic lanes, `/stop` and `/btw` handling, forum-topic/media delivery, progress drafts, final reply recovery, and Discord progress/final-message delivery are tightened.
+5. **Codex/OpenAI runtime fixes** — app-server context projection, MCP/tool policy projection, code-mode/network handling, OAuth fallback, stale-thread recovery, and transcript/trajectory fidelity improve Codex-backed sessions.
+6. **Proxy and Gateway protocol diagnostics** — HTTPS managed forward-proxy endpoints, `proxy.tls.caFile`, Gateway protocol mismatch diagnostics, and protocol v4 compatibility checks help diagnose stale clients and proxy trust.
+7. **Security and robustness rollup** — audit suppressions, gateway auth/log redaction, malformed JSON/base64/URL handling, SSRF/private-network guardrails, exec approval realpath binding, and Docker non-loopback fail-closed behavior were tightened.
+
+## Prerelease Watch: v2026.5.19-beta.2
 
 Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
 
-1. **Codex migration** — the bundled `codex-cli` backend is being removed in favor of the Codex app-server route on `openai/*`, with legacy `codex-cli/*` model refs repaired during migration.
-2. **Per-agent bootstrap overrides** — agents can override `contextInjection`, `bootstrapMaxChars`, and `bootstrapTotalMaxChars` while inheriting defaults when omitted.
-3. **Command-turn facts and message queue steering** — channels/plugins expose normalized command-turn metadata, and mid-turn prompts can steer active runs by default via `/queue steer`.
-4. **WhatsApp status reactions and Telnyx realtime voice** — channel status-reaction lifecycles and voice-call realtime media streaming are in active beta.
-5. **Expanded parser/input hardening** — provider catalog paths, node platform IDs, shell operands, canvas snapshots, malformed JSON/base64/Host surfaces, link-understanding SSRF, and workflow scaffold sanitization continue to harden.
+1. **Global skills management** — `openclaw skills install --global` and `openclaw skills update --global` target shared managed skills.
+2. **Browser/modal CLI controls** — browser snapshots surface pending modal dialogs, `browser dialog --dialog-id` can answer them, and `openclaw browser evaluate --timeout-ms` extends long-running page-function budgets.
+3. **Codex plugin controls** — `/codex plugins list|enable|disable` can manage native Codex plugins from chat without hand-editing config.
+4. **Image build package hooks** — `OPENCLAW_IMAGE_PIP_PACKAGES` joins the stable `OPENCLAW_IMAGE_APT_PACKAGES` build hook for local Docker/Podman image customization.
+5. **Config reload metadata and Telegram draft previews** — config tools can distinguish restart-required, hot-reloadable, and no-op fields, while Telegram can show allowlisted native DM draft previews for transient tool progress.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -265,7 +278,7 @@ openclaw security audit --deep
 
 ## Installation Requirements
 
-- **Node.js**: v22.14.0 or higher (Node 24 recommended; NOT Bun - causes WhatsApp/Telegram issues)
+- **Node.js**: v22.19.0 or higher on the Node 22 line (Node 24 recommended; NOT Bun - causes WhatsApp/Telegram issues)
 - **macOS**: Native support
 - **Linux**: Native support (systemd recommended)
 - **Windows**: WSL2 required (Ubuntu recommended)
@@ -304,7 +317,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.12+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.18+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

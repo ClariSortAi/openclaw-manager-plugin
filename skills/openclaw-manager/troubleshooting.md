@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.18+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.18+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Discord delivery recovery, Codex/OpenAI auth and runtime recovery, Gateway protocol/startup diagnostics, and channel/provider reliability improvements, upgrade to **v2026.5.18+**.
 
 ## Common Issues
 
@@ -145,15 +145,16 @@ openclaw gateway restart
 #### Trusted-Proxy Auth Breaks After Upgrade
 **Symptoms:** Existing trusted-proxy deployments start failing authentication after upgrading to v2026.3.31.
 
-**Cause:** v2026.3.31 hardens trusted-proxy auth by rejecting mixed shared-token configurations and removing implicit local-direct fallback auth.
+**Cause:** v2026.3.31 hardens trusted-proxy auth by rejecting mixed shared-token configurations and removing implicit local-direct fallback auth. In v2026.5.18+, the documented same-host `gateway.auth.password` fallback is allowed again, but token fallback remains rejected and forwarded-header requests stay on the trusted-proxy path.
 
 **Fix:**
 ```bash
 # Keep one clear auth surface and explicit mode
 openclaw config set gateway.auth.mode trusted-proxy
 
-# If local direct access is still required, pass the configured token explicitly
-openclaw config get gateway.auth.token
+# If same-host local direct access is still required on v2026.5.18+,
+# use the documented password fallback rather than implicit trust or token fallback.
+openclaw config get gateway.auth.password
 openclaw gateway restart
 ```
 
@@ -300,7 +301,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ on Node 22 (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -329,7 +330,7 @@ openclaw gateway restart
 #### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
 **Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
 
-**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active. v2026.5.18 further tightens topic-aware lanes, `/stop` and `/btw` behavior, final reply recovery, and same-topic handler restart behavior.
 
 **Fix:**
 ```bash
@@ -342,6 +343,22 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Discord or Telegram Progress Preview Never Finalizes
+**Symptoms:** Users see progress drafts, partial previews, or tool warnings, but the final assistant reply is missing or duplicated.
+
+**Cause:** Older builds had edge cases in progress-mode preview/final-message delivery, especially around Discord recovered tool warnings and Telegram forum-topic deliveries.
+
+**Fix:**
+```bash
+# Upgrade to current stable and restart the affected channel runtime
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel telegram
+openclaw channels status --channel discord
+```
+
+If the issue is topic-specific, retest in the same Telegram forum topic or Discord thread because v2026.5.18 preserves those route bindings more carefully.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +576,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.18+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -587,7 +604,7 @@ openclaw gateway restart
 #### Configured Channel or Provider Disappears After Upgrade
 **Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
 
-**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. v2026.5.18 adds more managed install/update repair and npm freshness bypasses. Existing configs may need managed plugin dependency repair after upgrade.
 
 **Fix:**
 ```bash
@@ -690,7 +707,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. v2026.5.18 raises the Node 22 floor to v22.19.0. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +715,29 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required on Node 22; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+#### `openclaw update` Fails with npm EACCES or Root-Owned Package Files
+**Symptoms:** Update or managed plugin/package install fails with npm permission errors after earlier manual/root-owned installs.
+
+**Cause:** Package roots can be left owned by root or a different account. Current stable update flows provide better service recovery hints, but the underlying ownership problem still needs repair.
+
+**Fix:**
+```bash
+# Stop the managed gateway before manual package replacement/ownership repair
+openclaw gateway stop
+
+# Reinstall or repair ownership using your platform's package-manager guidance,
+# then restart and run doctor/plugin dependency repair.
+openclaw update
+openclaw doctor --fix
+openclaw plugins deps
+openclaw gateway restart
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +853,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.18+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone

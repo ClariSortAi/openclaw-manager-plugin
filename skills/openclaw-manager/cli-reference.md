@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.18` stable note: current stable is published as `v2026.5.18`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -189,6 +189,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/metadata (v2026.5.18+)
+openclaw plugins build         # Build/package typed tool plugins (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +199,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.18+` typed-plugin note: `defineToolPlugin` and `openclaw plugins init|validate|build` are the preferred workflow for simple typed tool plugins with generated manifest metadata. Legacy `interactive` / Slack directive producer APIs are deprecated for plugin-authored rich controls; prefer channel presentation capability metadata.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -259,6 +264,12 @@ openclaw secrets audit           # Audit all SecretRef targets
 ### Proxy Validation (v2026.5.2+)
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+```
+
+### Browser CLI (v2026.5.18+)
+```bash
+openclaw browser evaluate --timeout-ms <ms>  # Extend long-running page-function timeout budgets
+openclaw browser dialog --dialog-id <id>     # Answer a pending modal dialog surfaced in snapshots
 ```
 
 ### Webhooks
@@ -329,6 +340,7 @@ openclaw config set gateway.auth.mode token
 # v2026.3.7+: required when both gateway.auth.token and gateway.auth.password are set
 openclaw config set gateway.auth.allowTailscale true
 # v2026.3.31+: trusted-proxy rejects mixed shared-token configurations
+# v2026.5.18+: documented same-host local-direct password fallback is allowed; token fallback remains rejected
 openclaw config set gateway.mdns.mode minimal
 
 # Channel settings
@@ -383,6 +395,9 @@ openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
+
+# v2026.5.18+: scoped CA trust for HTTPS managed forward-proxy endpoints
+openclaw config set proxy.tls.caFile "/path/to/proxy-ca.pem"
 
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
@@ -494,6 +509,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for Docker/Podman local image builds (v2026.5.18+) |
+| `OPENCLAW_DOCKER_APT_PACKAGES` | Legacy fallback for extra Docker apt packages |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
