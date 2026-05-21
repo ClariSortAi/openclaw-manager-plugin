@@ -153,7 +153,7 @@ openclaw-manager-plugin/
 
 ## Requirements
 
-- **Claude Code** latest 
+- **Claude Code** latest
 - For OpenClaw itself:
   - Node.js v22.19.0+ (Node 24 recommended; NOT Bun—causes WhatsApp/Telegram issues)
   - macOS, Linux, or Windows WSL2
