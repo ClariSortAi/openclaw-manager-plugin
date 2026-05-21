@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.19+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.19+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Slack/Codex reliability, browser dialog handling, typed plugin authoring, HTTPS proxy CA support, Gateway restart observability, and channel/provider reliability improvements, upgrade to **v2026.5.19+**.
 
 ## Common Issues
 
@@ -279,6 +279,22 @@ openclaw gateway restart
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
 
+#### Slack: Delayed Duplicate Replies or Channel-Root Posts
+**Symptoms:** Slack replies repeat after a delay, or a thread reply unexpectedly appears at channel root.
+
+**Cause:** Older builds could lose same-channel thread context or replay delivered inbound message IDs after restarts or monitor recovery.
+
+**Fix:**
+```bash
+# Upgrade to current stable and repair plugin dependencies if Slack is externalized
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins deps
+openclaw doctor --fix
+openclaw channels status --channel slack
+```
+
+v2026.5.19 persists delivered inbound message IDs and fails closed when thread context is lost, preventing duplicate delayed replies and accidental root-channel posts.
+
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
 
@@ -300,7 +316,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -342,6 +358,18 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Forum Topic Traffic Blocks or Replies Go to the Wrong Topic
+**Symptoms:** One busy forum topic blocks sibling topics, generated media or follow-up replies land in the base chat, or Telegram reports `message thread not found`.
+
+**Cause:** Older builds had weaker topic-aware lanes and retry behavior. v2026.5.18-v2026.5.19 preserve topic ids across requester handoff, fail topic sends closed instead of retrying into the base chat, and route same-topic traffic through topic-aware lanes.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +587,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.19+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -690,7 +718,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. v2026.5.19 raises the Node 22 floor to **22.19+**. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +726,26 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+If OpenClaw is managed by systemd, LaunchAgent, a Scheduled Task, or Docker/Podman, verify the managed service uses the upgraded Node binary rather than only updating your interactive shell.
+
+#### Docker/Podman Image Needs Extra Packages After Upgrade
+**Symptoms:** Local OpenClaw image builds need additional OS or Python packages, or older automation still uses `OPENCLAW_DOCKER_APT_PACKAGES`.
+
+**Fix:**
+```bash
+# v2026.5.19+: runtime-neutral build args
+export OPENCLAW_IMAGE_APT_PACKAGES="imagemagick ffmpeg"
+export OPENCLAW_IMAGE_PIP_PACKAGES="some-python-package"
+
+# Legacy fallback still works but should be migrated
+export OPENCLAW_DOCKER_APT_PACKAGES="$OPENCLAW_IMAGE_APT_PACKAGES"
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +861,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.19+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1006,6 +1049,27 @@ openclaw config validate
 openclaw gateway restart
 ```
 
+### Browser Tool Issues
+
+#### Browser Action Blocks on a Modal Dialog
+**Symptoms:** A browser action stalls or reports `blockedByDialog`, or snapshots show a pending alert/confirm/prompt dialog.
+
+**Cause:** v2026.5.19 surfaces modal dialog state explicitly. Actions that open a modal return `blockedByDialog` until the dialog is handled.
+
+**Fix:**
+```bash
+# Inspect the browser snapshot for pending dialog ids
+openclaw browser snapshot
+
+# Answer the dialog; check --help for accepted actions on your installed version
+openclaw browser dialog --dialog-id <id> <answer>
+
+# For long-running page functions, extend evaluate timeout
+openclaw browser evaluate --timeout-ms 120000
+```
+
+If browser evaluate/highlight routes unexpectedly fail after upgrade, verify the active tab URL is allowed. v2026.5.19 enforces current-tab URL allowlists on evaluate/batch and highlight routes while keeping tab-management actions available.
+
 ### Backup & Recovery Command Issues (v2026.3.8+)
 
 #### `openclaw backup` Command Not Found
@@ -1115,6 +1179,23 @@ openclaw config get agents.defaults.model
 // New (v2026.3.2+):
 api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 ```
+
+#### Typed Tool Plugin Fails Validation or Build
+**Symptoms:** A simple tool plugin scaffold fails manifest validation, tool declarations are missing, or generated package metadata does not match the runtime.
+
+**Cause:** v2026.5.19 adds the supported typed authoring path for simple tool plugins. Hand-written manifests can drift from the current SDK contract.
+
+**Fix:**
+```bash
+# Start from the supported scaffold or validate the existing plugin
+openclaw plugins init
+openclaw plugins validate
+
+# Build a runtime-ready artifact before install
+openclaw plugins build
+```
+
+Use `defineToolPlugin` from the current plugin SDK and keep `openclaw/plugin-sdk/zod` imports on the bundled SDK subpath so global/pnpm installs do not depend on a package-local `zod` symlink.
 
 #### Plugin or Skill Install Suddenly Fails on Security Scan
 **Symptoms:** Installs that used to pass now fail with dangerous-code `critical` or install-time scan failure messages.
