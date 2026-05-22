@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.20+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.20+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Discord/WhatsApp reliability, Policy plugin checks, xAI device-code auth, task-maintenance diagnostics, and latest doctor/security hardening, upgrade to **v2026.5.20+**.
 
 ## Common Issues
 
@@ -211,6 +211,18 @@ openclaw models auth setup-token --provider <provider-name>
 openclaw configure
 ```
 
+#### xAI OAuth Fails on Remote or Headless Host
+**Symptoms:** xAI/Grok OAuth setup tries to open a localhost browser callback that is unreachable from a remote server, SSH session, or container.
+
+**Fix:**
+```bash
+# v2026.5.20+: device-code OAuth avoids localhost callbacks
+openclaw models auth login --provider xai
+
+# Direct API keys still work when preferred
+openclaw models auth setup-token --provider xai
+```
+
 #### OpenAI Token Keeps Reverting to an Older Value
 **Symptoms:** You paste/save a fresh token (for example via onboarding or `models auth paste-token`), but it snaps back to an expired value after reconnect or refresh.
 
@@ -300,7 +312,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +571,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.20+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +615,24 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Policy Checks or Doctor Lints Flag Channel Conformance
+**Symptoms:** `doctor` or policy-backed checks report channel conformance findings, hidden MCP tools, or suggested workspace repairs.
+
+**Cause:** v2026.5.20 adds the bundled Policy plugin and expands doctor linting for policy-backed channel conformance and sandbox-hidden configured MCP tools.
+
+**Fix:**
+```bash
+# Inspect findings first
+openclaw doctor
+
+# Let doctor apply opt-in safe repairs where available
+openclaw doctor --fix
+
+# Re-check channel and config state
+openclaw channels list --all
+openclaw config validate
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,11 +728,37 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+As of v2026.5.18+, the current stable Node.js 22 floor is 22.19. If multiple Node installations exist, v2026.5.20 keeps update restart checks on the managed Gateway service Node to avoid silently switching runtimes.
+
+#### `openclaw cron show` Hangs or Never Returns
+**Symptoms:** Looking up one cron job hangs when the scheduler or gateway returns non-advancing job-list pagination.
+
+**Cause:** Older builds could keep paginating forever while resolving one job.
+
+**Fix:**
+```bash
+# Upgrade to v2026.5.20+
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Prefer direct job inspection where available
+openclaw cron get <id>
+openclaw cron show <id> --json
+```
+
+#### Stale Task Maintenance Decisions Are Hard to Explain
+**Symptoms:** Task cleanup keeps or reconciles stale-running task records, but the reason is unclear.
+
+**Fix:**
+```bash
+# v2026.5.20+: JSON includes backing-session, cron, CLI, and wedged-subagent state
+openclaw tasks maintenance --json
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +874,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.20+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1032,6 +1088,19 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run command
 openclaw exec-policy show
+```
+
+#### `openclaw plugins init|validate|build` Command Not Found
+**Symptoms:** Typed plugin authoring commands are unavailable.
+
+**Cause:** Typed simple tool plugin commands were added in v2026.5.18.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins init
+openclaw plugins validate
+openclaw plugins build
 ```
 
 ### ACP Dispatch Issues (v2026.3.2+)

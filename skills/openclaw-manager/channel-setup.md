@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of v2026.5.20, Slack persists delivered inbound message ids and fails closed when same-channel thread replies lose their thread context, reducing delayed duplicate replies and accidental channel-root posts.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -173,6 +174,7 @@ openclaw channels status --channel whatsapp
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 `v2026.5.12+` packaging note: WhatsApp is externalized from the core runtime package, Baileys/runtime dependencies install with the managed plugin, and dependency repair should use `openclaw plugins deps` plus `openclaw doctor --fix` if WhatsApp is configured but not available after upgrade.
+`v2026.5.20+` reliability note: WhatsApp uses Baileys `7.0.0-rc12`, drains pending outbound deliveries every 30 seconds in addition to reconnect handling, and clarifies diagnostics for observed but unregistered groups by pointing operators to `channels.whatsapp.groups`.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -239,6 +241,7 @@ openclaw gateway restart
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
 In v2026.5.12+, Telegram polling runs in an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting in streamed and scheduled replies, and skips unmentioned group media before download when `requireMention` is active.
+In v2026.5.19+, forum-topic traffic uses topic-aware lanes so one busy or aborted topic does not block sibling topics, and allowlisted native DMs can show transient draft previews for tool progress while final answers stay on the persistent delivery path.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -254,6 +257,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
 - v2026.5.7+ honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callbacks before numeric sender-ID checks.
 - v2026.5.12+ keeps polling liveness tied to `getUpdates` and preserves reply-aware context through isolated polling/spooling, making duplicate pollers and token-rotation skips easier to diagnose.
+- v2026.5.19+ preserves reply-target context for bare mention replies on runtime-only turns, so the model sees the message being replied to.
 
 ---
 
@@ -307,6 +311,10 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice Reliability (v2026.5.20+)
+
+Discord voice sessions can follow configured Discord users into allowed voice channels with multi-user handoff, bounded reconciliation, and DAVE recovery preservation. Realtime voice instructions include bounded `IDENTITY.md`, `USER.md`, and `SOUL.md` profile context by default; set `voice.realtime.bootstrapContextFiles: []` to disable that bootstrap context.
 
 ---
 

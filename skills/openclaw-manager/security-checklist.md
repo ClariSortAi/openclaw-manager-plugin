@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.20+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,13 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Exec skill allowlist hardening | Removes the old `cat SKILL.md && printf ... && <skill-wrapper>` compatibility path so skill files must be loaded through the read tool and only the real skill executable is auto-allowed | v2026.5.20 |
+| Plaintext secret config warnings | `doctor` warns when `openclaw.json` stores provider API keys or sensitive provider headers inline instead of SecretRef-backed storage | v2026.5.20 |
+| Symlinked credential files fail closed | Telegram, LINE, Zalo, IRC, Nextcloud Talk, and similar credential loaders that reject symlinks refuse symlinked token files instead of silently accepting them | v2026.5.20 |
+| Hidden MCP tool diagnostics | `doctor` warns when sandbox tool policy hides configured MCP server tools before provider requests | v2026.5.20 |
+| Browser current-tab and image limits | Browser evaluate/highlight routes enforce current-tab URL allowlists, and screenshots/labeled snapshots honor configured image sanitization limits | v2026.5.19-v2026.5.20 |
+| Plugin hook timeout bounds | `before_compaction` and `after_compaction` plugin hooks receive a default 30-second timeout so hung handlers cannot block compaction completion | v2026.5.20 |
+| Slow node event backpressure | Gateway rejects slow node event sends before outbound buffers grow unbounded and logs diagnostics for rejected payloads | v2026.5.20 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +428,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.20+ for latest externalized-plugin repair, Policy plugin linting, task diagnostics, provider auth/routing, and security/provenance hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -432,6 +439,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If enabling file-transfer, configure `plugins.entries.file-transfer.config.nodes` as default-deny per node and keep `followSymlinks` disabled unless the node path policy has been reviewed
 - [ ] Validate config before restart because v2026.5.3+ fails closed instead of auto-restoring invalid config
 - [ ] If using externalized official channels/providers (Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex), run `openclaw plugins deps` and `openclaw doctor --fix` after upgrade to v2026.5.12+
+- [ ] If using current stable releases, run Node.js 22.19+ (Node 24 recommended) before update/restart workflows
+- [ ] If `doctor` reports plaintext provider API keys or sensitive headers in `openclaw.json`, migrate them to SecretRef-backed storage
+- [ ] If credential files are symlinked for Telegram, LINE, Zalo, IRC, Nextcloud Talk, or similar channels, replace them with regular owner-only files or SecretRefs before upgrading to v2026.5.20+
+- [ ] If skill tooling relied on the old `cat SKILL.md && printf ...` exec approval compatibility pattern, update workflows to read skill files with the read tool and execute only the real skill binary
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
@@ -599,7 +610,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.20+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

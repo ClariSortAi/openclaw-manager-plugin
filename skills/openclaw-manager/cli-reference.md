@@ -13,6 +13,8 @@ openclaw doctor --fix        # Auto-fix common problems
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
+`v2026.5.20+` doctor note: `doctor` warns when sandbox policy hides configured MCP tools before provider requests and when `openclaw.json` stores plaintext secret-bearing fields such as provider API keys or sensitive headers.
+
 ### Gateway Management
 ```bash
 openclaw gateway             # Show gateway info
@@ -23,6 +25,7 @@ openclaw gateway restart --wait 60000  # Wait for active work before restarting 
 openclaw gateway restart --force        # Force restart after deferral/timeout (v2026.5.2+)
 openclaw gateway status      # Detailed gateway status
 openclaw gateway status --require-rpc  # Exit non-zero if RPC is unavailable/degraded (v2026.3.13+; scope-limited probe RPC counts as degraded)
+openclaw gateway status --json  # Includes running Gateway version in v2026.5.20+
 ```
 
 ### Configuration
@@ -59,7 +62,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.20` stable note: current stable is published as `v2026.5.20`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -121,7 +124,7 @@ openclaw cron add --at "2026-04-01T09:00" --tz "America/New_York" --message "Tas
 openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox" --tools <tool-id>[,<tool-id>...]
 ```
 
-`v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
+`v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job. In v2026.5.20+, `cron show` bounds job lookup pagination so non-advancing or unbounded `cron.list` responses fail instead of hanging.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -131,6 +134,13 @@ openclaw flows cancel <id>   # Cancel an active flow
 ```
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
+
+### Task Maintenance (v2026.5.20+)
+```bash
+openclaw tasks maintenance --json  # Explain stale-running task retention/reconcile decisions
+```
+
+The JSON output includes backing-session, cron, CLI, and wedged-subagent state for retained and reconcile candidates.
 
 ### Cron Add Options
 ```bash
@@ -153,6 +163,8 @@ openclaw skills check        # Check skill requirements
 openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
+openclaw skills install --global <skill-slug>  # Install a shared managed skill (v2026.5.19+)
+openclaw skills update --global --all          # Update shared managed skills (v2026.5.19+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -189,6 +201,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate typed plugin manifest/metadata (v2026.5.18+)
+openclaw plugins build         # Build typed plugin package artifacts (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +211,10 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.18+` authoring note: typed simple tool plugins can use `defineToolPlugin` with `openclaw plugins init|validate|build` to generate manifest metadata, optional tool declarations, and context factories.
+
+`v2026.5.20+` policy note: the bundled Policy plugin provides policy-backed channel conformance checks, doctor lint findings, and opt-in workspace repair.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -297,8 +316,16 @@ openclaw models auth login --provider openai          # ChatGPT/Codex account lo
 openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key login
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
+openclaw models auth setup-token --provider openrouter     # OpenRouter API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth login --provider xai                  # Device-code OAuth for xAI remote/headless setup (v2026.5.20+)
+```
+
+### Browser Automation (v2026.5.18+)
+```bash
+openclaw browser evaluate --timeout-ms <ms>  # Extend long-running page function timeout (v2026.5.19+)
+openclaw browser dialog --dialog-id <id>     # Answer pending modal dialogs surfaced in snapshots
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -384,6 +411,9 @@ openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
+# v2026.5.20+: provider-level OpenRouter routing policy; model/agent params override this default
+openclaw config set models.providers.openrouter.params.provider '{"order":["openai","anthropic"]}'
+
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
@@ -404,6 +434,9 @@ openclaw config set agents.defaults.params.fastMode true
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+
+# Per-agent local-model lean mode (v2026.5.20+)
+openclaw config set agents.list.small-local.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
@@ -494,6 +527,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Add apt packages during Docker/Podman image builds (v2026.5.18+; `OPENCLAW_DOCKER_APT_PACKAGES` remains a legacy fallback) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Add Python packages during local Docker/Podman image builds (v2026.5.19+) |
+| `OPENCLAW_ENABLE_PRIVATE_QA_CLI` | Expose private QA CLI descriptors when explicitly enabled (v2026.5.20+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
