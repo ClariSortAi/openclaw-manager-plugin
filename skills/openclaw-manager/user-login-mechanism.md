@@ -212,6 +212,9 @@ openclaw models auth setup-token --provider openai
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
 
+# xAI device-code OAuth for remote/headless hosts (v2026.5.20+)
+openclaw models auth login --provider xai
+
 # Kilo Code (v2026.2.23+)
 openclaw models auth setup-token --provider kilocode
 
@@ -223,7 +226,12 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenRouter
+openclaw models auth setup-token --provider openrouter
 ```
+
+`v2026.5.20+` note: OpenRouter honors provider-level `models.providers.openrouter.params.provider` routing policy, with model and agent params overriding provider defaults.
 
 ### Verifying Model Authentication
 
@@ -412,6 +420,12 @@ With `per-account-channel-peer`, you can link identities across channels so the 
 - Re-authenticate:
   ```bash
   openclaw models auth setup-token --provider <provider-name>
+  ```
+
+**xAI OAuth on Remote/Headless Hosts:**
+- Use device-code OAuth on v2026.5.20+ instead of relying on a localhost callback:
+  ```bash
+  openclaw models auth login --provider xai
   ```
 
 ### Pairing Issues
