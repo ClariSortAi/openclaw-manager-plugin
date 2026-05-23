@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.20+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.20+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Slack/Discord reliability, Codex/OpenAI auth recovery, browser/dialog handling, typed plugin authoring, and channel/provider diagnostics, upgrade to **v2026.5.20+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.20+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -616,6 +616,18 @@ openclaw update --channel beta
 
 # Then retry install/update
 openclaw plugins update --all
+```
+
+#### Typed Plugin Authoring Commands Not Found
+**Symptoms:** `openclaw plugins init`, `openclaw plugins validate`, or `openclaw plugins build` returns an unknown command error.
+
+**Cause:** Typed simple tool plugin authoring commands were added in v2026.5.18.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins init --help
+openclaw plugins validate --help
 ```
 
 #### File-Transfer Tool Denies a Path
@@ -698,12 +710,28 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required for current stable; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
 ```
+
+If a managed service uses a different Node binary than your shell, inspect `openclaw gateway status --json` and service recovery hints after upgrading; v2026.5.20+ reports more version/runtime metadata in gateway status output.
+
+#### Docker/Podman Image Needs Extra OS or Python Packages
+**Symptoms:** Local image builds need an extra apt or Python dependency for a plugin, browser helper, or media workflow.
+
+**Fix:**
+```bash
+# v2026.5.18+: runtime-neutral apt package build arg
+OPENCLAW_IMAGE_APT_PACKAGES="libvips" openclaw update
+
+# v2026.5.19+: opt-in Python package build arg
+OPENCLAW_IMAGE_PIP_PACKAGES="some-package" openclaw update
+```
+
+`OPENCLAW_DOCKER_APT_PACKAGES` remains a legacy fallback, but prefer `OPENCLAW_IMAGE_APT_PACKAGES` for Docker or Podman paths.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -818,7 +846,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.20+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1033,6 +1061,22 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 # Re-run command
 openclaw exec-policy show
 ```
+
+### Browser Automation Issues (v2026.5.19+)
+
+#### Browser Action Is Blocked by a Modal Dialog
+**Symptoms:** Browser snapshots show `blockedByDialog`, or `browser evaluate` / click actions stop while a JavaScript alert, confirm, or prompt is pending.
+
+**Fix:**
+```bash
+# Inspect the snapshot for pending dialog metadata, then answer it by id
+openclaw browser dialog --dialog-id <dialog-id>
+
+# For intentionally long page functions, extend the evaluate timeout
+openclaw browser evaluate --timeout-ms 120000
+```
+
+Current stable surfaces pending and recently handled dialogs in snapshots so automation can recover without restarting the browser session.
 
 ### ACP Dispatch Issues (v2026.3.2+)
 
