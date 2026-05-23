@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.20` stable note: current stable is published as `v2026.5.20`; `v2026.5.12+` remains the feature floor for externalized official-plugin repair, Gateway protocol v4, `cron get`, and one-channel status probes.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -132,6 +132,13 @@ openclaw flows cancel <id>   # Cancel an active flow
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
+### Tasks (v2026.5.20+)
+```bash
+openclaw tasks maintenance --json  # Explain stale-running task reconciliation decisions
+```
+
+Use `tasks maintenance --json` when task rows look stuck; current output includes backing-session, cron, CLI, and wedged-subagent reasons for retained or reconcile-candidate tasks.
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -153,6 +160,8 @@ openclaw skills check        # Check skill requirements
 openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
+openclaw skills install --global <skill-slug>  # Install into shared managed skills (v2026.5.19+)
+openclaw skills update --global --all          # Update shared managed skills (v2026.5.19+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -189,6 +198,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/metadata (v2026.5.18+)
+openclaw plugins build         # Build/package a typed tool plugin (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -261,6 +273,14 @@ openclaw secrets audit           # Audit all SecretRef targets
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
 
+`v2026.5.18+` proxy note: HTTPS managed forward-proxy endpoints can use scoped TLS trust with `proxy.tls.caFile` when validating or routing through a private proxy CA.
+
+### Browser CLI (v2026.5.19+)
+```bash
+openclaw browser evaluate --timeout-ms <ms>  # Extend long-running page evaluate timeout
+openclaw browser dialog --dialog-id <id>     # Answer a pending modal dialog surfaced in snapshots
+```
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -299,6 +319,7 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth login --provider xai                  # Supports remote/headless device-code OAuth (v2026.5.20+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -405,11 +426,16 @@ openclaw config set agents.defaults.params.fastMode true
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
 
+# Per-agent local-model lean defaults (v2026.5.20+)
+openclaw config set agents.list.local-small.experimental.localModelLean true
+
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
 # Rich Slack Block Kit progress drafts (v2026.5.4+)
 openclaw config set streaming.progress.render "rich"
 openclaw config set agents.defaults.toolProgressDetail "compact"
+# Channel preview line width tuning (v2026.5.19+)
+openclaw config set streaming.progress.maxLineChars 120
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -433,6 +459,18 @@ openclaw config set agents.list.public-bot.tools.message.actions.allow '["send"]
 openclaw config set channels.slack.unfurlLinks false
 openclaw config set channels.slack.unfurlMedia false
 openclaw config set channels.slack.replyBroadcast false
+
+# Proxy TLS CA trust for managed HTTPS proxies (v2026.5.18+)
+openclaw config set proxy.tls.caFile "/path/to/proxy-ca.pem"
+
+# OpenRouter provider-level routing policy (v2026.5.20+)
+openclaw config set models.providers.openrouter.params.provider "<routing-policy>"
+
+# Discord long-running component registry lifetime (v2026.5.20+)
+openclaw config set channels.discord.agentComponents.ttlMs 3600000
+
+# Disable default Discord voice realtime profile bootstrap context (v2026.5.20+)
+openclaw config set voice.realtime.bootstrapContextFiles '[]'
 
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
@@ -494,6 +532,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Add extra apt packages during Docker/Podman image builds (v2026.5.18+; supersedes legacy `OPENCLAW_DOCKER_APT_PACKAGES`) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Add opt-in Python packages during local image builds (v2026.5.19+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -544,6 +584,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Policy | bundled | Policy-backed channel conformance checks, doctor lint findings, and opt-in workspace repair (v2026.5.20+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
