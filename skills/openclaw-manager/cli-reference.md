@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.22` stable note: current stable is published as `v2026.5.22`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -132,6 +132,11 @@ openclaw flows cancel <id>   # Cancel an active flow
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
+### Tasks (v2026.5.20+)
+```bash
+openclaw tasks maintenance --json  # Explain stale-running task repair decisions
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -153,6 +158,8 @@ openclaw skills check        # Check skill requirements
 openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
+openclaw skills install --global <skill-slug>  # Install to shared managed skills (v2026.5.19+)
+openclaw skills update --global --all          # Update shared managed skills (v2026.5.19+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -189,6 +196,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/runtime metadata (v2026.5.18+)
+openclaw plugins build         # Build a typed plugin package/artifact (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +206,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.18+` authoring note: typed tool plugins should use `defineToolPlugin` and the `plugins init|validate|build` workflow so generated manifests, tool declarations, and context factories stay aligned with the SDK contract.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -259,6 +271,18 @@ openclaw secrets audit           # Audit all SecretRef targets
 ### Proxy Validation (v2026.5.2+)
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
+```
+
+### Browser and Media CLI (v2026.5.18+)
+```bash
+openclaw browser dialog --dialog-id <id>  # Answer a pending browser modal dialog; check --help for action flags
+openclaw browser evaluate --timeout-ms 120000 '<js>'  # Extend page-function timeout budget
+openclaw infer image describe --file "https://example.com/image.png"  # Guarded remote image fetch
+```
+
+### Meeting Notes (v2026.5.22+)
+```bash
+openclaw meeting-notes --help  # Read-only meeting-notes CLI entry point
 ```
 
 ### Webhooks
@@ -384,6 +408,9 @@ openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
+# v2026.5.18+: scoped TLS trust for HTTPS managed forward proxies
+openclaw config set proxy.tls.caFile "/etc/openclaw/proxy-ca.pem"
+
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
@@ -404,12 +431,16 @@ openclaw config set agents.defaults.params.fastMode true
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+# v2026.5.20+: per-agent override
+openclaw config set agents.list.local-agent.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
 # Rich Slack Block Kit progress drafts (v2026.5.4+)
 openclaw config set streaming.progress.render "rich"
 openclaw config set agents.defaults.toolProgressDetail "compact"
+# v2026.5.19+: channel preview line-width tuning
+openclaw config set streaming.progress.maxLineChars 100
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -433,6 +464,11 @@ openclaw config set agents.list.public-bot.tools.message.actions.allow '["send"]
 openclaw config set channels.slack.unfurlLinks false
 openclaw config set channels.slack.unfurlMedia false
 openclaw config set channels.slack.replyBroadcast false
+
+# Discord realtime voice profile bootstrap (v2026.5.20+)
+openclaw config set voice.realtime.bootstrapContextFiles '["IDENTITY.md","USER.md"]'
+# or disable profile bootstrap entirely
+openclaw config set voice.realtime.bootstrapContextFiles '[]'
 
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
@@ -494,6 +530,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for Docker/Podman image builds (v2026.5.18+; `OPENCLAW_DOCKER_APT_PACKAGES` remains legacy fallback) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Extra Python packages for local image builds (v2026.5.19+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -542,6 +580,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| Meeting Notes | external source plugin | Read-only meeting transcript/note ingestion and `openclaw meeting-notes` CLI, with Discord voice as the first live source (v2026.5.22+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 

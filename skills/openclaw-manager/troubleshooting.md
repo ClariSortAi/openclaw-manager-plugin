@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.22+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.22+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, Node 22.19 launcher support, typed plugin authoring, auth/profile recovery, externalized official plugin repair, Telegram/Slack/Discord/WhatsApp reliability, Gateway diagnostics, and current security hardening, upgrade to **v2026.5.22+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.22+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +603,19 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Official Plugin Peer Links or Bundled Records Stay Stale After Update
+**Symptoms:** `openclaw plugins doctor`, `openclaw doctor --fix`, or update recovery keeps reporting stale bundled plugin output, wrong `openclaw` peer links, or source records from an older package root.
+
+**Cause:** Older package cutovers could leave stale peer links or local bundled plugin install records. v2026.5.22 repairs managed npm plugin peer links and prunes stale local bundled plugin records during doctor/update convergence.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw plugins doctor
+openclaw gateway restart
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,9 +711,22 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
+openclaw update
+openclaw status
+```
+
+#### `openclaw update` or Launcher Rejects Node 22.14/22.16
+**Symptoms:** The source launcher or package update exits with a Node engine-floor message even though Node 22 is installed.
+
+**Cause:** The supported Node 22 floor moved to `v22.19.0+` in the v2026.5.18-v2026.5.19 line.
+
+**Fix:**
+```bash
+node --version
+# Upgrade Node to v22.19.0+ or Node 24, then retry:
 openclaw update
 openclaw status
 ```
@@ -768,6 +794,18 @@ openclaw skills install <skill-slug>
 openclaw skills update --all
 ```
 
+#### Global Skill Install or Update Fails
+**Symptoms:** `openclaw skills install --global` or `openclaw skills update --global` is unavailable.
+
+**Cause:** Shared managed skill install/update flags were added in v2026.5.19.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw skills install --global <skill-slug>
+openclaw skills update --global --all
+```
+
 #### `openclaw skills update` Fails with `Invalid skill slug`
 **Symptoms:** Updates fail on older installed skills with `Invalid skill slug` errors.
 
@@ -818,7 +856,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.22+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1032,6 +1070,36 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Re-run command
 openclaw exec-policy show
+```
+
+#### `openclaw plugins init|validate|build` Command Not Found
+**Symptoms:** Typed plugin authoring commands are unavailable when following newer plugin SDK docs.
+
+**Cause:** `openclaw plugins init`, `openclaw plugins validate`, and `openclaw plugins build` were added in v2026.5.18 for simple typed tool plugins.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins init --help
+openclaw plugins validate --help
+openclaw plugins build --help
+```
+
+#### Browser Action Is Blocked by a Modal Dialog
+**Symptoms:** Browser snapshots show a pending modal, or a browser action returns `blockedByDialog`.
+
+**Cause:** v2026.5.18 exposes pending/recent browser dialogs and routes modal handling through the browser dialog CLI.
+
+**Fix:**
+```bash
+openclaw browser dialog --help
+openclaw browser dialog --dialog-id <id>
+```
+
+For long-running page functions, extend the evaluate timeout:
+
+```bash
+openclaw browser evaluate --timeout-ms 120000 '<javascript>'
 ```
 
 ### ACP Dispatch Issues (v2026.3.2+)
