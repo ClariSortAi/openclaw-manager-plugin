@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.22+` note: generated node service units keep gateway tokens out of unit files, Docker setup output redacts bearer tokens, and `doctor` warns on plaintext secret-bearing provider fields so you can migrate them into SecretRef-backed storage.
 
 **Process:**
 1. Run the command
@@ -209,8 +210,12 @@ openclaw models auth setup-token --provider anthropic
 # OpenAI
 openclaw models auth setup-token --provider openai
 
+# OpenAI Codex API-key path (v2026.5.22+)
+openclaw models auth setup-token --provider openai-codex
+
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
+# xAI device-code OAuth is available for remote/headless setups in v2026.5.20+
 
 # Kilo Code (v2026.2.23+)
 openclaw models auth setup-token --provider kilocode
