@@ -172,15 +172,9 @@ These stable releases are the current target for new deployments and upgrades:
 8. **Provider/auth improvements** — xAI supports device-code OAuth, Grok web search can reuse xAI OAuth profiles, OpenRouter honors `params.provider`, OpenAI Codex supports API-key auth paths, and Anthropic Claude 4.x 1M context uses the GA-capable path.
 9. **Security and supply-chain hardening** — shrinkwrapped OpenClaw-owned npm packages, fail-closed workspace provider-plugin setup discovery, credential symlink rejection, plaintext secret warnings, safer sub-agent bootstrap defaults, and tighter exec/browser/channel guards reduce upgrade risk.
 
-## Prerelease Watch: v2026.5.14-beta.2
+## Prerelease Watch
 
-Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
-
-1. **Codex migration** — the bundled `codex-cli` backend is being removed in favor of the Codex app-server route on `openai/*`, with legacy `codex-cli/*` model refs repaired during migration.
-2. **Per-agent bootstrap overrides** — agents can override `contextInjection`, `bootstrapMaxChars`, and `bootstrapTotalMaxChars` while inheriting defaults when omitted.
-3. **Command-turn facts and message queue steering** — channels/plugins expose normalized command-turn metadata, and mid-turn prompts can steer active runs by default via `/queue steer`.
-4. **WhatsApp status reactions and Telnyx realtime voice** — channel status-reaction lifecycles and voice-call realtime media streaming are in active beta.
-5. **Expanded parser/input hardening** — provider catalog paths, node platform IDs, shell operands, canvas snapshots, malformed JSON/base64/Host surfaces, link-understanding SSRF, and workflow scaffold sanitization continue to harden.
+At the time of this release alignment, the newest prerelease (`v2026.5.22-beta.1`) has been superseded by stable `v2026.5.22`. Do not make stable recommendations from future prerelease-only features; first check the current GitHub releases page and keep stable guidance pinned to the latest non-prerelease tag.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
