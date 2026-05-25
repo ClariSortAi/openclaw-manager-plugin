@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.22` stable note: current stable is published as `v2026.5.22`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -132,6 +132,11 @@ openclaw flows cancel <id>   # Cancel an active flow
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
+### Task Maintenance (v2026.5.20+)
+```bash
+openclaw tasks maintenance --json  # Explain stale-running task retain/reconcile decisions
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -153,6 +158,8 @@ openclaw skills check        # Check skill requirements
 openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
+openclaw skills install --global <skill-slug>  # Install shared managed skill (v2026.5.19+)
+openclaw skills update --global --all          # Update shared managed skills (v2026.5.19+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -164,6 +171,7 @@ ClawHub is the public skill registry at clawhub.ai with 3,200+ community skills 
 openclaw skills search <query>     # Search ClawHub skills
 openclaw skills install <skill-slug>  # Install from ClawHub
 openclaw skills update --all       # Update installed skills
+openclaw skills install --global <skill-slug>  # Shared managed install (v2026.5.19+)
 
 # Compatibility path (legacy clawhub CLI)
 clawhub search <query>         # Search for skills on ClawHub
@@ -189,6 +197,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/package metadata (v2026.5.18+)
+openclaw plugins build         # Build/package a plugin with generated manifest metadata (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -206,6 +217,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.3.31+` install-safety note: built-in dangerous-code `critical` findings and install-time scan failures now fail closed by default during plugin installs and gateway-backed skill dependency installs; explicit dangerous overrides are required to proceed.
 
 `v2026.5.3+` install-safety note: source-only plugin packages are rejected before runtime load. The `v2026.5.3-1` npm hotfix avoids false positives for official bundled plugin packages whose compiled bundles contain distant `process.env` reads and normal API sends.
+
+`v2026.5.18+` developer note: simple tool plugins can use the typed `defineToolPlugin` helper plus `openclaw plugins init|validate|build`. In v2026.5.22, plugin SDK channel-message poll senders, row-level session helpers, and embedding provider contracts started moving more integration surfaces onto public SDK APIs.
 
 ### Agents
 ```bash
@@ -261,6 +274,17 @@ openclaw secrets audit           # Audit all SecretRef targets
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
 
+### Browser CLI (v2026.5.18+)
+```bash
+openclaw browser dialog --dialog-id <id> accept  # Answer a pending modal dialog
+openclaw browser evaluate --timeout-ms 120000 '<js>'  # Extend long-running evaluate budgets
+```
+
+### Meeting Notes (v2026.5.22+)
+```bash
+openclaw meeting-notes           # Read-only inspection of Meeting Notes plugin captures/imports
+```
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -295,6 +319,7 @@ openclaw models auth list    # List saved auth profiles without secrets (v2026.5
 openclaw models auth list --provider openai --json
 openclaw models auth login --provider openai          # ChatGPT/Codex account login by default (v2026.5.12+)
 openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key login
+openclaw models auth login --provider openai --profile-id codex-work  # Named auth profile (v2026.5.24 beta)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
@@ -404,12 +429,16 @@ openclaw config set agents.defaults.params.fastMode true
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+# v2026.5.20+: can also be enabled for one configured agent
+openclaw config set agents.list.local-small.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
 # Rich Slack Block Kit progress drafts (v2026.5.4+)
 openclaw config set streaming.progress.render "rich"
 openclaw config set agents.defaults.toolProgressDetail "compact"
+# Channel-specific compact progress line length (v2026.5.18+)
+openclaw config set streaming.progress.maxLineChars 120
 
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
@@ -433,6 +462,15 @@ openclaw config set agents.list.public-bot.tools.message.actions.allow '["send"]
 openclaw config set channels.slack.unfurlLinks false
 openclaw config set channels.slack.unfurlMedia false
 openclaw config set channels.slack.replyBroadcast false
+
+# OpenRouter provider routing policy (v2026.5.20+)
+openclaw config set models.providers.openrouter.params.provider "<routing-policy>"
+
+# HTTPS managed forward-proxy CA trust (v2026.5.18+)
+openclaw config set proxy.tls.caFile "/path/to/internal-ca.pem"
+
+# Image quality preference (v2026.5.24 beta)
+openclaw config set agents.defaults.imageQuality "balanced"
 
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
@@ -494,6 +532,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for local Docker/Podman image builds (v2026.5.18+; replaces Docker-specific naming) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Extra Python packages for local Docker/Podman image builds (v2026.5.19+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.22+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.22+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Discord/Codex recovery, Meeting Notes tooling, provider/auth performance, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.22+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.22+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -690,7 +690,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. v2026.5.18+ raises the Node 22 floor to **v22.19.0**. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +698,30 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+#### Update/Install Prints Root-Owned npm or Managed-Service Recovery Errors
+**Symptoms:** `openclaw update` or a managed package replacement fails with EACCES/root-owned npm paths, wrong Node binary hints, or confusing service restart guidance.
+
+**Cause:** Current stables include stronger platform-specific update recovery hints and managed-service Node preservation, but older installs can still get stuck mid-handoff.
+
+**Fix:**
+```bash
+# Upgrade from a shell using the intended Node runtime
+node --version
+openclaw update
+
+# If the managed gateway is wedged, stop it through the platform service first,
+# replace the package, then restart and repair.
+openclaw gateway stop
+openclaw update
+openclaw doctor --fix
+openclaw gateway restart
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +837,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.22+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1128,6 +1147,25 @@ api.registerHttpRoute({ path: '/webhook', method: 'POST', handler })
 openclaw plugins install <spec>
 ```
 
+#### Exec Approval No Longer Auto-Allows Skill Wrapper Commands
+**Symptoms:** A skill or automation that previously relied on a shell command shaped like `cat SKILL.md && printf ... && <skill-wrapper>` now asks for approval or is denied.
+
+**Cause:** v2026.5.20 removed that legacy exec-approval compatibility path. Skill files must be loaded through the read tool, and only the real skill executable is eligible for auto-allow treatment.
+
+**Fix:** Update the skill or automation to read skill instructions with the read tool/API surface and execute only the actual registered skill command. Do not reintroduce broad shell allowlists for wrapper commands.
+
+#### Plugin Developer Commands Missing
+**Symptoms:** `openclaw plugins init`, `openclaw plugins validate`, or `openclaw plugins build` is unavailable.
+
+**Cause:** Typed simple tool-plugin helpers and these CLI commands were added in v2026.5.18.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins init
+openclaw plugins validate
+```
+
 #### Background Task Flow Appears Stuck or Orphaned
 **Symptoms:** Long-running orchestration does not complete, or linked task status looks stale.
 
@@ -1144,6 +1182,39 @@ openclaw flows show <flow-id>
 
 # Cancel and resubmit if needed
 openclaw flows cancel <flow-id>
+```
+
+If `openclaw tasks maintenance --json` is available (v2026.5.20+), use it to inspect stale-running task retain/reconcile decisions before deleting state manually.
+
+### Browser Issues
+
+#### Browser Action Is Blocked by a Modal Dialog
+**Symptoms:** Browser actions return `blockedByDialog` or an automation stalls after a page opens an alert/confirm/prompt.
+
+**Cause:** v2026.5.18+ surfaces pending and recently handled modal dialogs in browser snapshots and exposes dialog control through the CLI.
+
+**Fix:**
+```bash
+# Inspect the browser snapshot/status for the dialog id, then answer it
+openclaw browser dialog --dialog-id <dialog-id> accept
+
+# For long page functions, extend the evaluate budget
+openclaw browser evaluate --timeout-ms 120000 '<js>'
+```
+
+### Meeting Notes Issues (v2026.5.22+)
+
+#### Meeting Notes Capture or Import Is Missing
+**Symptoms:** Discord voice meeting notes are not captured, imported transcripts do not appear, or the `openclaw meeting-notes` command is unavailable.
+
+**Cause:** Meeting Notes is a source-only external plugin added in v2026.5.22; older runtimes do not include the read-only CLI surface or Discord voice capture integration.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins deps
+openclaw doctor --fix
+openclaw meeting-notes
 ```
 
 ### Zalo Personal Issues (v2026.3.2)
