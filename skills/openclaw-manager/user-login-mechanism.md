@@ -125,6 +125,8 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.20+` note: `openclaw doctor` warns on plaintext secret-bearing config fields and credential loaders fail closed on symlinked secret files for several channel token paths.
+`v2026.5.22+` note: diagnostics and telemetry scrub scoped agent/session identifiers more aggressively, Docker setup stops printing Gateway bearer tokens, and relative `OPENCLAW_STATE_DIR` values are pinned to absolute paths at startup.
 
 **Process:**
 1. Run the command
@@ -208,6 +210,13 @@ openclaw models auth setup-token --provider anthropic
 ```bash
 # OpenAI
 openclaw models auth setup-token --provider openai
+
+# ChatGPT/Codex account login (v2026.5.12+ default for login)
+openclaw models auth login --provider openai
+openclaw models auth login --provider openai --method api-key
+
+# Named returned auth profile (v2026.5.24 beta)
+openclaw models auth login --provider openai --profile-id codex-work
 
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
