@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.22` stable note: current stable is published as `v2026.5.22`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -153,6 +153,8 @@ openclaw skills check        # Check skill requirements
 openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
+openclaw skills install --global <skill-slug>  # Install to shared managed skills (v2026.5.19+)
+openclaw skills update --global --all          # Update shared managed skills (v2026.5.19+)
 ```
 
 ### ClawHub (Skill Registry)
@@ -189,6 +191,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.19+)
+openclaw plugins validate      # Validate plugin manifest/tool metadata (v2026.5.19+)
+openclaw plugins build         # Build a typed simple tool plugin (v2026.5.19+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -261,6 +266,22 @@ openclaw secrets audit           # Audit all SecretRef targets
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
 
+### Browser Controls (v2026.5.19+)
+```bash
+openclaw browser start
+openclaw browser evaluate --timeout-ms 120000 '<javascript>'
+openclaw browser dialog --dialog-id <id>  # Answer a pending modal dialog; check --help for accept/dismiss flags
+```
+
+Snapshots now report pending/recent modal dialogs and `blockedByDialog` results when an action opens a modal. Use `--timeout-ms` for intentionally long page functions instead of relying on generic request timeouts.
+
+### Meeting Notes (v2026.5.22+)
+```bash
+openclaw meeting-notes --help
+```
+
+Meeting Notes is an externalized/source-provider plugin surface. Stable `v2026.5.22+` exposes read-only CLI access, with Discord voice as the first live capture source.
+
 ### Webhooks
 ```bash
 openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
@@ -295,10 +316,12 @@ openclaw models auth list    # List saved auth profiles without secrets (v2026.5
 openclaw models auth list --provider openai --json
 openclaw models auth login --provider openai          # ChatGPT/Codex account login by default (v2026.5.12+)
 openclaw models auth login --provider openai --method api-key  # Direct OpenAI API-key login
+openclaw models auth login --provider <provider> --profile-id <id>  # Store returned profile under a chosen id (v2026.5.25-beta.1 watch)
 openclaw models auth setup-token --provider anthropic      # Direct API key setup
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth login --provider xai                 # Supports headless/remote device-code OAuth in v2026.5.20+
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -383,6 +406,12 @@ openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
+
+# v2026.5.19+: HTTPS managed forward-proxy CA trust
+openclaw config set proxy.tls.caFile "/path/to/proxy-ca.pem"
+
+# v2026.5.20+: OpenRouter provider routing policy defaults
+openclaw config set models.providers.openrouter.params.provider '{"order":["anthropic","openai"]}'
 
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
@@ -494,6 +523,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for Docker/Podman image builds (v2026.5.19+; `OPENCLAW_DOCKER_APT_PACKAGES` remains a legacy fallback) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Extra Python packages for local Docker/Podman image builds (v2026.5.19+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
