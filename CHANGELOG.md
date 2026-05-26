@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added release-alignment coverage for upstream stable `v2026.5.19` through `v2026.5.22` and prerelease watch `v2026.5.25-beta.1`, including Node `22.19.0+` guidance, typed plugin authoring commands, shared skills, browser dialog/evaluate controls, HTTPS proxy CA trust, Meeting Notes CLI access, Discord voice following/profile context, xAI device-code auth, OpenRouter routing params, Gateway startup/performance improvements, and latest security/provenance hardening.
+- Added troubleshooting coverage for v2026.5.19-v2026.5.22 Node engine failures, plaintext secret doctor warnings, browser modal-dialog blocking, and Meeting Notes/Discord voice capture repair workflows.
+- Added security-checklist entries for v2026.5.20-v2026.5.22 hardening around skill-wrapper exec approval removal, secret-file symlink rejection, plaintext secret diagnostics, reduced sub-agent bootstrap context, published package shrinkwraps, Docker token log redaction, diagnostics identifier scrubbing, workspace-provider plugin setup trust, Diffs toolbar XSS removal, and bounded tool-policy audit logs.
 - Added release-alignment coverage for upstream stable `v2026.5.12` and prerelease watch `v2026.5.14-beta.2`, including externalized Slack/WhatsApp/Bedrock/Anthropic Vertex dependency guidance, Telegram isolated polling/spooling, ACP fallbacks, `cron get`, `channels status --channel`, per-sender tool policy notes, `/context map`, Slack unfurl/reply-broadcast controls, Gateway protocol v4, and latest security/provenance hardening.
 - Added release-alignment coverage for upstream stable `v2026.5.4` through `v2026.5.7`, including `models auth list`, `channels list --all`, bounded session output, rich Slack progress drafts, computed cron JSON status, Codex OAuth route recovery, Telegram `accessGroup:*`, Discord voice probes, and channel/plugin reliability fixes.
 - Added troubleshooting coverage for v2026.5.12 externalized official plugin dependency repair, Telegram polling/formatting/group-media regressions, and OpenAI auth login behavior changes.
@@ -69,6 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified CLI reference semantics for `openclaw gateway status --require-rpc`: scope-limited probe RPC is treated as degraded reachability in v2026.3.13+.
 
 ### Changed
+- Updated recommended OpenClaw target version across the plugin from `v2026.5.12+` to `v2026.5.22+` while preserving minimum safe baseline at `v2026.3.1`.
+- Updated Node.js minimum guidance from **v22.14.0+** to **v22.19.0+** to reflect upstream runtime floor changes in `v2026.5.19` while still recommending Node 24 for new installs.
+- Updated README/version metadata for this docs release alignment (`1.3.10`).
 - Updated recommended OpenClaw target version across the plugin from `v2026.5.3+` to `v2026.5.12+` while preserving minimum safe baseline at `v2026.3.1`.
 - Refreshed current Anthropic model examples from Sonnet/Opus 4.6 to 4.7 across onboarding and CLI guidance.
 - Updated README/version metadata for this docs release alignment (`1.3.9`).

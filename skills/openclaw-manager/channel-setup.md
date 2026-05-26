@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of v2026.5.22, Slack monitor, slash-command, fallback, and direct reply paths suppress reasoning payloads before delivery and dispatch accounting, reducing accidental exposure of provider reasoning content.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -307,6 +308,15 @@ openclaw gateway restart
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
+
+### Discord Voice and Meeting Notes (v2026.5.19-v2026.5.22)
+
+Recent stable releases improve Discord voice and Meeting Notes coordination:
+
+- Voice sessions can follow configured Discord users into allowed voice channels, with multi-user handoff and DAVE recovery preservation.
+- Realtime voice instructions can include bounded `IDENTITY.md`, `USER.md`, and `SOUL.md` profile context by default; set `voice.realtime.bootstrapContextFiles: []` to disable that injection.
+- `agentComponents.ttlMs` can bound component callback registry lifetime for long-running workflows, with per-account overrides and a 24-hour cap.
+- The externalized Meeting Notes source-provider plugin exposes read-only `openclaw meeting-notes` CLI access and uses Discord voice as the first live source.
 
 ---
 
@@ -528,6 +538,8 @@ openclaw gateway restart
 ### Signal Groups Config Compatibility (v2026.3.13+)
 
 If your `channels.signal` config includes group controls and older builds reject those keys during validation, upgrade to v2026.3.13+ where Signal channel schema coverage includes groups settings.
+
+`v2026.5.22+` docs/config note: Signal supports an explicit `configPath` setting for deployments that keep `signal-cli` state outside the default path. Confirm the exact schema path with `openclaw config schema` before editing older installs.
 
 ---
 

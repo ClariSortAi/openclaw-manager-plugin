@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.22+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,16 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Skill-wrapper exec approval compatibility removal | Old `cat SKILL.md && printf ...` allowlist compatibility is removed so skill files must be loaded through read-tool paths and only real executables receive auto-approval treatment | v2026.5.20 |
+| Secret-file symlink rejection | Credential loaders for Telegram, LINE, Zalo, IRC, Nextcloud Talk, and similar token stores fail closed when secret files are symlinks and `rejectSymlink` is required | v2026.5.20 |
+| Plaintext secret diagnostics | `openclaw doctor` warns on plaintext secret-bearing config fields, including model provider API keys and sensitive provider headers | v2026.5.20 |
+| Reduced default sub-agent bootstrap | Default sub-agent context is limited to `AGENTS.md` and `TOOLS.md`, excluding persona, identity, user, memory, heartbeat, and setup files unless explicitly injected | v2026.5.22 |
+| Published package lock hardening | OpenClaw-owned npm packages/plugins ship generated shrinkwraps and require lockfile review so published installs use locked dependency graphs | v2026.5.22 |
+| Docker token log redaction | Docker setup stops printing Gateway bearer tokens in setup logs and follow-up commands | v2026.5.22 |
+| Diagnostics identifier redaction | OpenTelemetry and Prometheus exports scrub scoped agent-session keys and run/session/message/tool identifiers while retaining bounded queue-lane prefixes | v2026.5.22 |
+| Workspace provider plugin setup trust | Workspace provider plugins fail closed during setup-mode discovery unless explicitly trusted, preventing untrusted workspace plugin code from running during provider setup | v2026.5.22 |
+| Diffs toolbar XSS removal | Diffs viewer toolbar icons render from a closed icon-name map instead of HTML strings | v2026.5.22 |
+| Tool-policy audit logs | Bounded audit entries identify which allow/deny rule removed tools or blocked sandboxed tool calls without exposing raw sensitive payloads | v2026.5.22 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +431,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.22+ for latest externalized-plugin repair, Telegram reliability, typed plugin/browser diagnostics, Meeting Notes, Gateway performance, and security/provenance hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -434,6 +444,9 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using externalized official channels/providers (Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex), run `openclaw plugins deps` and `openclaw doctor --fix` after upgrade to v2026.5.12+
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
+- [ ] If upgrading to v2026.5.19+, verify the host Node runtime is `22.19.0+` before running `openclaw update`
+- [ ] Run `openclaw doctor` after upgrade and move any plaintext secret warnings into SecretRef or provider auth stores
+- [ ] Confirm sub-agents still receive only intended bootstrap files after the default context reduction in v2026.5.22+
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
@@ -599,7 +612,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.22+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
