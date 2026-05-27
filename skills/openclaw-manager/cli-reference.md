@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.26` stable note: current stable is published as `v2026.5.26`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -122,6 +122,13 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 ```
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
+
+`v2026.5.26+` cron concurrency note: `cron.maxConcurrentRuns` now defaults to `8`. Set it explicitly when operators need a tighter resource cap or more parallel scheduled automation capacity:
+
+```bash
+openclaw config get cron.maxConcurrentRuns
+openclaw config set cron.maxConcurrentRuns 4
+```
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -301,6 +308,8 @@ openclaw models auth setup-token --provider openai-codex   # PI OAuth route; Cha
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
 
+`v2026.5.26+` auth-profile note: OpenClaw supports named model login profiles and supported credential migration for Hermes, OpenCode, and Codex auth profiles. Use `openclaw models auth list --json` to inspect saved profiles and `openclaw models auth <subcommand> --help` for provider-specific profile/migration flags before changing production auth.
+
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
 # Run OpenClaw command against an active Docker/Podman container
@@ -420,6 +429,9 @@ openclaw config set threadBindings.spawnSessions true
 # Optional inferred follow-up commitments (v2026.4.29+)
 openclaw config set commitments.enabled true
 openclaw config set commitments.maxPerDay 5
+
+# Cron concurrency cap (default is 8 in v2026.5.26+)
+openclaw config set cron.maxConcurrentRuns 8
 
 # Per-sender tool policies (v2026.5.12+)
 # Confirm the exact policy path with `openclaw config schema`, then use canonical
@@ -544,6 +556,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+
+`v2026.5.26+` media note: OpenClaw image processing uses Rastermill instead of Sharp/Jimp for metadata, resizing, EXIF orientation, and PNG alpha-preserving optimization. Do not repair current installs by adding Sharp; use managed plugin/runtime repair and current packages.
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
