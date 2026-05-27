@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.26+` note: stale device-token clients are rejected during rotation, and remote non-browser/HTTP auth failures use the default rate limiter when `gateway.auth.rateLimit` is unset.
 
 **Process:**
 1. Run the command
@@ -225,6 +226,18 @@ openclaw models auth setup-token --provider minimax
 openclaw models auth setup-token --provider vercel-ai
 ```
 
+### Named Model Login Profiles (v2026.5.26+)
+
+OpenClaw supports named model login profiles and supported credential migration for Hermes, OpenCode, and Codex auth profiles. Use the CLI to inspect profile state before changing auth on a production gateway:
+
+```bash
+openclaw models auth list --json
+openclaw models auth list --provider openai --json
+openclaw models auth login --help
+```
+
+Prefer provider-specific migration, opt-out, and non-interactive flags from the installed CLI help rather than editing credential files directly.
+
 ### Verifying Model Authentication
 
 ```bash
@@ -314,6 +327,8 @@ openclaw devices reject <device-id>
 ```bash
 openclaw devices revoke <device-id>
 ```
+
+After credential or device-token rotation in v2026.5.26+, clients using invalidated device tokens should fail closed and must be re-paired or re-approved with a fresh token and scope.
 
 ---
 

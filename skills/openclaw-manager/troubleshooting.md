@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.26+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.26+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, transcript reliability, named auth profiles, reaction approvals, Activity diagnostics, Codex/OpenAI recovery, and channel/provider reliability improvements, upgrade to **v2026.5.26+**.
 
 ## Common Issues
 
@@ -184,6 +184,24 @@ openclaw models auth setup-token --provider openai
 openclaw models auth list --provider openai
 ```
 
+#### Named Model Auth Profile Migration Is Confusing
+**Symptoms:** After upgrading, Hermes, OpenCode, Codex, or OpenAI auth entries appear under named profiles, an automation cannot find the expected profile, or a non-interactive setup needs to opt out of profile migration.
+
+**Cause:** v2026.5.26 adds named model login profiles and supported credential migration for Hermes, OpenCode, and Codex auth profiles, including explicit opt-out and non-interactive controls.
+
+**Fix:**
+```bash
+# Inspect saved profiles without revealing secrets
+openclaw models auth list --json
+openclaw models auth list --provider openai --json
+
+# Check provider-specific migration/profile flags before changing production auth
+openclaw models auth --help
+openclaw models auth login --help
+```
+
+Prefer the supported migration/opt-out flags from the installed CLI help instead of hand-editing credential files.
+
 #### Anthropic OAuth Token Rejected
 **Symptoms:** `OAuth token rejected`, `unauthorized`, or auth failures when using Anthropic models
 
@@ -241,6 +259,22 @@ openclaw secrets reload
 openclaw gateway status
 ```
 
+#### Device Token Stops Working After Rotation
+**Symptoms:** A previously paired device or remote client starts receiving authorization/RPC failures immediately after token rotation.
+
+**Cause:** v2026.5.26 rejects RPCs from invalidated device-token clients during rotation. This is expected fail-closed behavior for stale credentials.
+
+**Fix:**
+```bash
+# Review current device state
+openclaw devices list
+
+# Re-pair or approve a fresh device token when appropriate
+openclaw devices approve <device-id>
+```
+
+Do not re-enable old tokens. Re-pair the affected client and confirm it receives the current scope.
+
 ### Channel Issues
 
 #### Slack: missing_scope Error
@@ -278,6 +312,25 @@ openclaw gateway restart
 ```
 
 If you intentionally run open-by-default (no owner allowlists configured), confirm old explicit allowlists were not partially retained during migration.
+
+#### Mobile Reaction Approvals Do Not Work
+**Symptoms:** Signal, WhatsApp, or legacy iMessage users react with a thumbs-up/approval reaction, but the pending approval does not complete.
+
+**Cause:** Reaction approval helpers for Signal, WhatsApp, and iMessage land in v2026.5.26. Older builds require textual approval commands or other channel-specific approval surfaces.
+
+**Fix:**
+```bash
+# Upgrade to current stable and verify the single affected channel
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel <channel>
+
+# Confirm sender authorization still matches the reacting user
+openclaw pairing list
+openclaw config get channels.<channel>.allowFrom
+```
+
+Keep textual `/approve` as the fallback for channels or clients that do not expose compatible reactions.
 
 #### WhatsApp: Not Linked
 **Symptoms:** `channels status` shows `linked: false`
@@ -559,7 +612,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.26+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +656,22 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Image Processing Still References Sharp or Jimp
+**Symptoms:** Media/image metadata, resizing, EXIF orientation, or WhatsApp image processing failures mention missing Sharp/Jimp dependencies, or an operator tries to repair current installs by adding Sharp manually.
+
+**Cause:** v2026.5.26 replaces Sharp with Rastermill for image metadata, resizing, EXIF orientation, and PNG alpha-preserving optimization. Current OpenClaw should not rely on Sharp or the WhatsApp Jimp fallback for these paths.
+
+**Fix:**
+```bash
+# Upgrade and repair managed dependencies
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins deps
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+If logs still reference Sharp after upgrade, check for stale plugin/runtime paths with `openclaw plugins list --json` before installing ad hoc image packages.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -811,6 +880,21 @@ openclaw cron run <id>
 openclaw cron edit <id>
 ```
 
+#### Too Many or Too Few Cron Jobs Run in Parallel
+**Symptoms:** Scheduled automations appear serialized unexpectedly, or too many isolated cron turns run at once for the host capacity.
+
+**Cause:** v2026.5.26 defaults `cron.maxConcurrentRuns` to `8`; older configs or explicit overrides may use a different concurrency cap.
+
+**Fix:**
+```bash
+openclaw config get cron.maxConcurrentRuns
+openclaw config set cron.maxConcurrentRuns 4
+openclaw config validate
+openclaw gateway restart
+```
+
+Choose a cap that matches the host and provider rate-limit budget.
+
 #### One-Shot Cron Runs at Wrong Local Time
 **Symptoms:** `--at "YYYY-MM-DDTHH:mm:ss"` jobs run at an unexpected hour when `--tz` is provided.
 
@@ -818,7 +902,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.26+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
