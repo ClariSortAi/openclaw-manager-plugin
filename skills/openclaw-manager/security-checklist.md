@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.27+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,15 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Explicit memory-store prompt filtering | Prompt-like text submitted through the explicit `memory_store` tool is rejected before embedding/storage, matching auto-capture prompt-injection filtering | v2026.5.26 |
+| Remote auth rate limiting | Default auth rate limiting covers remote non-browser and HTTP gateway auth failures when unset, preserving loopback exemptions | v2026.5.26 |
+| External content and system-event boundaries | Browser snapshot tab URLs honor SSRF policy, fetched file text/metadata is wrapped as external content, and queued system-event text cannot spoof nested prompt markers | v2026.5.26 |
+| Sender allowlist and device-token hardening | ClickClack inbound sender allowlists run before agent dispatch, invalidated device-token RPCs are rejected during rotation, and staged sandbox media refs are required | v2026.5.26 |
+| Reaction and durable approval hardening | Durable approval actions are hidden when unavailable, approval runtime tokens stay local-only, and Signal/iMessage/WhatsApp reaction approvals use shared helper paths | v2026.5.26 |
+| Transcript and plugin regex hardening | Transcript metadata field names are escaped, serialized tool-call text is scrubbed from replies, and plugin manifest model patterns are compiled safely | v2026.5.26 |
+| Group prompt boundary enforcement | Untrusted group prompt metadata is routed outside system prompts so channel/group labels cannot become privileged instructions | v2026.5.27 |
+| Hostname and Node runtime env hardening | Repeated-dot hostnames are normalized, side-effecting command wrappers are blocked, and unsafe Node runtime env overrides are rejected | v2026.5.27 |
+| Remote exposure and approval authority | No-auth Tailscale exposure is rejected, untrusted Microsoft Teams service URLs are blocked, `/allowlist configWrites` checks origin policy, and node/device-role approvals require admin authority | v2026.5.27 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -347,8 +356,8 @@ export OPENCLAW_DISABLE_BONJOUR=1
 
 Use modern, instruction-hardened models for bots with tool access. Larger models resist prompt injection better — this is a security property, not just a quality preference.
 
-- **Strongest injection resistance**: Use the largest tier available from your provider (e.g., Anthropic Opus, OpenAI GPT-4o)
-- **Good balance**: Mid-tier models (e.g., Anthropic Sonnet, OpenAI GPT-4o-mini) for moderate-risk surfaces
+- **Strongest injection resistance**: Use the largest tier available from your provider (e.g., Anthropic Opus, OpenAI GPT-5.5)
+- **Good balance**: Mid-tier models (e.g., Anthropic Sonnet, OpenAI GPT-5.x mini-tier models) for moderate-risk surfaces
 - **Local models (Ollama)**: May be less robust against sophisticated prompt injection — pair with strict tool denials and sandbox
 - Avoid older or smaller models for tool-enabled agents facing untrusted inboxes
 
@@ -421,7 +430,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.27+ for latest transcript, Gateway, Codex, provider/model, channel delivery, and security/content-boundary hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -434,6 +443,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using externalized official channels/providers (Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex), run `openclaw plugins deps` and `openclaw doctor --fix` after upgrade to v2026.5.12+
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
+- [ ] If using named model login profiles, verify migrated Hermes/OpenCode/Codex profiles and any non-interactive setup controls after upgrade to v2026.5.26+
+- [ ] If using Tailscale or trusted proxy-style remote access, confirm auth is explicit; current stable rejects no-auth Tailscale exposure and invalidated device tokens
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
@@ -599,7 +610,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.27+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

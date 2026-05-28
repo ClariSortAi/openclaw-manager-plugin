@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.27+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.27+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider/model coverage, core transcripts, Gateway performance, Codex app-server recovery, channel delivery reliability, and security/content-boundary hardening, upgrade to **v2026.5.27+**.
 
 ## Common Issues
 
@@ -226,6 +226,39 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Model Catalog or Provider Route Looks Wrong
+**Symptoms:** `openai/gpt-5.5` does not resolve, bare Anthropic model ids fail, DeepInfra browsing omits expected models, or a VLLM/OpenAI-compatible endpoint ignores thinking/cache parameters.
+
+**Cause:** Older builds had weaker provider catalog hydration and OpenAI-compatible routing behavior. v2026.5.27 adds full DeepInfra credential-aware browsing, bare Anthropic model-id support, VLLM thinking params, OpenAI-compatible cache retention, and `openai/gpt-5.5` resolution without a cached catalog.
+
+**Fix:**
+```bash
+# Upgrade and refresh provider auth/catalog state
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw models auth list --json
+openclaw status --deep
+```
+
+#### xAI Login Needs a Headless Flow
+**Symptoms:** xAI/Grok OAuth setup requires a browser callback that is unavailable on a remote server.
+
+**Cause:** Device-code OAuth for xAI was added in v2026.5.20.
+
+**Fix:** Upgrade to current stable, then retry `openclaw models auth` / onboarding for xAI and choose the device-code flow when offered.
+
+#### Codex App-Server Loses Tools, Auth, or Resume State
+**Symptoms:** Codex app-server turns lose plugin tool auth profiles, resume from stale state, mis-route model choices, or leave queued terminal attempts running after startup/helper failures.
+
+**Cause:** v2026.5.20-v2026.5.27 include multiple Codex app-server fixes: plugin tool auth profile preservation, model resolution before generic routing, workspace memory routed through tools, shared client survival after startup/spawned-helper failures, native hook relay generation preservation, and safer timeout/compaction boundaries.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw models auth list --provider openai --json
+openclaw gateway restart
+openclaw status --deep
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -300,7 +333,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -329,7 +362,7 @@ openclaw gateway restart
 #### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
 **Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
 
-**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active. v2026.5.19-v2026.5.27 add topic-aware lanes, preserved typing/progress context, durable `sendMessage` action delivery, and tighter duplicate-poller/token-rotation diagnostics.
 
 **Fix:**
 ```bash
@@ -341,7 +374,7 @@ openclaw gateway restart
 openclaw channels status --channel telegram
 ```
 
-If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+If polling still appears wedged, check whether the same bot token is running in another gateway; current stable keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -419,6 +452,20 @@ openclaw gateway restart
 ```
 
 If still on v2026.2.24, force restart: `openclaw gateway restart`
+
+#### Discord Voice or Talk Drops Follow-Ups
+**Symptoms:** Realtime Discord voice stops hearing follow-up turns, playback starts choppy, wake-name handling is unreliable, or active Talk runs cannot be inspected/steered/cancelled cleanly.
+
+**Cause:** v2026.5.18-v2026.5.27 add shared realtime turn-context/output tracking, Discord speaker attribution, prebuffered assistant playback, follow-up steering for voice/Talk, and safer wake-name screening.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw status --deep
+```
+
+If profile-file context is too heavy for voice sessions, v2026.5.20+ supports `voice.realtime.bootstrapContextFiles: []` to disable default `IDENTITY.md` / `USER.md` / `SOUL.md` injection.
 
 #### Teams: Plugin Not Working
 **Symptoms:** Teams channel not available
@@ -559,7 +606,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.27+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -690,7 +737,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. As of v2026.5.18, the Node 22 floor is v22.19.0+. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,7 +745,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +865,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.27+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
