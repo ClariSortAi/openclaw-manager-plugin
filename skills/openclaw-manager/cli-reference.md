@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.27` stable note: current stable is published as `v2026.5.27`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -132,6 +132,11 @@ openclaw flows cancel <id>   # Cancel an active flow
 
 `v2026.4.2+` task-flow note: flow internals now track managed/mirrored sync modes and durable revisions more reliably, so `openclaw flows show` is the preferred first check for stuck background orchestration.
 
+### Tasks (v2026.5.20+)
+```bash
+openclaw tasks maintenance --json  # Explain stale-running task retention/reconcile decisions
+```
+
 ### Cron Add Options
 ```bash
 openclaw cron add \
@@ -142,7 +147,7 @@ openclaw cron add \
   --channel slack \           # Delivery channel
   --to "#channel" \           # Destination
   --session isolated \        # Session scope
-  --model openai/gpt-5.4  # Model override (use agentRuntime.id: "codex" for native Codex runtime)
+  --model openai/gpt-5.5  # Model override (use agentRuntime.id: "codex" for native Codex runtime)
 ```
 
 ### Skills
@@ -299,6 +304,15 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider deepinfra      # Full credential-aware catalog browsing (v2026.5.27+)
+openclaw models auth setup-token --provider pixverse       # Video generation, API region selection (v2026.5.27+)
+```
+
+`v2026.5.27+` provider note: OpenAI-compatible embedding providers are core for local/hosted OpenAI-style endpoints, VLLM thinking params are wired, bare direct Anthropic model ids work, and `openai/gpt-5.5` resolves without a cached catalog.
+
+### Meeting Notes and Transcripts (v2026.5.22+)
+```bash
+openclaw meeting-notes        # Read-only access to captured/imported meeting notes
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -404,6 +418,8 @@ openclaw config set agents.defaults.params.fastMode true
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+# v2026.5.20+: can also be scoped to one configured agent
+openclaw config set agents.list.local-agent.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
@@ -420,6 +436,13 @@ openclaw config set threadBindings.spawnSessions true
 # Optional inferred follow-up commitments (v2026.4.29+)
 openclaw config set commitments.enabled true
 openclaw config set commitments.maxPerDay 5
+
+# Cron concurrency (defaults to 8 in v2026.5.26+)
+openclaw config set cron.maxConcurrentRuns 8
+
+# Discord/browser/meeting realtime voice bootstrap context (v2026.5.20+)
+# Set an empty array to disable profile-file injection for voice sessions.
+openclaw config set voice.realtime.bootstrapContextFiles '[]'
 
 # Per-sender tool policies (v2026.5.12+)
 # Confirm the exact policy path with `openclaw config schema`, then use canonical
@@ -494,6 +517,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Add extra apt packages to Docker/Podman image builds (v2026.5.18+; runtime-neutral replacement for legacy `OPENCLAW_DOCKER_APT_PACKAGES`) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -542,8 +566,10 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| Meeting Notes | external/source-only | Transcript-backed meeting summaries and source-provider imports with read-only `openclaw meeting-notes` access (v2026.5.22+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Policy | bundled | Policy-backed channel conformance checks, doctor lint findings, and optional workspace repair (v2026.5.20+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
