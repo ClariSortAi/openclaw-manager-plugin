@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.27` stable note: current stable is published as `v2026.5.27`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -122,6 +122,12 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 ```
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
+
+`v2026.5.26+` cron concurrency note: the default `cron.maxConcurrentRuns` is `8`, so scheduled automations can progress in parallel without explicit tuning. Pin this value if your gateway needs stricter resource controls:
+
+```bash
+openclaw config set cron.maxConcurrentRuns 4
+```
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -245,6 +251,13 @@ openclaw memory index        # Reindex memory files
 openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
+### Meeting Notes & Transcripts (v2026.5.22+)
+```bash
+openclaw meeting-notes       # Read-only access to transcript-backed meeting notes
+```
+
+Transcript-backed workflows now cover meeting summaries, source-provider chunks, cleaned user turns, media provenance, Codex mirrors, WebChat replies, and CLI/TUI replay. The meeting-notes plugin may need explicit installation/configuration in deployments that use live sources such as Discord voice.
+
 ### Security
 ```bash
 openclaw security audit          # Basic security audit
@@ -300,6 +313,8 @@ openclaw models auth setup-token --provider openai         # Direct OpenAI API k
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+`v2026.5.26+` auth-profile note: model login flows support named profiles and migration of Hermes, OpenCode, and Codex auth profiles. Confirm exact profile flags with `openclaw models auth login --help` and audit saved entries with `openclaw models auth list --json`.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -400,6 +415,9 @@ openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
 openclaw config set agents.defaults.params.fastMode true
+
+# Cron concurrency (v2026.5.26+ default is 8)
+openclaw config set cron.maxConcurrentRuns 8
 
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
@@ -544,6 +562,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Meeting Notes | external plugin | Transcript-backed meeting summaries and manual transcript imports (v2026.5.22+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

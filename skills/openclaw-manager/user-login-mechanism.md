@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.27+` note: no-auth Tailscale exposure assumptions are rejected. Use `gateway.auth.allowTailscale` only with an explicit supported `gateway.auth.mode` such as `token` or `trusted-proxy`.
 
 **Process:**
 1. Run the command
@@ -224,6 +225,8 @@ openclaw models auth setup-token --provider minimax
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
 ```
+
+`v2026.5.26+` note: model login flows support named auth profiles and migration of Hermes, OpenCode, and Codex credential profiles. Use `openclaw models auth list --json` to audit saved profile metadata without exposing secrets, and confirm profile-specific flags with `openclaw models auth login --help`.
 
 ### Verifying Model Authentication
 
@@ -409,6 +412,7 @@ With `per-account-channel-peer`, you can link identities across channels so the 
 **Other Provider Auth Failures:**
 - Verify API key is correct
 - Check provider status/outages
+- If using named profiles (v2026.5.26+), confirm the active profile with `openclaw models auth list --json`
 - Re-authenticate:
   ```bash
   openclaw models auth setup-token --provider <provider-name>
