@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.27+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.27+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, transcript support, Gateway/status performance, channel/provider reliability, and security/content-boundary hardening, upgrade to **v2026.5.27+**.
 
 ## Common Issues
 
@@ -157,6 +157,22 @@ openclaw config get gateway.auth.token
 openclaw gateway restart
 ```
 
+#### Tailscale Exposure Rejected After Upgrade
+**Symptoms:** A gateway that was reachable over Tailscale before upgrade now refuses to start or rejects requests as unsafe/no-auth exposure.
+
+**Cause:** v2026.5.27+ rejects no-auth Tailscale exposure assumptions. Tailscale identity can be part of the trust chain, but the Gateway still needs an explicit supported auth mode.
+
+**Fix:**
+```bash
+# Pick and verify an explicit auth mode
+openclaw config set gateway.auth.mode token
+openclaw config set gateway.auth.token "$(openssl rand -hex 32)"
+openclaw config set gateway.auth.allowTailscale true
+
+openclaw config validate
+openclaw gateway restart
+```
+
 #### No API Key Found
 **Symptoms:** Agent can't make requests, auth errors
 
@@ -182,6 +198,24 @@ openclaw models auth setup-token --provider openai
 
 # Inspect saved auth profiles without revealing secrets
 openclaw models auth list --provider openai
+```
+
+#### Named Model Auth Profile Confusion
+**Symptoms:** A provider works in one agent/runtime but another agent reports the wrong account, missing API key, or stale Codex/Hermes/OpenCode credentials.
+
+**Cause:** v2026.5.26+ adds named model login profiles and migration paths for Hermes, OpenCode, and Codex auth profiles. Older implicit-profile assumptions can become ambiguous during upgrades.
+
+**Fix:**
+```bash
+# Inspect saved profiles without secrets
+openclaw models auth list --json
+
+# Check provider-specific entries
+openclaw models auth list --provider openai --json
+
+# Re-run login/setup using the intended profile flags shown by help
+openclaw models auth login --help
+openclaw models auth setup-token --provider <provider>
 ```
 
 #### Anthropic OAuth Token Rejected
@@ -342,6 +376,23 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: `sendMessage` Actions Drop Media, Topic Context, or Progress
+**Symptoms:** Tool/action replies from Telegram lose structured attachments, forum-topic routing, progress callbacks, or targeted command context.
+
+**Cause:** Older builds had weaker Telegram action delivery, entity/topic preservation, and native progress callback handling. v2026.5.22-v2026.5.27 adds durable `sendMessage` delivery, structured attachment media, forum-topic preservation, targeted `/command@TargetBot` mention handling, and isolated polling stall recovery.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and probe Telegram only
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+If silent polling still recurs, inspect `channels.telegram.pollingStallThresholdMs` and ensure no duplicate poller is running with the same bot token.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +610,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.27+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -635,6 +686,24 @@ openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '
 openclaw config validate
 openclaw gateway restart
 ```
+
+#### Meeting Notes or Transcript Commands Are Missing
+**Symptoms:** `openclaw meeting-notes` is unavailable, transcript-backed meeting summaries do not appear, or Discord voice meeting summaries do not start.
+
+**Cause:** Transcript-backed workflows and the external meeting-notes plugin landed in v2026.5.22+. Older installs lack the CLI surface or source-provider support.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Verify plugin/source-provider availability
+openclaw meeting-notes --help
+openclaw plugins list
+openclaw status --all
+```
+
+Follow the plugin's install/config instructions before enabling live capture sources.
 
 #### `x_search` Stops Working After Upgrade
 **Symptoms:** xAI web search integration fails or `x_search` settings appear ignored after upgrading to v2026.4.2+.
@@ -818,7 +887,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.27+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -910,6 +979,22 @@ openclaw agents list
 # Review logs for sub-agent errors
 openclaw logs | grep -i "sub-agent\|spawn"
 ```
+
+#### Sub-Agent Missing Persona, Memory, or Setup Context After Upgrade
+**Symptoms:** A delegated worker starts successfully but no longer sees expected persona, identity, memory, heartbeat, or setup instructions.
+
+**Cause:** v2026.5.22+ limits default sub-agent bootstrap context to `AGENTS.md` and `TOOLS.md` so delegated workers do not inherit broad parent/session context by default.
+
+**Fix:**
+```bash
+# Put durable delegated-worker instructions in supported bootstrap files
+ls AGENTS.md TOOLS.md
+
+# Then start a fresh session/sub-agent after updating those files
+openclaw gateway restart
+```
+
+If the agent needs additional context, configure it explicitly instead of relying on inherited parent prompt state.
 
 ### Session Management Issues (v2026.2.23+)
 
