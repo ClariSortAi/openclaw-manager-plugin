@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.27` stable note: current stable is published as `v2026.5.27`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives; upgrade to current stable instead of pinning that hotfix.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -189,6 +189,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/package metadata (v2026.5.18+)
+openclaw plugins build         # Build a typed simple tool plugin (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -245,6 +248,13 @@ openclaw memory index        # Reindex memory files
 openclaw memory search "query"  # Search memory (FTS fallback with query expansion)
 ```
 
+### Meeting Notes & Transcripts (v2026.5.22+)
+```bash
+openclaw meeting-notes       # Read-only meeting/transcript summaries when the plugin is configured
+```
+
+Meeting Notes is a source-only external plugin with a core transcript source-provider contract. Use it for Discord voice and imported transcript summaries, then inspect plugin-specific help/config before enabling auto-start capture.
+
 ### Security
 ```bash
 openclaw security audit          # Basic security audit
@@ -260,6 +270,16 @@ openclaw secrets audit           # Audit all SecretRef targets
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
+
+`v2026.5.18+` proxy note: managed HTTPS forward proxies can use scoped TLS trust via proxy TLS CA configuration such as `proxy.tls.caFile`; validate the final shape with `openclaw config schema`.
+
+### Browser Utilities (v2026.5.18+)
+```bash
+openclaw browser evaluate --timeout-ms <ms>  # Extend long-running page evaluation budgets
+openclaw browser dialog --dialog-id <id>     # Answer a pending browser modal dialog
+```
+
+Snapshots can surface pending or recently handled modal dialogs; if a browser action returns `blockedByDialog`, inspect the snapshot and answer or dismiss the dialog before retrying.
 
 ### Webhooks
 ```bash
@@ -300,6 +320,8 @@ openclaw models auth setup-token --provider openai         # Direct OpenAI API k
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+`v2026.5.26+` auth note: named model login profiles and migrated Hermes/OpenCode/Codex auth profiles are supported. Use `openclaw models auth list --json` and provider-specific `--help` output before scripting profile names or non-interactive migration flags.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -404,6 +426,8 @@ openclaw config set agents.defaults.params.fastMode true
 # Local-model lean defaults (v2026.4.15+, experimental)
 openclaw config set agents.defaults.experimental.localModelLean true
 # Set false to restore normal default-tool behavior
+# Per-agent local-model lean defaults (v2026.5.20+)
+openclaw config set agents.list.<agent-id>.experimental.localModelLean true
 
 # Progress streaming drafts (v2026.5.3+; Discord/Telegram/Matrix/Slack/Teams)
 openclaw config set streaming.mode "progress"
@@ -428,6 +452,9 @@ openclaw config set commitments.maxPerDay 5
 # Per-agent message tool restrictions (v2026.5.12+)
 openclaw config set agents.list.public-bot.tools.message.crossContext false
 openclaw config set agents.list.public-bot.tools.message.actions.allow '["send"]'
+
+# Cron concurrency default is 8 in v2026.5.26+; set explicitly for shared gateways
+openclaw config set cron.maxConcurrentRuns 8
 
 # Slack unfurl and reply-broadcast controls (v2026.5.12+)
 openclaw config set channels.slack.unfurlLinks false
@@ -494,6 +521,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for local Docker/Podman image builds (v2026.5.18+; replaces legacy `OPENCLAW_DOCKER_APT_PACKAGES`) |
+| `OPENCLAW_IMAGE_PIP_PACKAGES` | Extra Python packages for local Docker/Podman image builds (v2026.5.19+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -542,8 +571,10 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| Meeting Notes | external/source-only | Transcript-backed meeting summaries and manual transcript imports (v2026.5.22+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Policy | bundled | Policy-backed channel conformance checks and doctor lint/repair support (v2026.5.20+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
