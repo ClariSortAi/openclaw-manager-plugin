@@ -11,7 +11,7 @@ For a single user who wants an AI assistant on their phone/desktop via messaging
 curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw onboard --install-daemon
 openclaw status
-# Verify version is v2026.3.1+
+# Verify version is v2026.3.1+ (recommend v2026.5.28+) and Node.js is v22.19.0+
 ```
 
 ### Milestone 2: Connect Channels
@@ -77,6 +77,7 @@ For 2-10 trusted users sharing a single OpenClaw instance.
 curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw onboard --install-daemon
 openclaw status
+# Verify Node.js is v22.19.0+ before updating to current stable
 ```
 
 ### Milestone 2: Security First
@@ -137,6 +138,7 @@ openclaw status
 curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw config validate
 openclaw gateway restart
+# Current stable requires Node.js v22.19.0+
 ```
 
 ### Milestone 1: Infrastructure

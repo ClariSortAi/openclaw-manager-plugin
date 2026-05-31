@@ -62,8 +62,8 @@ Ranked by setup difficulty to help sequence channel connections:
 | Environment | Install Method | Service Manager | Health Probes | Notes |
 |-------------|---------------|----------------|---------------|-------|
 | macOS | install.sh | LaunchAgent | n/a | umask 077 in v2026.3.1+ |
-| Linux (systemd) | install.sh | systemd | n/a | `--install-daemon` flag |
-| Windows WSL2 | install.sh in WSL | systemd (if enabled) | n/a | Source nvm first, check /etc/wsl.conf |
+| Linux (systemd) | install.sh | systemd | n/a | `--install-daemon` flag; Node.js v22.19.0+ |
+| Windows WSL2 | install.sh in WSL | systemd (if enabled) | n/a | Source nvm first, check /etc/wsl.conf, verify Node.js v22.19.0+ |
 | Docker | npm install | Process supervisor | `/healthz`, `/readyz` | Bind `0.0.0.0`, use env vars for token |
 | Kubernetes | Docker image | K8s orchestrator | `/healthz`, `/readyz` | PV for ~/.openclaw, Secrets for tokens |
 | Cloud VM | install.sh + systemd | systemd | n/a | Tailscale recommended for remote access |
@@ -72,6 +72,7 @@ Ranked by setup difficulty to help sequence channel connections:
 
 ### Relaxed (Solo)
 - [ ] Running v2026.3.1+
+- [ ] Node.js v22.19.0+ when using current stable OpenClaw
 - [ ] Token auth enabled
 - [ ] Gateway on loopback
 - [ ] Pairing mode for DMs

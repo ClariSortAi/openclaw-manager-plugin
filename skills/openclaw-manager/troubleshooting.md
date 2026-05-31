@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Slack/Discord delivery reliability, Codex app-server recovery, transcript/Meeting Notes support, provider/model coverage, and current security/content-boundary hardening, upgrade to **v2026.5.28+**.
 
 ## Common Issues
 
@@ -226,6 +226,26 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Model Auth Profile Is Ambiguous After Upgrade
+**Symptoms:** `/models`, Codex, OpenAI, Hermes, or OpenCode-backed turns use an unexpected credential profile, or status output shows a profile suffix that does not match the intended account.
+
+**Cause:** v2026.5.26+ supports named model login profiles, and v2026.5.28 rewrites legacy non-canonical `api_key` auth profiles to the canonical shape. Older stale `lastGood` state or profile suffixes can make the active credential unclear after an upgrade.
+
+**Fix:**
+```bash
+# Inspect profiles without revealing secrets
+openclaw models auth list --json
+openclaw models auth list --provider openai --json
+
+# Use provider-specific help before scripting named profile changes
+openclaw models auth --help
+openclaw models auth login --provider <provider> --help
+
+# Repair stale profile metadata and restart
+openclaw doctor --fix
+openclaw gateway restart
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -300,7 +320,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -435,6 +455,24 @@ openclaw plugins info msteams
 openclaw channels status
 ```
 
+#### Teams: Messages Fail After Service URL or Tenant Changes
+**Symptoms:** Teams delivery starts failing after an Azure/Bot Framework endpoint change, or logs mention service URL trust or attachment DNS validation.
+
+**Cause:** Current stable blocks untrusted Teams service URLs and invalid attachment-fetch DNS targets instead of following them implicitly.
+
+**Fix:**
+```bash
+# Confirm the plugin and channel state first
+openclaw plugins info msteams
+openclaw channels status --channel msteams
+
+# Validate config before relaxing any network policy
+openclaw config validate
+openclaw gateway restart
+```
+
+Verify the Bot Framework service URL and tenant trust configuration before changing allowlists.
+
 ### Pairing Issues
 
 #### Messages Not Triggering (Pairing Required)
@@ -559,7 +597,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.28+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +641,28 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Meeting Notes or Transcript Summaries Are Missing
+**Symptoms:** Discord voice or imported meetings do not produce transcript-backed summaries, or `openclaw meeting-notes` has no data.
+
+**Cause:** v2026.5.22+ moves Meeting Notes to a source-only external plugin with a core transcript provider contract. The plugin must be installed/configured, and source capture must be enabled for the channel or import path you expect.
+
+**Fix:**
+```bash
+# Confirm plugin and dependency state
+openclaw plugins list --json
+openclaw plugins deps
+
+# Inspect the read-only meeting notes surface and plugin-specific help
+openclaw meeting-notes
+openclaw plugins info meeting-notes
+
+# Repair official plugin installs if needed
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+For sensitive meetings, review transcript retention and redaction settings before enabling auto-start capture.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -690,7 +750,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. v2026.5.18-v2026.5.19 raised the supported Node 22 floor to v22.19.0, so older service, WSL2, Docker, or package-manager runtimes fail before install.
 
 **Fix:**
 ```bash
@@ -698,12 +758,14 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
 ```
+
+If `node --version` is correct in your shell but the managed service still fails, check the service manager PATH (`systemd`, LaunchAgent, Scheduled Task, or Docker image) and restart the gateway from the same runtime that owns the service.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -818,7 +880,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.28+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -837,6 +899,22 @@ openclaw cron add --name "Scoped Job" --cron "0 8 * * *" --message "Task" --tool
 
 # Validate by running once
 openclaw cron run <new-id>
+```
+
+#### Recurring Cron Job Skips After Temporary Model Rate Limits
+**Symptoms:** A scheduled recurring job hits a transient provider/model rate limit and then waits until the next scheduled slot instead of retrying soon.
+
+**Cause:** Older builds did not retry recurring jobs after transient model rate limits or preflight fallback models as consistently as current stable.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then inspect recent runs
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw cron runs
+openclaw cron show <id>
+
+# Verify model fallback/auth configuration before the next run
+openclaw status --deep
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
@@ -1048,6 +1126,43 @@ openclaw config set acp.dispatch.enabled false
 openclaw gateway restart
 ```
 
+### Browser Tool Issues (v2026.5.18+)
+
+#### Browser Action Is Blocked by a Modal Dialog
+**Symptoms:** Browser tools stop after a click/evaluate action, snapshots mention a pending dialog, or an action returns `blockedByDialog`.
+
+**Cause:** Current stable surfaces browser modal dialogs explicitly instead of letting actions hang or race the page state.
+
+**Fix:**
+```bash
+# Upgrade to current stable if the dialog metadata is missing
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Inspect the browser snapshot/action output for the dialog id, then answer it
+openclaw browser dialog --dialog-id <id>
+
+# For long-running page functions, raise the evaluation budget deliberately
+openclaw browser evaluate --timeout-ms 60000
+```
+
+Keep browser access restricted for untrusted channels; current stable also applies SSRF and current-tab URL checks to more browser routes.
+
+#### Browser Command or Automation Payload Is Rejected as Invalid
+**Symptoms:** Browser actions that used to coerce loose values now fail with validation errors around tab indexes, viewport sizes, CDP ports, geolocation, screenshot/permission timeouts, cookie expiry, or action delays.
+
+**Cause:** v2026.5.28 rejects malformed browser parameters earlier instead of partially parsing or clamping unsafe values.
+
+**Fix:**
+```bash
+# Validate generated config and payloads before retrying automation
+openclaw config validate
+
+# Use explicit finite values in scripted browser calls
+openclaw browser evaluate --timeout-ms 60000
+```
+
+If the request came from a channel automation or plugin, update that payload generator to emit finite numeric values and valid tab/viewport identifiers.
+
 ### PDF Tool Issues (v2026.3.2+)
 
 #### PDF Analysis Not Working
@@ -1069,6 +1184,8 @@ openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 ```
+
+In v2026.5.28+, PDF extraction uses ClawPDF paths with encrypted PDF support. If an encrypted document fails on older builds, upgrade before debugging provider/model selection.
 
 #### PDF/Image Tool Rejects a Valid Ollama Vision Model as "Unknown"
 **Symptoms:** Image/PDF tool calls fail model lookup even though the configured Ollama model exists and works in normal chat turns.
