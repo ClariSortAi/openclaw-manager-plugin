@@ -203,12 +203,28 @@ openclaw models auth setup-token --provider anthropic
 3. Create a new key
 4. Copy and paste when prompted by `openclaw models auth setup-token`
 
+### OpenAI, ChatGPT/Codex, and Named Profiles
+
+In v2026.5.12+, `openclaw models auth login --provider openai` defaults to the ChatGPT/Codex account login path. For a direct OpenAI API key, request API-key setup explicitly:
+
+```bash
+# ChatGPT/Codex account login
+openclaw models auth login --provider openai
+
+# Direct OpenAI API-key setup
+openclaw models auth login --provider openai --method api-key
+# or
+openclaw models auth setup-token --provider openai
+
+# Inspect profiles without revealing secrets
+openclaw models auth list --provider openai --json
+```
+
+In v2026.5.26+ and v2026.5.28+, OpenClaw supports named model auth profiles and migrates legacy non-canonical `api_key` profiles to the canonical form. After an upgrade, verify the active profile suffix before assuming a provider is using the intended account.
+
 ### Other Providers
 
 ```bash
-# OpenAI
-openclaw models auth setup-token --provider openai
-
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
 
@@ -223,6 +239,21 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex PI OAuth route (v2026.4.12+)
+openclaw models auth setup-token --provider openai-codex
+
+# LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider lmstudio
+
+# NVIDIA hosted models (v2026.4.29+)
+openclaw models auth setup-token --provider nvidia
+
+# DeepInfra catalog-backed auth (v2026.5.27+)
+openclaw models auth setup-token --provider deepinfra
+
+# Pixverse video generation (v2026.5.27+)
+openclaw models auth setup-token --provider pixverse
 ```
 
 ### Verifying Model Authentication

@@ -13,6 +13,8 @@ openclaw doctor --fix        # Auto-fix common problems
 openclaw doctor --generate-gateway-token  # Generate a new gateway token
 ```
 
+`v2026.5.28+` status note: `openclaw status` includes active subagent details when a run is delegated, which helps distinguish a stalled parent session from a busy child runtime.
+
 ### Gateway Management
 ```bash
 openclaw gateway             # Show gateway info
@@ -59,7 +61,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.27` stable note: current stable is published as `v2026.5.27`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives; upgrade to current stable instead of pinning that hotfix.
+`v2026.5.28` stable note: current stable is published as `v2026.5.28`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives; upgrade to current stable instead of pinning that hotfix.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -569,12 +571,14 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Plugin | Package | Description |
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
+| Copilot | `@openclaw/copilot` | GitHub Copilot agent runtime as an official install-on-demand plugin (v2026.5.28+) |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Meeting Notes | external/source-only | Transcript-backed meeting summaries and manual transcript imports (v2026.5.22+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 | Policy | bundled | Policy-backed channel conformance checks and doctor lint/repair support (v2026.5.20+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official Tokenjuice integration plugin with npm/ClawHub metadata (v2026.5.28+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

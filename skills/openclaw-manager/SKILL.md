@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.27+** for the latest stable Node 22.19 floor, plugin/runtime repair paths, Gateway and channel recovery, Codex app-server reliability, transcript/Meeting Notes support, provider/model coverage, and security/content-boundary hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.28+** for the latest stable Node 22.19 floor, plugin/runtime repair paths, Gateway and channel recovery, active-subagent status visibility, ClawPDF/encrypted PDF support, GitHub Copilot/Tokenjuice plugin packaging, Workboard/policy checks, and security/input-boundary hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.27)
+## Breaking Changes to Watch For (v2026.3.x through v2026.5.28)
 
 These changes affect new and existing installations:
 
@@ -68,6 +68,7 @@ These changes affect new and existing installations:
 26. **OpenAI auth login default changed** (v2026.5.12) — `openclaw models auth login --provider openai` starts the ChatGPT/Codex account login by default. Use `--method api-key` or `openclaw models auth setup-token --provider openai` for direct OpenAI API-key setups.
 27. **Node.js floor raised** (v2026.5.18-v2026.5.19) — OpenClaw now requires Node.js v22.19.0 or newer on the Node 22 line. Upgrade local, service, Docker, and WSL2 runtimes before running `openclaw update`.
 28. **Legacy skill-wrapper exec allowlist removed** (v2026.5.20) — old `cat SKILL.md && printf ...` compatibility allowances are gone; skills should be loaded through the skill/read path and only the real skill executable is auto-allowed.
+29. **Stricter numeric, timeout, and network input parsing** (v2026.5.28) — unsafe OAuth/token lifetimes, retry-after delays, inbound timestamps, response-size limits, command timeouts, browser parameters, and Teams attachment-fetch DNS targets now fail closed earlier. Validate config and automation payloads before restarting.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -172,7 +173,7 @@ These stable releases filled several operational gaps after v2026.5.12:
 
 ## Notable Additions in v2026.5.22-v2026.5.27
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These remain operationally important additions and reliability/security fixes from this stable range:
 
 1. **Meeting Notes and core transcripts** — transcript-backed meeting summaries, source-provider chunks, manual transcript imports, cleaned user-turn persistence, and read-only `openclaw meeting-notes` access give operators one durable transcript path.
 2. **Provider/model expansion** — OpenAI-compatible embedding providers, DeepInfra catalog browsing, Pixverse video generation, VLLM thinking params, named model auth profiles, and bare direct Anthropic model ids broaden model routing.
@@ -183,15 +184,29 @@ These are operationally important additions and reliability/security fixes in th
 7. **Security/content boundaries** — group prompt text stays out of system prompts, repeated-dot hostnames are normalized, unsafe command wrappers and Node runtime env overrides are blocked, no-auth Tailscale exposure is rejected, and node/device-role approvals require admin authority.
 8. **Observability and release proof** — Activity tab summaries, OpenTelemetry LLM spans, release performance evidence, bounded status paths, and stricter package/release validation make failures easier to investigate.
 
-## Prerelease Watch: v2026.5.28-beta.4
+## Notable Additions in v2026.5.28
+
+These are operationally important additions and reliability/security fixes in the latest stable release:
+
+1. **Active subagent and status visibility** — `openclaw status` surfaces active subagent details while Gateway chat failures now show visible assistant messages instead of hidden error state.
+2. **Provider and document expansion** — Claude Opus 4.8, Fal Krea image schemas, NVIDIA featured catalogs, MiniMax streaming music, provider-backed voice catalogs, ClawPDF extraction, encrypted PDF handling, and MCP structured tool content are stable.
+3. **Official install-on-demand plugins** — GitHub Copilot agent runtime, Codex Supervisor, and Tokenjuice move toward official plugin packages with npm/ClawHub metadata and clearer runtime separation.
+4. **ClawHub trust and plugin UX** — ClawHub plugin display names plus skill verification/trust surfaces make install review less ambiguous.
+5. **Workboard and policy checks** — Workboard coordination tools track active multi-agent work, while policy comparison, ingress-channel conformance, and sandbox-posture checks improve operator review paths.
+6. **Channel and cron recovery** — Telegram, WhatsApp, Slack, Discord, Matrix, iMessage, Teams, Google Chat, Signal, Zalo, and Nextcloud-style requests gain stricter bounded timers/retries, and recurring cron jobs retry transient model rate limits before skipping a slot.
+7. **Config and browser hardening** — malformed ports, retry headers, duration values, schema array refs, Telegram callback pages, browser tab/viewport/timeouts, cookie expiries, and Teams attachment DNS targets are rejected earlier.
+8. **Performance and bounded diagnostics** — plugin/runtime metadata, session stores, tool-search catalogs, model rows, and install-record caches do less repeated work while release/QA/diagnostic paths cap waits and logs.
+
+## Prerelease Watch: v2026.5.30-beta.1
 
 Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
 
-1. **Claude Opus 4.8 and provider coverage** — Claude Opus 4.8, Fal Krea image schemas, NVIDIA featured models, MiniMax streaming music responses, voice model catalogs, and encrypted PDF extraction are in beta validation.
-2. **Codex Supervisor and GitHub Copilot runtime** — delegated Codex workflows gain a Codex Supervisor plugin path, and GitHub Copilot agent runtime support is being externalized into official install-on-demand plugins.
-3. **Workboard coordination tools** — new agent coordination tools track and hand off active agent work.
-4. **Reply payload plugin hook** — the Plugin SDK adds a reply-payload sending hook for plugins that need channel-owned replies.
-5. **Expanded input hardening** — Browser timeouts, viewport/tab indexes, Gateway ports, cron retry epochs, Discord component ids, Telegram callback pages, schema refs, media lengths, and Teams attachment-fetch DNS targets fail closed earlier.
+1. **Skill Workshop proposal lifecycle** — `skill_research` can apply, reject, quarantine, revise, hash, and roll back explicit Skill Workshop proposals and approved support files under guarded standard folders.
+2. **SecretRef plugin manifests** — provider integration manifests can declare SecretRef contracts so plugin/provider credential surfaces become easier to audit before enabling.
+3. **Workboard and runtime dispatch expansion** — Workboard orchestration, scoped Code mode namespaces, exact namespace tool dispatch, and Control UI agent selection continue to evolve.
+4. **Official plugin packaging** — GitHub Copilot and Tokenjuice external plugin packages continue through npm and ClawHub publish paths; treat install/update behavior as watch-only until stable.
+5. **Bounded runtime operations** — provider media downloads, OAuth/device-code lifetimes, generated-content polling, local service probes, release logs, readiness probes, and plugin lifecycle checks are being capped so failures return evidence instead of hanging.
+6. **Central skills runtime loading** — core skill indexing, runtime status, filtering, and prompt formatting are being centralized; watch for install/update behavior changes before relying on prerelease-only skill workflows.
 
 ## Notable Additions in v2026.3.22-v2026.3.24
 
@@ -332,7 +347,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.27+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.28+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)

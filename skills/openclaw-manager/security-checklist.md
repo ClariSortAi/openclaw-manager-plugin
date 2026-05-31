@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.27+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.28+**.
 
 ### Known Critical Vulnerabilities
 
@@ -148,6 +148,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Tailscale no-auth rejection | Tailscale exposure without gateway authentication is rejected instead of silently accepting a dangerous remote surface | v2026.5.27 |
 | Admin-gated node/device roles | Node and device-role approvals require admin authority | v2026.5.27 |
 | Secret and plugin validation hardening | Secret-file symlinks fail closed, plaintext secret-bearing config fields are warned, unsafe plugin model-pattern regexes are ignored, and Docker setup avoids printing gateway tokens | v2026.5.20-v2026.5.26 |
+| ClawHub trust surfaces | Plugin display names plus skill verification and trust surfaces make package/source review more explicit before install | v2026.5.28 |
+| Strict config and timer parsing | Unsafe OAuth/token lifetimes, retry-after delays, inbound timestamps, command timeout config, sandbox observer token TTLs, and response body limits are rejected earlier | v2026.5.28 |
+| Browser and channel input hardening | Browser tab indexes, viewport sizes, zero CDP ports, geolocation values, screenshot/permission timeouts, cookie expiries, Telegram callback pages, and Discord component ids fail closed on malformed values | v2026.5.28 |
+| Teams attachment and service URL trust | Invalid Teams attachment-fetch DNS targets and untrusted Teams service URLs are blocked instead of being followed implicitly | v2026.5.28 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -428,7 +432,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.27+ for latest plugin repair, Telegram/Slack/Discord reliability, Codex app-server recovery, transcript/Meeting Notes support, provider coverage, and security/content-boundary hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.28+ for latest plugin repair, Telegram/Slack/Discord reliability, Codex app-server recovery, transcript/Meeting Notes support, provider coverage, and security/content-boundary hardening)
 - [ ] Node.js runtime is v22.19.0+ everywhere OpenClaw runs (service manager, WSL2 shell, Docker image, and package-manager shim)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
@@ -446,6 +450,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If exposing the gateway through Tailscale or trusted remote access, verify gateway auth is still enabled; current stable rejects no-auth Tailscale exposure
 - [ ] If approving nodes or device roles, use admin-scoped credentials and verify role changes are audited
 - [ ] If using browser tools against untrusted pages, verify snapshot/evaluate routes obey SSRF and current-tab allowlists before enabling broad browser access
+- [ ] After upgrading to v2026.5.28+, re-run `openclaw config validate` for automation-generated numeric, timeout, retry, OAuth lifetime, browser, and channel fields because malformed values now fail closed earlier
+- [ ] Review ClawHub skill/plugin trust metadata and display names before installing or updating third-party packages
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
@@ -610,7 +616,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.27+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.28+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users

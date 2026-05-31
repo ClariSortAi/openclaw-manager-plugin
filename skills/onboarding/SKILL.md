@@ -129,6 +129,6 @@ When generating the journey, link to the existing plugin documentation:
 
 - If the user gives vague answers ("I don't know"), suggest the most common path (personal assistant on macOS with WhatsApp + Telegram) and note they can adjust later.
 - If the user wants channels not yet documented, note the plugin-based channel and link to OpenClaw docs at https://docs.openclaw.ai/channels.
-- If the user is on a version older than v2026.3.1, make **upgrading** Milestone 0 before anything else. Recommend v2026.5.27+ for current stable behavior and verify Node.js v22.19.0+ before updating.
+- If the user is on a version older than v2026.3.1, make **upgrading** Milestone 0 before anything else. Recommend v2026.5.28+ for current stable behavior and verify Node.js v22.19.0+ before updating.
 - If the user describes a use case that doesn't fit the templates, adapt creatively — the templates are starting points, not constraints.
 - If the user provides goals upfront (via argument-hint), skip redundant questions and jump to the relevant round.

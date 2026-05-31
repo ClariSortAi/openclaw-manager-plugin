@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.27+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.27+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Slack/Discord delivery reliability, Codex app-server recovery, transcript/Meeting Notes support, provider/model coverage, and current security/content-boundary hardening, upgrade to **v2026.5.27+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/Slack/Discord delivery reliability, Codex app-server recovery, transcript/Meeting Notes support, provider/model coverage, and current security/content-boundary hardening, upgrade to **v2026.5.28+**.
 
 ## Common Issues
 
@@ -229,7 +229,7 @@ openclaw status --deep
 #### Model Auth Profile Is Ambiguous After Upgrade
 **Symptoms:** `/models`, Codex, OpenAI, Hermes, or OpenCode-backed turns use an unexpected credential profile, or status output shows a profile suffix that does not match the intended account.
 
-**Cause:** v2026.5.26+ supports named model login profiles and migrates several provider-specific auth profile shapes. Older stale `lastGood` state or profile suffixes can make the active credential unclear after an upgrade.
+**Cause:** v2026.5.26+ supports named model login profiles, and v2026.5.28 rewrites legacy non-canonical `api_key` auth profiles to the canonical shape. Older stale `lastGood` state or profile suffixes can make the active credential unclear after an upgrade.
 
 **Fix:**
 ```bash
@@ -455,6 +455,24 @@ openclaw plugins info msteams
 openclaw channels status
 ```
 
+#### Teams: Messages Fail After Service URL or Tenant Changes
+**Symptoms:** Teams delivery starts failing after an Azure/Bot Framework endpoint change, or logs mention service URL trust or attachment DNS validation.
+
+**Cause:** Current stable blocks untrusted Teams service URLs and invalid attachment-fetch DNS targets instead of following them implicitly.
+
+**Fix:**
+```bash
+# Confirm the plugin and channel state first
+openclaw plugins info msteams
+openclaw channels status --channel msteams
+
+# Validate config before relaxing any network policy
+openclaw config validate
+openclaw gateway restart
+```
+
+Verify the Bot Framework service URL and tenant trust configuration before changing allowlists.
+
 ### Pairing Issues
 
 #### Messages Not Triggering (Pairing Required)
@@ -579,7 +597,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.27+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.28+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -862,7 +880,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.27+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.28+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -881,6 +899,22 @@ openclaw cron add --name "Scoped Job" --cron "0 8 * * *" --message "Task" --tool
 
 # Validate by running once
 openclaw cron run <new-id>
+```
+
+#### Recurring Cron Job Skips After Temporary Model Rate Limits
+**Symptoms:** A scheduled recurring job hits a transient provider/model rate limit and then waits until the next scheduled slot instead of retrying soon.
+
+**Cause:** Older builds did not retry recurring jobs after transient model rate limits or preflight fallback models as consistently as current stable.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then inspect recent runs
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw cron runs
+openclaw cron show <id>
+
+# Verify model fallback/auth configuration before the next run
+openclaw status --deep
 ```
 
 #### Cron Notifications Missing After Upgrade (v2026.3.11+)
@@ -1113,6 +1147,22 @@ openclaw browser evaluate --timeout-ms 60000
 
 Keep browser access restricted for untrusted channels; current stable also applies SSRF and current-tab URL checks to more browser routes.
 
+#### Browser Command or Automation Payload Is Rejected as Invalid
+**Symptoms:** Browser actions that used to coerce loose values now fail with validation errors around tab indexes, viewport sizes, CDP ports, geolocation, screenshot/permission timeouts, cookie expiry, or action delays.
+
+**Cause:** v2026.5.28 rejects malformed browser parameters earlier instead of partially parsing or clamping unsafe values.
+
+**Fix:**
+```bash
+# Validate generated config and payloads before retrying automation
+openclaw config validate
+
+# Use explicit finite values in scripted browser calls
+openclaw browser evaluate --timeout-ms 60000
+```
+
+If the request came from a channel automation or plugin, update that payload generator to emit finite numeric values and valid tab/viewport identifiers.
+
 ### PDF Tool Issues (v2026.3.2+)
 
 #### PDF Analysis Not Working
@@ -1134,6 +1184,8 @@ openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 ```
+
+In v2026.5.28+, PDF extraction uses ClawPDF paths with encrypted PDF support. If an encrypted document fails on older builds, upgrade before debugging provider/model selection.
 
 #### PDF/Image Tool Rejects a Valid Ollama Vision Model as "Unknown"
 **Symptoms:** Image/PDF tool calls fail model lookup even though the configured Ollama model exists and works in normal chat turns.
