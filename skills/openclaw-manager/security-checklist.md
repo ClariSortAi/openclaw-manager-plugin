@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.28+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,12 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Group prompt boundary hardening | Untrusted group prompt text is kept out of system prompts, reducing prompt-injection authority confusion | v2026.5.27 |
+| No-auth Tailscale rejection | Tailscale-exposed gateway paths reject no-auth configurations instead of trusting reachability headers alone | v2026.5.27 |
+| Node/device-role admin approvals | Node and device-role approvals require admin authority before privileged scopes are granted | v2026.5.27 |
+| Workspace dotenv credential isolation | Workspace dotenv provider credentials are ignored so project-local files cannot silently override provider auth | v2026.5.28 |
+| Browser token expiry after auth rotation | Browser tokens expire after gateway auth rotation, reducing stale-session reuse after credential changes | v2026.5.28 |
+| Strict input parsing expansion | Malformed numeric/duration values, Host/path/JSON/base64 inputs, browser options, TCP ports, retry headers, content lengths, and Teams attachment DNS targets fail closed | v2026.5.28 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -347,8 +353,8 @@ export OPENCLAW_DISABLE_BONJOUR=1
 
 Use modern, instruction-hardened models for bots with tool access. Larger models resist prompt injection better — this is a security property, not just a quality preference.
 
-- **Strongest injection resistance**: Use the largest tier available from your provider (e.g., Anthropic Opus, OpenAI GPT-4o)
-- **Good balance**: Mid-tier models (e.g., Anthropic Sonnet, OpenAI GPT-4o-mini) for moderate-risk surfaces
+- **Strongest injection resistance**: Use the largest tier available from your provider (e.g., Anthropic Opus 4.8, OpenAI GPT-5.5)
+- **Good balance**: Mid-tier models (e.g., Anthropic Sonnet 4.7 or smaller OpenAI GPT-5 family models) for moderate-risk surfaces
 - **Local models (Ollama)**: May be less robust against sophisticated prompt injection — pair with strict tool denials and sandbox
 - Avoid older or smaller models for tool-enabled agents facing untrusted inboxes
 
@@ -421,7 +427,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.5.28+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI/GitHub Copilot runtime recovery, ClawPDF support, and security/input hardening)
+- [ ] Node.js runtime is v22.19.0+ on every service host/container, or Node 24 for new installs (v2026.5.18+)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -435,6 +442,8 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
+- [ ] If exposing the gateway through Tailscale, verify an authenticated gateway mode/token path is still configured; no-auth exposure is rejected in v2026.5.27+
+- [ ] After rotating gateway auth, verify browser/WebChat sessions must re-authenticate so stale browser tokens are not accepted (v2026.5.28+)
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
@@ -514,7 +523,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -555,7 +564,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -599,13 +608,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.28+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus/Sonnet 4.7 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.8 or Sonnet 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation
