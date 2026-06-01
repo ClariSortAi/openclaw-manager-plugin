@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI/GitHub Copilot runtime recovery, ClawPDF encrypted PDF extraction, stricter parser/input hardening, and channel/provider reliability improvements, upgrade to **v2026.5.28+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.28+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -690,7 +690,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install, and v2026.5.18 raises the Node 22 floor to **22.19+**. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +698,43 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+If OpenClaw runs under systemd, LaunchAgent, Docker, or WSL, verify the service runtime uses the upgraded Node binary, not just the interactive shell.
+
+#### Browser Tool Is Blocked by a Modal Dialog
+**Symptoms:** Browser actions stop after a page opens an alert, confirm, permission prompt, or other modal dialog.
+
+**Cause:** Older builds had weaker modal-dialog surfacing. v2026.5.18+ includes pending/recent dialog details in snapshots and lets operators answer by dialog id.
+
+**Fix:**
+```bash
+# Inspect current page state and pending dialogs
+openclaw browser snapshot
+
+# Answer the pending dialog
+openclaw browser dialog --dialog-id <id>
+```
+
+#### `openclaw plugins init|validate|build` Commands Not Found
+**Symptoms:** Plugin authoring docs mention typed tool-plugin commands, but the local CLI reports unknown subcommands.
+
+**Cause:** The typed simple tool-plugin authoring commands were added in v2026.5.18.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Re-run the authoring workflow
+openclaw plugins init
+openclaw plugins validate
+openclaw plugins build
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +850,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.28+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1063,12 +1095,14 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 ```
+
+If failures involve encrypted PDFs, upgrade to v2026.5.28+ so the ClawPDF extraction path can handle encrypted document extraction before falling back to provider-specific tooling.
 
 #### PDF/Image Tool Rejects a Valid Ollama Vision Model as "Unknown"
 **Symptoms:** Image/PDF tool calls fail model lookup even though the configured Ollama model exists and works in normal chat turns.
