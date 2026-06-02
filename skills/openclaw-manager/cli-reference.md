@@ -7,6 +7,7 @@
 openclaw status              # Quick status summary
 openclaw status --all        # Full diagnosis with log tail
 openclaw status --deep       # Health checks with provider probes
+openclaw status              # v2026.5.28+ includes active subagent details when present
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
 openclaw doctor --fix        # Auto-fix common problems
@@ -59,7 +60,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.5.28` stable note: current stable is published as `v2026.5.28`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -181,6 +182,9 @@ openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
+openclaw plugins init <dir>    # Create a typed plugin scaffold (v2026.5.18+)
+openclaw plugins validate <path>  # Validate plugin manifest/package API compatibility (v2026.5.18+)
+openclaw plugins build <path>  # Build a plugin package artifact (v2026.5.18+)
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
 openclaw plugins enable <id>   # Enable a plugin
@@ -195,7 +199,7 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
-`v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+`v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`. In v2026.5.28+, incompatible package plugin API installs are rejected earlier, so run `openclaw plugins validate <path>` before installing local artifacts.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -338,7 +342,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -442,7 +446,7 @@ openclaw config set skills.install.allowUploadedArchives false
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -542,6 +546,10 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| ClawPDF | bundled | PDF extraction, including encrypted PDFs, feeding structured tool content (v2026.5.28+) |
+| GitHub Copilot | `@openclaw/copilot` | Official install-on-demand Copilot agent runtime plugin (v2026.5.28+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official install-on-demand provider/plugin integration package (v2026.5.28+) |
+| Codex Supervisor | official plugin | Delegated Codex workflow supervision and runtime coordination (v2026.5.28+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 

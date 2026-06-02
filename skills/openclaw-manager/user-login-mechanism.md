@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.28+` note: workspace dotenv provider credentials are ignored, legacy `api_key` auth profiles migrate to canonical form, and auth health labels are clearer in status output. Keep provider credentials in OpenClaw config/SecretRef rather than project `.env` files.
 
 **Process:**
 1. Run the command
