@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, ClawPDF encrypted PDF extraction, Workboard/Copilot/Tokenjuice surfaces, and channel/provider reliability improvements, upgrade to **v2026.5.28+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.5.28+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +603,24 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Local Plugin Package Fails Validation or Install
+**Symptoms:** A local or third-party plugin artifact is rejected as missing runtime files, source-only, incompatible with the package plugin API, or malformed before runtime load.
+
+**Cause:** Current stable builds validate runtime-ready package shape and plugin API compatibility earlier, and v2026.5.18+ adds typed plugin authoring commands.
+
+**Fix:**
+```bash
+# Validate before install/update
+openclaw plugins validate <path-to-plugin>
+openclaw plugins build <path-to-plugin>
+
+# Inspect installed dependency/runtime state
+openclaw plugins list --json
+openclaw plugins deps
+```
+
+Regenerate older plugin scaffolds with `openclaw plugins init <dir>` when local manifests or package entries no longer match the current SDK shape.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,7 +716,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +836,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.5.28+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1048,6 +1066,22 @@ openclaw config set acp.dispatch.enabled false
 openclaw gateway restart
 ```
 
+### Browser Tool Issues
+
+#### Browser Actions Fail on Dialogs, Timeouts, or Invalid Viewport/Tab Values
+**Symptoms:** Browser tool calls fail quickly with invalid timeout, tab index, viewport, CDP port, permission, geolocation, or cookie-expiry errors; older runs may have appeared to hang around dialogs.
+
+**Cause:** v2026.5.28 tightens Browser input validation and improves dialog/timeout handling so malformed automation requests fail early instead of stalling.
+
+**Fix:**
+```bash
+# Upgrade to current stable and retry with explicit bounded options
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+Review any custom browser automation or plugin code for non-finite delays, excessive viewport sizes, invalid tab indexes, and unbounded response-body limits.
+
 ### PDF Tool Issues (v2026.3.2+)
 
 #### PDF Analysis Not Working
@@ -1063,7 +1097,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50

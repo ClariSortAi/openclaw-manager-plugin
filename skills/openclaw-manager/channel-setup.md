@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of v2026.5.28, Slack final replies are preserved more reliably during late cleanup, reasoning/progress previews are clearer, and channel-owned progress callbacks keep their intended delivery context.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -173,6 +174,7 @@ openclaw channels status --channel whatsapp
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 `v2026.5.12+` packaging note: WhatsApp is externalized from the core runtime package, Baileys/runtime dependencies install with the managed plugin, and dependency repair should use `openclaw plugins deps` plus `openclaw doctor --fix` if WhatsApp is configured but not available after upgrade.
+`v2026.5.28+` reliability note: profile-scoped WhatsApp auth directories, QR display, document filenames, and plugin hook config survive more restart/update paths.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -239,6 +241,7 @@ openclaw gateway restart
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
 In v2026.5.12+, Telegram polling runs in an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting in streamed and scheduled replies, and skips unmentioned group media before download when `requireMention` is active.
+In v2026.5.28+, Telegram polling keepalives and callback-page validation are stricter, making duplicate pollers, bad callback page values, and token-rotation issues fail more clearly.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -305,6 +308,7 @@ openclaw gateway restart
 ### Discord Interactive UI (v2026.2.16+)
 
 Discord supports interactive UI components including buttons, selects, and modals. These are enabled by default when the bot has the `applications.commands` scope.
+In v2026.5.28+, Discord progress drafts can include commentary for live runs, recovered tool warnings are safer, and component-id delimiter handling is stricter.
 
 **Known Issue (v2026.2.24, fixed in v2026.3.1):** Discord WebSocket 1005/1006 disconnects could cause the bot to go offline for 30+ minutes. Fixed in v2026.3.1 with distinct sentinel IDs for wildcard component handlers. Upgrade to v2026.3.1+ to resolve.
 
@@ -393,6 +397,7 @@ openclaw gateway restart
 As of v2026.1.15, Microsoft Teams is a **plugin-only** channel via `@openclaw/msteams`.
 In v2026.3.24+, the Teams plugin adopts the official Teams SDK with improved 1:1 streaming UX, prompt-starter welcome cards, typing/status signals, and support for message edit/delete delivery flows.
 In v2026.4.14, Teams SSO signin invokes enforce sender allowlist checks; verify `allowFrom` entries and identity mapping if signin events begin failing after upgrade.
+In v2026.5.28+, Teams service URLs and attachment-fetch DNS targets are trust-checked more strictly; retest signin and message delivery after changing Bot Framework or tenant configuration.
 
 ### Setup Steps
 
