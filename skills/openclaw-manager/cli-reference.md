@@ -5,7 +5,7 @@
 ### Status & Health
 ```bash
 openclaw status              # Quick status summary
-openclaw status --all        # Full diagnosis with log tail
+openclaw status --all        # Full diagnosis with log tail; v2026.5.28+ shows active subagent details
 openclaw status --deep       # Health checks with provider probes
 openclaw health              # Quick health check
 openclaw doctor              # Diagnose issues
@@ -172,7 +172,7 @@ clawhub update --all           # Update all installed ClawHub skills
 clawhub sync --all             # Sync all skills with registry
 ```
 
-Skills are installed to `~/.openclaw/skills/` and are immediately available. Always audit third-party skills before installation -- ClawHub now integrates with VirusTotal for automatic scanning.
+Skills are installed to `~/.openclaw/skills/` and are immediately available. Always audit third-party skills before installation -- ClawHub now integrates with VirusTotal for automatic scanning, and v2026.5.28+ adds skill verification/trust surfaces plus plugin display names.
 
 ### Plugins
 ```bash
@@ -195,7 +195,7 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
-`v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+`v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`. In v2026.5.28+, GitHub Copilot and Tokenjuice are also official install-on-demand plugins with npm and ClawHub metadata.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -338,7 +338,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -442,7 +442,7 @@ openclaw config set skills.install.allowUploadedArchives false
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -540,6 +540,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Plugin | Package | Description |
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
+| GitHub Copilot Runtime | `@openclaw/copilot` | Official install-on-demand GitHub Copilot agent runtime (v2026.5.28+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official install-on-demand Tokenjuice integration plugin (v2026.5.28+) |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
