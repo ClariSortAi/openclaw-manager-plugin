@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.28+` note: active subagent/auth health labels are clearer in status output, workspace dotenv provider credentials are ignored for trusted auth paths, and Teams/WhatsApp channel auth recovery is stricter about service URLs and profile-scoped auth roots.
 
 **Process:**
 1. Run the command
@@ -203,6 +204,26 @@ openclaw models auth setup-token --provider anthropic
 3. Create a new key
 4. Copy and paste when prompted by `openclaw models auth setup-token`
 
+
+### OpenAI and Codex
+
+In v2026.5.12+, `openclaw models auth login --provider openai` starts the ChatGPT/Codex account login path by default. Use an explicit method for direct API keys:
+
+```bash
+# ChatGPT/Codex account login
+openclaw models auth login --provider openai
+
+# Direct OpenAI API key
+openclaw models auth login --provider openai --method api-key
+# or
+openclaw models auth setup-token --provider openai
+
+# Inspect saved profiles without exposing secrets
+openclaw models auth list --provider openai
+```
+
+For native Codex runtime with ChatGPT/Codex subscriptions, prefer `openai/gpt-*` model refs with `agentRuntime.id: "codex"`. The `openai-codex/*` route remains the PI OAuth path.
+
 ### Other Providers
 
 ```bash
@@ -218,11 +239,17 @@ openclaw models auth setup-token --provider kilocode
 # Moonshot/Kimi (v2026.2.23+)
 openclaw models auth setup-token --provider moonshot
 
-# MiniMax (M2.7 catalog in v2026.3.28+)
+# MiniMax (M2.7 catalog in v2026.3.28+; MiniMax M3 metadata is in v2026.6.1-beta watch)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# NVIDIA hosted models (v2026.4.29+)
+openclaw models auth setup-token --provider nvidia
+
+# LM Studio local/self-hosted provider (v2026.4.12+)
+openclaw models auth setup-token --provider lmstudio
 ```
 
 ### Verifying Model Authentication

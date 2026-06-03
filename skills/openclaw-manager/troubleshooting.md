@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.28+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.28+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, ClawPDF encrypted PDF extraction, Copilot/Tokenjuice packaging, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.28+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -434,6 +434,21 @@ openclaw plugins install @openclaw/msteams
 openclaw plugins info msteams
 openclaw channels status
 ```
+
+
+#### Teams: Service URL or Attachment Fetch Denied After Upgrade
+**Symptoms:** Teams messages arrive but replies, attachments, or service-url based actions fail validation after an upgrade.
+
+**Cause:** v2026.5.28+ blocks untrusted Teams service URLs and rejects invalid attachment-fetch DNS targets earlier.
+
+**Fix:**
+```bash
+openclaw plugins info msteams
+openclaw config validate --json
+openclaw channels status --channel msteams
+```
+
+Review the Teams app manifest and tenant/bot service URL configuration before relaxing any network policy.
 
 ### Pairing Issues
 
@@ -604,6 +619,21 @@ openclaw gateway restart
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
 
+
+#### Official Copilot or Tokenjuice Plugin Missing After Upgrade
+**Symptoms:** GitHub Copilot agent runtime or Tokenjuice integration docs/config are present, but the plugin is not installed or `plugins list --json` reports missing managed payloads.
+
+**Cause:** v2026.5.28+ externalizes GitHub Copilot and Tokenjuice as official install-on-demand plugins with npm and ClawHub metadata.
+
+**Fix:**
+```bash
+openclaw plugins install @openclaw/copilot
+openclaw plugins install @openclaw/tokenjuice
+openclaw plugins deps
+openclaw doctor --fix
+openclaw gateway restart
+```
+
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
 
@@ -698,7 +728,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -1063,11 +1093,25 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
+```
+
+
+#### Encrypted PDF Extraction Fails
+**Symptoms:** PDF analysis works for normal PDFs but fails on password-protected or encrypted PDFs.
+
+**Cause:** Builds before v2026.5.28 did not use the newer ClawPDF extraction path with encrypted PDF support.
+
+**Fix:**
+```bash
+# Upgrade to current stable, then retry with the required password/context available to the operator
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw config get agents.defaults.pdfModel
 ```
 
 #### PDF/Image Tool Rejects a Valid Ollama Vision Model as "Unknown"

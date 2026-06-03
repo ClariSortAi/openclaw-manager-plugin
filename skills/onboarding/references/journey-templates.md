@@ -37,7 +37,7 @@ openclaw config set agents.defaults.model "<provider>/<model>"
 
 # Examples by provider:
 #   anthropic/claude-sonnet-4-7  (good balance of quality and cost)
-#   anthropic/claude-opus-4-7    (highest quality, most expensive)
+#   anthropic/claude-opus-4-8    (highest quality, most expensive)
 #   anthropic/claude-haiku-4-5   (budget-friendly, fast)
 #   openai/gpt-4o               (OpenAI alternative)
 #   ollama/llama3                (free, local, private)
@@ -236,7 +236,7 @@ openclaw config set agents.defaults.tools.profile "coding"
 openclaw models auth setup-token --provider <provider>
 openclaw config set agents.defaults.model "<provider>/<model>"
 # Sonnet 4.7 is a strong default for coding — fast, capable, reasonable cost
-# Opus 4.7 for highest quality (expensive), Haiku for speed
+# Opus 4.8 for highest quality (expensive), Haiku for speed
 # Ollama for local/private development
 
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
