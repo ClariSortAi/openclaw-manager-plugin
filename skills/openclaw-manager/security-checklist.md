@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.6.1+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,11 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Teams service URL trust | Untrusted Teams service URLs and invalid Teams attachment-fetch DNS targets are blocked before channel fetch/use | v2026.5.28 |
+| Policy conformance checks | Policy comparison, ingress-channel conformance, sandbox-posture conformance, and later data-handling conformance checks help detect mismatched operator intent | v2026.5.28-v2026.6.1 |
+| Phone-control/directive authorization | Phone-control mutations and directive persistence are clarified and tightened around caller authority and channel context | v2026.5.28 |
+| SecretRef/plugin manifest isolation | SecretRef provider integration manifests and external plugin packaging reduce ad hoc provider credential wiring; disabled skill SecretRefs are skipped from stale persisted snapshots | v2026.6.1 |
+| Runtime/input bounds | OAuth/token lifetimes, retry-after delays, inbound timestamps, response body sizes, command timeout config, sandbox observer token TTLs, gateway WebSocket calls after close, provider media downloads, and channel request timers are rejected or bounded earlier | v2026.6.1 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +426,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.6.1+ for latest Skill Workshop, Workboard, externalized-plugin repair, Telegram/WhatsApp/Slack/Teams reliability, Codex/OpenAI auth, provider timeout bounds, and security/config hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -432,6 +437,9 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If enabling file-transfer, configure `plugins.entries.file-transfer.config.nodes` as default-deny per node and keep `followSymlinks` disabled unless the node path policy has been reviewed
 - [ ] Validate config before restart because v2026.5.3+ fails closed instead of auto-restoring invalid config
 - [ ] If using externalized official channels/providers (Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex), run `openclaw plugins deps` and `openclaw doctor --fix` after upgrade to v2026.5.12+
+- [ ] If using official external plugins such as GitHub Copilot or Tokenjuice, verify `openclaw plugins list --json` and repair loader/package errors before exposing them to untrusted channels (v2026.5.28-v2026.6.1+)
+- [ ] If disabling skills that contain SecretRefs or env overrides, upgrade to v2026.6.1+ so stale disabled snapshots do not abort channel turns
+- [ ] If using Teams, treat blocked service URLs or attachment fetches as trust/config failures and review allowlists instead of bypassing DNS/service-url checks (v2026.5.28+)
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
@@ -514,7 +522,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -555,7 +563,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -599,13 +607,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.6.1+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus/Sonnet 4.7 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.8 or Sonnet 4.7 with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation
