@@ -127,4 +127,4 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Budget-conscious | Haiku 4.5 | low | default | Cheapest API option with good quality |
 | Speed-sensitive | Haiku 4.5 | off | default | Fastest responses |
 | Privacy-focused | Ollama (local) | n/a | varies | No data leaves your machine |
-| Maximum quality | Opus 4.7 | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |
+| Maximum quality | Opus 4.8 | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |

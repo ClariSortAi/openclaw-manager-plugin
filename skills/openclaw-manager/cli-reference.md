@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+Stable release note: current stable is published as `v2026.6.1`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -197,6 +197,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
 
+`v2026.5.28+` official plugin note: GitHub Copilot, Tokenjuice, and Codex Supervisor are treated as official install-on-demand plugin surfaces. In v2026.6.1+, plugin install ledgers persist in SQLite and loader failures should point to package repair instead of silently poisoning sibling runtime paths.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -299,6 +301,8 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw plugins install @openclaw/copilot                 # GitHub Copilot agent runtime (official external plugin)
+openclaw plugins install @openclaw/tokenjuice              # Tokenjuice official external plugin
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -338,7 +342,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -442,7 +446,7 @@ openclaw config set skills.install.allowUploadedArchives false
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -468,6 +472,10 @@ openclaw config set plugins.slots.memory "memory-core"
 
 # Bundled file-transfer plugin (v2026.5.3+; default-deny path policy)
 openclaw config set plugins.entries.file-transfer.config.nodes.<node-id>.paths '["/approved/path"]'
+
+# Skill Workshop support (v2026.6.1+)
+# Review generated proposals and support files before applying them; quarantine or reject
+# untrusted proposals through the Skill Workshop review flow rather than installing directly.
 ```
 
 ## Health Endpoints (v2026.3.1+)
@@ -544,6 +552,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| GitHub Copilot Runtime | `@openclaw/copilot` | Official external agent-runtime plugin with Copilot auth and Claude 1M capability metadata (v2026.5.28+/v2026.6.1+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official external provider/integration plugin with npm and ClawHub metadata (v2026.6.1+) |
+| Codex Supervisor | official plugin | Delegated Codex supervision and app-server orchestration path (v2026.5.28+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
