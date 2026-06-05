@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.1` stable note: current stable is published as `v2026.6.1` and requires Node.js `>=22.19.0`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -196,6 +196,10 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.6.1+` plugin-state note: plugin install ledgers are SQLite-backed, `plugins list --json` stays on the snapshot-only path for safer sweeps, and loader failures should point operators toward package/dependency repair instead of poisoning sibling plugin runtimes.
+
+`v2026.6.2-beta.1` install-policy watch: beta builds replace dangerous-code scanner enforcement with operator install policy across package, archive, source, upload, marketplace, ClawHub, doctor, and install/update flows. Treat this as prerelease-only until it lands in a stable tag.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -434,7 +438,7 @@ openclaw config set channels.slack.unfurlLinks false
 openclaw config set channels.slack.unfurlMedia false
 openclaw config set channels.slack.replyBroadcast false
 
-# Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
+# Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+); v2026.6.2 beta moves install decisions under operator install policy
 openclaw config set skills.install.allowUploadedArchives false
 
 
@@ -544,6 +548,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| GitHub Copilot | `@openclaw/copilot` | Externalized official Copilot agent runtime and provider integration (v2026.6.1+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Externalized official Tokenjuice integration (v2026.6.1+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

@@ -11,7 +11,7 @@ For a single user who wants an AI assistant on their phone/desktop via messaging
 curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw onboard --install-daemon
 openclaw status
-# Verify version is v2026.3.1+
+# Verify version is v2026.3.1+ (recommend v2026.6.1+)
 ```
 
 ### Milestone 2: Connect Channels

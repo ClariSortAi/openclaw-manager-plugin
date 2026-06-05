@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.6.1+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,10 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Stale disabled skill SecretRef isolation | Disabled skill env overrides from stale persisted snapshots are skipped so disabled SecretRefs cannot abort embedded or channel turns | v2026.6.1 |
+| Token/OAuth lifetime and response bound checks | Unsafe OAuth/token lifetimes, retry-after delays, inbound timestamps, response body sizes, command timeout config, sandbox observer TTLs, and closed WebSocket calls are rejected or bounded | v2026.6.1 |
+| Plugin runtime isolation and loader recovery | Plugin-local peer symlinks, cached tool runtime siblings, lookup memoization, and web-provider factory failures are isolated so one bad plugin cannot poison sibling runtime paths | v2026.6.1 |
+| Data-handling and install-policy checks (prerelease) | Operator install policy, data-handling conformance, unsupported policy-key rejection, corrupt shell snapshot rejection, and unsafe exec approval precheck env rejection are in v2026.6.2 beta; do not rely on them for stable-only deployments yet | v2026.6.2-beta.1 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +425,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.6.1+ for latest Skill Workshop/Workboard, plugin-state recovery, provider/channel timeout bounding, and security/config hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -488,7 +492,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] Every ClawHub skill audited before installation (review source, check author, verify VirusTotal)
 - [ ] Only trusted plugins installed (they run in-process with full privileges)
 - [ ] Plugin allowlist configured via `plugins.allow`
-- [ ] Install-time dangerous-code findings are reviewed; avoid bypassing fail-closed safety overrides unless risk is explicitly accepted (v2026.3.31+)
+- [ ] Install-time dangerous-code findings or operator install-policy blocks are reviewed; avoid bypassing fail-closed safety overrides unless risk is explicitly accepted (dangerous-code scanner in stable v2026.3.31+, operator install policy in v2026.6.2 beta)
 - [ ] Aware of ClawHavoc supply chain attack: 1,184+ malicious skills confirmed, 2,419 removed from ClawHub
 - [ ] ClawHub VirusTotal integration active (automatic scanning since Feb 2026)
 
@@ -599,7 +603,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.6.1+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
