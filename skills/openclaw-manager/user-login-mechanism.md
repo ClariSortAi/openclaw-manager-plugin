@@ -125,6 +125,8 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.6.1+` note: Node.js `>=22.19.0` is required, auth profiles write atomically, and stale disabled skill SecretRefs are skipped during channel/embedded turns.
+`v2026.6.2-beta.1` note: beta builds add data-handling conformance checks and reject unsupported policy keys; keep stable deployments on documented v2026.6.1 behavior until this graduates.
 
 **Process:**
 1. Run the command
@@ -218,7 +220,7 @@ openclaw models auth setup-token --provider kilocode
 # Moonshot/Kimi (v2026.2.23+)
 openclaw models auth setup-token --provider moonshot
 
-# MiniMax (M2.7 catalog in v2026.3.28+)
+# MiniMax (M3 catalog in v2026.6.1+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)

@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.1+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.1+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.6.1+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.1+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -604,18 +604,39 @@ openclaw gateway restart
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
 
-#### Official Bundled Plugin Install Blocked by Scanner
-**Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
+#### Official Bundled Plugin Install Blocked by Scanner or Install Policy
+**Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle, or a beta install-policy decision blocks a package/archive/source/upload/marketplace install.
 
-**Cause:** The initial v2026.5.3 install scanner could false-positive on official bundled plugin packages when those patterns appeared far apart in the same compiled file.
+**Cause:** The initial v2026.5.3 install scanner could false-positive on official bundled plugin packages when those patterns appeared far apart in the same compiled file. In v2026.6.2 beta, operator install policy replaces scanner enforcement and may block installs earlier with policy-specific diagnostics.
 
 **Fix:**
 ```bash
-# Use the v2026.5.3-1 core npm hotfix or newer
-openclaw update --channel beta
+# Prefer current stable; only use the old beta hotfix if you are pinned to initial v2026.5.3.
+curl -fsSL https://openclaw.ai/install.sh | bash
 
-# Then retry install/update
+# Then retry install/update and repair stale state
+openclaw doctor --fix
 openclaw plugins update --all
+
+# On v2026.6.2 beta, read the install-policy/doctor finding before overriding.
+```
+
+#### Plugin Loader Fails or One Plugin Breaks Sibling Providers
+**Symptoms:** `openclaw status`, `openclaw plugins list --json`, or channel/provider startup reports loader failures, missing package roots, peer symlink issues, cached runtime sibling errors, or one bad web-provider plugin causing unrelated plugin/provider failures.
+
+**Cause:** v2026.6.1 improves plugin loader failure guidance, isolates plugin-local runtime state, and keeps package/dependency repair paths from poisoning sibling plugins. Older builds can leave stale package roots or cached runtime siblings after blocked installs or rollback snapshots.
+
+**Fix:**
+```bash
+# Inspect snapshot state without loading full plugin runtimes
+openclaw plugins list --json
+openclaw plugins doctor
+openclaw plugins deps
+
+# Repair package/dependency state and restart
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
 ```
 
 #### File-Transfer Tool Denies a Path
@@ -698,7 +719,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -750,6 +771,35 @@ openclaw config get skills.entries.<skill-name>.enabled
 
 # Check if skill requires specific binaries/env
 openclaw skills info <skill-name>
+```
+
+#### Disabled Skill SecretRef Still Breaks Channel Turns
+**Symptoms:** A disabled skill's `apiKey` or other SecretRef error aborts embedded/channel turns even though the skill is disabled.
+
+**Cause:** Builds before v2026.6.1 could retain stale disabled skill env overrides in persisted snapshots.
+
+**Fix:**
+```bash
+# Upgrade to current stable and clear stale runtime state
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw gateway restart
+
+# Re-check enabled skills and credential refs
+openclaw skills list
+openclaw secrets audit
+```
+
+#### Skill Workshop Proposal or Review Flow Is Missing
+**Symptoms:** Skill Workshop proposals, review actions, searchable previews, or Control UI routing are unavailable or inconsistent.
+
+**Cause:** The fuller governed Skill Workshop flow landed in v2026.6.1.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw status
+openclaw skills check
 ```
 
 #### Skill Search/Install Commands Not Found
@@ -818,7 +868,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.1+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
