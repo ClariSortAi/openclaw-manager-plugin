@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.1` stable note: current stable is published as `v2026.6.1`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives; prefer upgrading to the latest stable instead.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -181,6 +181,9 @@ openclaw plugins info <id>     # Show plugin details
 openclaw plugins install <spec>  # Install plugin (npm package or local path)
 openclaw plugins install clawhub:<package>  # Install plugin from ClawHub with tracked source metadata (v2026.3.22+)
 openclaw plugins install -l <path>  # Link local plugin for development
+openclaw plugins init          # Scaffold a typed simple tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/package metadata (v2026.5.18+)
+openclaw plugins build         # Build typed plugin package output (v2026.5.18+)
 openclaw plugins update <id>   # Update a plugin
 openclaw plugins update --all  # Update all plugins
 openclaw plugins enable <id>   # Enable a plugin
@@ -196,6 +199,12 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.18+` authoring note: use `openclaw plugins init`, `openclaw plugins validate`, and `openclaw plugins build` for typed tool-plugin authoring with generated manifest metadata and packaging checks.
+
+`v2026.6.1+` state note: plugin install indexes are SQLite-backed, `plugins list --json` stays on a snapshot-only path for sweeps, and loader failures point operators toward repair commands instead of silently poisoning sibling runtime paths.
+
+`v2026.6.2-beta.1+` prerelease note: beta builds replace dangerous-code scanner enforcement with an operator install policy surface. Do not document beta policy flags as stable defaults until a non-prerelease tag ships them.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -299,6 +308,7 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider nvidia         # NVIDIA hosted models (v2026.4.29+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -338,7 +348,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -395,7 +405,7 @@ openclaw config set acp.dispatch.enabled false
 # ACP runtime fallbacks (v2026.5.12+)
 openclaw config set acp.fallbacks '["<backup-runtime-id>"]'
 
-# Adaptive thinking (v2026.3.1+; current Claude 4.7 examples use "adaptive")
+# Adaptive thinking (v2026.3.1+; current Claude 4.x examples use "adaptive")
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -442,7 +452,7 @@ openclaw config set skills.install.allowUploadedArchives false
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -494,6 +504,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `PARALLEL_API_KEY` | Parallel bundled web-search provider key (v2026.6.5-beta.1 prerelease watch) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -540,6 +551,8 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Plugin | Package | Description |
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
+| GitHub Copilot | `@openclaw/copilot` | Official install-on-demand Copilot agent runtime (v2026.6.1+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official install-on-demand Tokenjuice runtime integration (v2026.6.1+) |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |

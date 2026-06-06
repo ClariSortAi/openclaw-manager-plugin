@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.1+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.1+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Skill Workshop/Workboard state, Codex/OpenAI recovery, Gateway protocol compatibility, SQLite-backed state, and channel/provider reliability improvements, upgrade to **v2026.6.1+**.
 
 ## Common Issues
 
@@ -226,6 +226,23 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Auth Profile or Provider Status Looks Stale After Upgrade
+**Symptoms:** `openclaw status --deep`, `openclaw models auth list`, or channel turns report an expired/unavailable auth profile even after re-authentication.
+
+**Cause:** v2026.6.1 moves more auth/profile state through durable SQLite-backed recovery and adds clearer force re-login handling. Older installs can leave legacy profile rows or stale sidecars behind until doctor and a fresh login converge them.
+
+**Fix:**
+```bash
+# Upgrade to current stable and run repair
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+
+# Re-authenticate the affected provider and verify status
+openclaw models auth setup-token --provider <provider>
+openclaw models auth list --provider <provider>
+openclaw status --deep
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -300,7 +317,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +576,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.1+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -604,6 +621,23 @@ openclaw gateway restart
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
 
+#### Plugin or Skill State Looks Stale After Upgrade
+**Symptoms:** `plugins list --json`, channel turns, or skill checks disagree about whether a plugin/skill is installed, enabled, or disabled; disabled skill SecretRefs still appear to affect turns.
+
+**Cause:** v2026.6.1 moves plugin install indexes and more inbound/session state toward SQLite and improves stale disabled-snapshot handling. Existing state may need doctor repair after crossing older stable versions.
+
+**Fix:**
+```bash
+# Inspect snapshot-only state without loading the full runtime graph
+openclaw plugins list --json
+openclaw skills check
+
+# Repair stale install records, disabled snapshots, and configured package roots
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+```
+
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
 
@@ -617,6 +651,23 @@ openclaw update --channel beta
 # Then retry install/update
 openclaw plugins update --all
 ```
+
+#### Plugin or Skill Install Blocked by Operator Install Policy (Prerelease)
+**Symptoms:** On v2026.6.2-beta.1 or newer prerelease builds, package/archive/source/upload/marketplace installs fail with install-policy messages rather than old dangerous-code scanner output.
+
+**Cause:** The beta train replaces scanner enforcement with an operator install policy surface across CLI, doctor, ClawHub, and marketplace installs. Policy keys and override flags are prerelease-only until a stable release ships them.
+
+**Fix:**
+```bash
+# Prefer stable if you do not need beta install-policy testing
+openclaw update --channel stable
+
+# On beta, inspect the exact policy finding before changing trust settings
+openclaw doctor --fix
+openclaw plugins doctor
+```
+
+Do not bypass policy findings without reviewing package source, provenance, and install target.
 
 #### File-Transfer Tool Denies a Path
 **Symptoms:** `file_fetch`, `dir_list`, `dir_fetch`, or `file_write` fails with a path-policy, traversal, symlink, or size-limit denial.
@@ -698,7 +749,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +869,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.1+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1063,7 +1114,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
