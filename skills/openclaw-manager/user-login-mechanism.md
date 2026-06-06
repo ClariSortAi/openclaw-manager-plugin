@@ -125,6 +125,8 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.18+` note: the supported Node.js 22 floor is 22.19+, so ensure service managers and containers use the same upgraded runtime as interactive shells.
+`v2026.6.1+` note: auth profile writes, force re-login recovery, and provider status checks are more durable through SQLite-backed state paths; if auth status looks stale after upgrade, run `openclaw doctor --fix` and re-authenticate the affected provider.
 
 **Process:**
 1. Run the command
@@ -220,6 +222,15 @@ openclaw models auth setup-token --provider moonshot
 
 # MiniMax (M2.7 catalog in v2026.3.28+)
 openclaw models auth setup-token --provider minimax
+
+# NVIDIA (v2026.4.29+)
+openclaw models auth setup-token --provider nvidia
+
+# LM Studio (v2026.4.12+)
+openclaw models auth setup-token --provider lmstudio
+
+# OpenAI Codex PI OAuth route (v2026.4.12+)
+openclaw models auth setup-token --provider openai-codex
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
