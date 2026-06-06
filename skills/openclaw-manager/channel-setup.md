@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of v2026.5.28-v2026.6.1, Slack delivery keeps final replies stable during late cleanup, suppresses leaked reasoning payloads before delivery/accounting, and benefits from the broader channel timeout/retry bounding in the stable line.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -173,6 +174,7 @@ openclaw channels status --channel whatsapp
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 `v2026.5.12+` packaging note: WhatsApp is externalized from the core runtime package, Baileys/runtime dependencies install with the managed plugin, and dependency repair should use `openclaw plugins deps` plus `openclaw doctor --fix` if WhatsApp is configured but not available after upgrade.
+`v2026.5.28-v2026.6.1` reliability note: profile-scoped auth roots, QR display, document filenames, group/media behavior, and bounded request/startup waits are more reliable. On prerelease v2026.6.5-beta.1, disabled WhatsApp accounts tear down on config reload and per-account changes restart more predictably.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -239,6 +241,7 @@ openclaw gateway restart
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
 In v2026.5.12+, Telegram polling runs in an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting in streamed and scheduled replies, and skips unmentioned group media before download when `requireMention` is active.
+In v2026.5.18-v2026.6.1, isolated topic lanes, durable send-message actions, default-account preservation, progress/final preview recovery, topic-name caches, and media/forum-topic delivery received additional stable fixes.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -254,6 +257,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
 - v2026.5.7+ honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callbacks before numeric sender-ID checks.
 - v2026.5.12+ keeps polling liveness tied to `getUpdates` and preserves reply-aware context through isolated polling/spooling, making duplicate pollers and token-rotation skips easier to diagnose.
+- v2026.6.2-beta.1+ improves polling stop/reset boundaries and admin writeback checks, but treat those as prerelease-only until a stable tag ships.
 
 ---
 
@@ -422,6 +426,8 @@ openclaw channels status
 
 Matrix is supported via the `@openclaw/matrix` plugin.
 
+`v2026.6.5-beta.1` prerelease watch: Matrix adds voice-note preflight before mention gating and thread-aware read/reply behavior through Matrix relations pagination. Keep this as beta guidance until a stable release ships it.
+
 ### Setup Steps
 
 1. **Install the Plugin**
@@ -534,6 +540,8 @@ If your `channels.signal` config includes group controls and older builds reject
 ## Google Chat (Native)
 
 Google Chat is supported natively via HTTP webhook integration.
+
+`v2026.6.5-beta.1` prerelease watch: Google Chat approvals can use native approval card actions instead of the generic message flow. Keep production guidance on stable behavior until this lands in a non-prerelease release.
 
 ### Setup Steps
 
