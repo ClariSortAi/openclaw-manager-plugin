@@ -504,7 +504,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
-| `PARALLEL_API_KEY` | Parallel bundled web-search provider key (v2026.6.5-beta.1 prerelease watch) |
+| `PARALLEL_API_KEY` | Parallel bundled web-search provider key (v2026.6.5-beta.2 prerelease watch) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

@@ -182,7 +182,7 @@ These are operationally important additions and reliability/security fixes in th
 7. **Doctor and recovery surfaces** — doctor adds disk-space checks, plugin loader failures point to clearer repair paths, `plugins list --json` stays on a snapshot-only path, and force re-login/atomic auth writes improve auth recovery.
 8. **Performance and bounded proof** — Gateway/plugin metadata, model catalogs, session stores, memory watchers, release proof, and provider/media timers do less repeated work and fail with bounded diagnostics.
 
-## Prerelease Watch: v2026.6.5-beta.1
+## Prerelease Watch: v2026.6.5-beta.2
 
 Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
 
