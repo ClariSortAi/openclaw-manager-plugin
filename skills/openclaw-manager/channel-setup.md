@@ -174,7 +174,7 @@ openclaw channels status --channel whatsapp
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 `v2026.5.12+` packaging note: WhatsApp is externalized from the core runtime package, Baileys/runtime dependencies install with the managed plugin, and dependency repair should use `openclaw plugins deps` plus `openclaw doctor --fix` if WhatsApp is configured but not available after upgrade.
-`v2026.5.28-v2026.6.1` reliability note: profile-scoped auth roots, QR display, document filenames, group/media behavior, and bounded request/startup waits are more reliable. On prerelease v2026.6.5-beta.1, disabled WhatsApp accounts tear down on config reload and per-account changes restart more predictably.
+`v2026.5.28-v2026.6.1` reliability note: profile-scoped auth roots, QR display, document filenames, group/media behavior, and bounded request/startup waits are more reliable. On prerelease v2026.6.5-beta.2, disabled WhatsApp accounts tear down on config reload and per-account changes restart more predictably.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -426,7 +426,7 @@ openclaw channels status
 
 Matrix is supported via the `@openclaw/matrix` plugin.
 
-`v2026.6.5-beta.1` prerelease watch: Matrix adds voice-note preflight before mention gating and thread-aware read/reply behavior through Matrix relations pagination. Keep this as beta guidance until a stable release ships it.
+`v2026.6.5-beta.2` prerelease watch: Matrix adds voice-note preflight before mention gating and thread-aware read/reply behavior through Matrix relations pagination. Keep this as beta guidance until a stable release ships it.
 
 ### Setup Steps
 
@@ -541,7 +541,7 @@ If your `channels.signal` config includes group controls and older builds reject
 
 Google Chat is supported natively via HTTP webhook integration.
 
-`v2026.6.5-beta.1` prerelease watch: Google Chat approvals can use native approval card actions instead of the generic message flow. Keep production guidance on stable behavior until this lands in a non-prerelease release.
+`v2026.6.5-beta.2` prerelease watch: Google Chat approvals can use native approval card actions instead of the generic message flow. Keep production guidance on stable behavior until this lands in a non-prerelease release.
 
 ### Setup Steps
 
