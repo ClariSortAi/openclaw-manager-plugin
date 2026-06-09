@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.6.1+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,13 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Node runtime floor | Current stable releases require Node.js v22.19.0+ so older Node 22 builds fail engine checks before unsafe partial updates | v2026.5.18+ |
+| Typed plugin package validation | `plugins init|validate|build` supports runtime-ready artifacts and reduces source-only install/review ambiguity | v2026.5.18+ |
+| Plugin install ledger durability | Official plugin install indexes and trusted npm pins move to SQLite-backed state, reducing stale filesystem-ledger exposure | v2026.6.1 |
+| Owner-only HTTP tool gating | Owner-only HTTP tools remain gated from lower-authority request paths | v2026.6.1 |
+| Unsafe lifetime/timeout parsing | OAuth/token lifetimes, retry-after delays, response sizes, command timeouts, sandbox observer TTLs, and closed WebSocket calls fail closed earlier | v2026.6.1 |
+| MCP rich-content coercion | Non-text/image MCP result blocks are coerced before provider conversion to avoid poisoned history and provider 400s | v2026.6.5 beta |
+| Transcript image redaction expansion | Inline image payload redaction catches data URLs and repaired transcript images before raw bytes reach stored/exported transcripts | v2026.6.5 beta |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +428,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.6.1+ for latest Node/runtime floor, plugin repair, Skill Workshop governance, SQLite-backed state, Codex/OpenAI recovery, channel reliability, and security/provenance hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -435,6 +442,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
+- [ ] Node.js is v22.19.0+ before running current stable `openclaw update` (Node 24 recommended)
+- [ ] Run `openclaw doctor --fix` after upgrade so cron JSON stores, plugin install ledgers, iMessage monitor state, and inbound queues migrate to current durable state formats
+- [ ] Build local plugins with `openclaw plugins validate` and `openclaw plugins build` before installing on production gateways
+- [ ] If testing v2026.6.5 beta, validate MCP rich-result tools and transcript image redaction before enabling for untrusted users
 - [ ] If using Slack interactive buttons/modals, validate `channels.<channel>.allowFrom` / pairing-owner policy after upgrade to v2026.4.14+ (interactive events now enforce global owner allowlists)
 - [ ] If agents can call model-facing gateway config tools, confirm dangerous-flag enablement is handled via authenticated operator workflows (v2026.4.14 blocks model-side escalation)
 - [ ] After rotating gateway auth token/SecretRef, verify HTTP surfaces (`/v1/*`, `/tools/invoke`, plugin routes) require the new bearer without waiting for a gateway restart (v2026.4.15+)
@@ -514,7 +525,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "tools": {
         "profile": "messaging",
         "deny": ["gateway", "cron", "sessions_spawn", "sessions_send"]
@@ -555,7 +566,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
   },
   "agents": {
     "defaults": {
-      "model": "anthropic/claude-opus-4-7",
+      "model": "anthropic/claude-opus-4-8",
       "sandbox": {
         "mode": "all",
         "workspaceAccess": "none",
@@ -599,13 +610,13 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.6.1+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
 - Session isolation (per-peer scope)
 - Disable elevated tools for groups
-- Use modern, instruction-hardened models (Opus/Sonnet 4.7 with adaptive thinking)
+- Use modern, instruction-hardened models (Opus 4.8 where available or current Sonnet with adaptive thinking)
 - Deny control plane tools in production
 - Use SecretRef instead of inline credentials (`openclaw secrets audit`)
 - Audit all third-party skills and plugins before installation
