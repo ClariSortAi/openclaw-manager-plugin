@@ -114,17 +114,19 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Moonshot / Kimi | `setup-token --provider moonshot` | Built-in web search with citations | API usage fees |
 | MiniMax | `setup-token --provider minimax` | M2.7 model catalog (v2026.3.28+) | API usage fees |
 | Vercel AI | `setup-token --provider vercel-ai` | Gateway with model routing | Varies |
+| NVIDIA | `setup-token --provider nvidia` | Hosted NVIDIA models | API usage fees |
+| LM Studio | `setup-token --provider lmstudio` | Local/self-hosted OpenAI-compatible models | Hardware only |
 
 ### By Use Case
 
 | Use Case | Suggested Starting Point | Thinking | Context | Notes |
 |----------|-------------------------|----------|---------|-------|
-| Personal assistant | Sonnet 4.7 or Ollama | adaptive | default | Sonnet balances quality and cost well |
-| Family/team | Sonnet 4.7 or Haiku 4.5 | adaptive | default | Haiku keeps costs low with multiple users |
-| Enterprise | Sonnet 4.7+ | adaptive | default | Choose based on compliance and budget |
-| Developer | Sonnet 4.7 | adaptive | 1M | Good coding, reasonable cost; upgrade to Opus if budget allows |
+| Personal assistant | Current Sonnet or Ollama | adaptive | default | Sonnet balances quality and cost well |
+| Family/team | Current Sonnet or Haiku | adaptive | default | Haiku keeps costs low with multiple users |
+| Enterprise | Current Sonnet+ | adaptive | default | Choose based on compliance and budget |
+| Developer | Current Sonnet | adaptive | 1M | Good coding, reasonable cost; upgrade to Opus if budget allows |
 | Public chatbot | Haiku 4.5 or Ollama | low/off | default | High volume — cost control is critical |
 | Budget-conscious | Haiku 4.5 | low | default | Cheapest API option with good quality |
 | Speed-sensitive | Haiku 4.5 | off | default | Fastest responses |
 | Privacy-focused | Ollama (local) | n/a | varies | No data leaves your machine |
-| Maximum quality | Opus 4.7 | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |
+| Maximum quality | Opus 4.8 where available | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |

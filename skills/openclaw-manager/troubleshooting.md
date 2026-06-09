@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.1+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.1+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, Node/runtime compatibility, typed plugin authoring, Skill Workshop governance, Workboard orchestration, SQLite-backed runtime state, Codex/OpenAI recovery, channel/mobile reliability, and provider/plugin hardening, upgrade to **v2026.6.1+**.
 
 ## Common Issues
 
@@ -226,6 +226,20 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Codex/OpenAI Sessions Lose Tool State After Interruptions
+**Symptoms:** Interrupted Codex/OpenAI turns show orphan tool calls, stale session bindings, missing final-answer previews, or compaction handoff failures after a gateway restart.
+
+**Cause:** Older builds had weaker recovery around CLI/app-server turn handles, prompt compaction, legacy Codex auth state, and public OpenAI API-key profile classification. Current stable releases preserve Codex auth/session metadata and recover interrupted tool transcripts more reliably.
+
+**Fix:**
+```bash
+# Upgrade to current stable and let doctor repair legacy Codex/auth metadata
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw models auth list --provider openai
+openclaw gateway restart
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -300,7 +314,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +573,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.1+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +617,36 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Plugin Authoring Fails Runtime-Ready Validation
+**Symptoms:** A local or third-party plugin installs as source-only, fails package-boundary validation, or does not include the expected runtime artifact.
+
+**Cause:** Current stable releases reject source-only plugin packages before runtime load. v2026.5.18+ adds typed plugin authoring helpers so plugin packages can be scaffolded, validated, and built consistently.
+
+**Fix:**
+```bash
+# Scaffold or validate a typed plugin package
+openclaw plugins init my-plugin
+openclaw plugins validate ./my-plugin
+openclaw plugins build ./my-plugin
+
+# Install the built/runtime-ready package only after validation passes
+openclaw plugins install ./my-plugin
+openclaw plugins list --json
+```
+
+#### Plugin Install Ledger Looks Stale After Restart
+**Symptoms:** `plugins list --json` shows old package paths, official npm plugin pins look wrong, or a previously repaired plugin appears missing again after restart.
+
+**Cause:** v2026.6.1 moves the plugin install index toward SQLite-backed state. Older JSON or filesystem-derived ledgers may need doctor preflight repair during upgrade.
+
+**Fix:**
+```bash
+openclaw plugins list --json
+openclaw plugins deps
+openclaw doctor --fix
+openclaw gateway restart
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -690,7 +734,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** OpenClaw preflights npm package `engines.node` before install. Current stable releases require Node.js v22.19.0+ (Node 24 recommended), so older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +742,24 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+#### Legacy Cron or Runtime State Fails During Upgrade
+**Symptoms:** Upgrade, restart, or deep status fails around cron JSON stores, iMessage monitor state, inbound queues, ACP/Codex metadata, plugin install ledgers, or memory/sandbox sidecar state.
+
+**Cause:** v2026.6.1 moves more runtime state to SQLite-backed stores and adds doctor preflight migrations. Skipping doctor can leave older JSON stores or sidecars unreadable by the current runtime.
+
+**Fix:**
+```bash
+openclaw config validate
+openclaw doctor --fix
+openclaw status --all
+openclaw gateway restart
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -818,7 +875,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.1+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1063,7 +1120,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
