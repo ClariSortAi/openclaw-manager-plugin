@@ -165,7 +165,7 @@ These stable releases introduced significant operational and packaging changes a
 
 1. **Node 22.19 floor** — OpenClaw now requires Node.js `v22.19.0+`; Node 24 remains the recommended fresh-install runtime.
 2. **Typed plugin authoring workflow** — `defineToolPlugin` and `openclaw plugins init|validate|build` create and validate simple tool plugins with generated manifest metadata.
-3. **Browser/dialog diagnostics** — browser snapshots expose pending dialogs, blocked actions return `blockedByDialog`, and `browser dialog --dialog-id` can answer queued dialogs.
+3. **Browser/dialog diagnostics** — browser snapshots expose pending dialogs, blocked actions return `blockedByDialog`, and `openclaw browser dialog` arms modal dialog handling.
 4. **Managed HTTPS proxy trust** — `proxy.tls.caFile` supports scoped CA trust for managed forward-proxy endpoints.
 5. **Meeting notes and transcript core** — transcript-backed meeting summaries, source-provider chunks, cleaner user-turn persistence, and external Meeting Notes plugin access make long-running voice/meeting workflows easier to audit.
 6. **Named model auth profiles** — model login profiles and supported migration for Hermes, OpenCode, and Codex improve multi-account/provider auth hygiene.

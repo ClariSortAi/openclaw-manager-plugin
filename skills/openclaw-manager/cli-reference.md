@@ -314,7 +314,7 @@ openclaw models auth setup-token --provider lmstudio       # LM Studio local/sel
 
 ### Browser Diagnostics (v2026.5.18+)
 ```bash
-openclaw browser dialog --dialog-id <id>  # Answer a pending browser dialog surfaced in snapshots
+openclaw browser dialog  # Arm modal dialog handling for alert/confirm/prompt
 ```
 
 Browser snapshots surface pending/recent modal dialogs, and actions that open a modal return `blockedByDialog` so automation can answer the dialog explicitly.
