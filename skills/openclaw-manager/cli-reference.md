@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.5` stable note: current stable is published as `v2026.6.5`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -189,6 +189,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/package shape (v2026.5.18+)
+openclaw plugins build         # Build a typed simple tool plugin (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +199,10 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.18+` typed-plugin note: simple tool plugins can use the `defineToolPlugin` helper plus `openclaw plugins init|validate|build` to keep generated manifest metadata and optional tool declarations in sync.
+
+`v2026.5.28-v2026.6.1` official-plugin note: GitHub Copilot and Tokenjuice are external official plugins (`@openclaw/copilot`, `@openclaw/tokenjuice`). If a configured runtime disappears after upgrade, run `openclaw plugins deps`, `openclaw plugins update --all`, and `openclaw doctor --fix`.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -300,6 +307,28 @@ openclaw models auth setup-token --provider openai         # Direct OpenAI API k
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+`v2026.5.26+` auth note: named model login profiles and supported Hermes/OpenCode/Codex migrations improve multi-account auth hygiene. Use `openclaw models auth list --provider <name>` after migration to verify the selected profile without exposing secrets.
+
+`v2026.6.5+` auth-state note: auth profiles are stored in SQLite-backed state for better durability. Run `openclaw doctor --fix` after interrupted upgrades or beta downgrades before retrying model auth.
+
+### Browser Diagnostics (v2026.5.18+)
+```bash
+openclaw browser dialog --dialog-id <id>  # Answer a pending browser dialog surfaced in snapshots
+```
+
+Browser snapshots surface pending/recent modal dialogs, and actions that open a modal return `blockedByDialog` so automation can answer the dialog explicitly.
+
+### Meeting Notes & Transcripts (v2026.5.22+)
+```bash
+openclaw meeting-notes       # Read-only meeting-notes CLI surface
+```
+
+Transcript-backed meeting summaries use source-provider chunks and cleaned user-turn persistence in current stable releases.
+
+### Workboard & Skill Workshop (v2026.5.28-v2026.6.1)
+
+Workboard adds task-backed coordination tools for active agent work. Skill Workshop adds governed skill proposals, review actions, rollback metadata, and the `skill_workshop` agent tool for guarded skill creation.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -437,6 +466,15 @@ openclaw config set channels.slack.replyBroadcast false
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
 
+# Parallel bundled web_search provider (v2026.6.5+)
+# Prefer SecretRef/configured auth in production; PARALLEL_API_KEY is auto-discovered.
+export PARALLEL_API_KEY="..."
+
+# Managed HTTPS proxy endpoint CA trust (v2026.5.18+)
+openclaw config set proxy.tls.caFile "/path/to/ca.pem"
+
+# Cron concurrency default is 8 in v2026.5.26+; pin explicitly if needed.
+openclaw config set cron.maxConcurrentRuns 8
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
@@ -494,6 +532,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `PARALLEL_API_KEY` | Parallel bundled `web_search` provider discovery (v2026.6.5+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -542,8 +581,11 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| GitHub Copilot Runtime | `@openclaw/copilot` | Official install-on-demand GitHub Copilot agent runtime (v2026.6.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+| Parallel Search | bundled | `web_search` provider using Parallel API with guarded endpoint handling (v2026.6.5+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official install-on-demand plugin for Tokenjuice runtime hooks (v2026.6.1+) |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash

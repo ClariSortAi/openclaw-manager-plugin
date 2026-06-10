@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.5+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.5+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Skill Workshop/Workboard, Parallel search, SQLite-backed auth/state durability, Matrix/Google Chat approval improvements, and channel/provider reliability improvements, upgrade to **v2026.6.5+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.5+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +603,19 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Official Copilot or Tokenjuice Runtime Missing After Upgrade
+**Symptoms:** GitHub Copilot, Tokenjuice, or Codex-related runtime surfaces that worked before upgrade are now reported as missing plugins or unavailable runtimes.
+
+**Cause:** v2026.5.28-v2026.6.1 externalized GitHub Copilot and Tokenjuice as official install-on-demand plugins with npm and ClawHub metadata.
+
+**Fix:**
+```bash
+openclaw plugins deps
+openclaw plugins update --all
+openclaw doctor --fix
+openclaw status --deep
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -690,7 +703,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install, and v2026.5.18 raised the supported Node 22 floor to `v22.19.0`. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,11 +711,36 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
+```
+
+#### Auth Profiles or Plugin Install State Looks Corrupted After Upgrade/Downgrade
+**Symptoms:** `models auth list`, provider probes, or `plugins list --json` show missing profiles/install records after an interrupted upgrade or beta downgrade.
+
+**Cause:** v2026.6.1-v2026.6.5 moved plugin install indexes, inbound queues, selected channel sidecars, and auth profiles toward SQLite-backed stores for durability. Interrupted migrations or beta-era state can need doctor repair before retrying runtime commands.
+
+**Fix:**
+```bash
+openclaw doctor --fix
+openclaw models auth list
+openclaw plugins list --json
+openclaw status --deep
+```
+
+#### Parallel Web Search Not Available
+**Symptoms:** `web_search` does not offer the Parallel provider, or Parallel search fails with missing credentials.
+
+**Cause:** Parallel became a bundled `web_search` provider in v2026.6.5 and needs configured auth, commonly discovered through `PARALLEL_API_KEY`.
+
+**Fix:**
+```bash
+# Prefer SecretRef/configured auth in production.
+export PARALLEL_API_KEY="..."
+openclaw status --deep
 ```
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
@@ -750,6 +788,18 @@ openclaw config get skills.entries.<skill-name>.enabled
 
 # Check if skill requires specific binaries/env
 openclaw skills info <skill-name>
+```
+
+#### Skill Workshop Proposal or Disabled Skill Snapshot Fails
+**Symptoms:** Skill Workshop proposals fail to apply/reject cleanly, or disabled skills still try to resolve old `apiKey` SecretRefs during channel turns.
+
+**Cause:** Skill Workshop became stable in v2026.6.1, and the same train fixed stale disabled skill snapshots so disabled skill env overrides no longer abort embedded or channel turns.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw doctor --fix
+openclaw skills check
 ```
 
 #### Skill Search/Install Commands Not Found
@@ -818,7 +868,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.5+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1098,6 +1148,30 @@ openclaw gateway restart
 
 # Verify configured model id
 openclaw config get agents.defaults.model
+```
+
+#### Encrypted PDF Extraction Fails
+**Symptoms:** PDF analysis fails on encrypted PDFs or returns extraction errors on documents that current OpenClaw should support.
+
+**Cause:** v2026.5.28 switched PDF extraction to ClawPDF and added encrypted PDF extraction coverage.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+### MCP Tool Result Issues
+
+#### Anthropic 400 After MCP Tool Returns Rich Content
+**Symptoms:** An MCP tool result containing `resource_link`, `resource`, audio, or malformed image blocks causes Anthropic request failures or poisoned replay history.
+
+**Cause:** Builds before v2026.6.5 could pass non-text/image MCP blocks too deeply into provider conversion.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
 ```
 
 ### Plugin SDK Breaking Change (v2026.3.2)
