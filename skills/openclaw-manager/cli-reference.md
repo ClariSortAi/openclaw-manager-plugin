@@ -320,11 +320,8 @@ openclaw browser dialog --dialog-id <id>  # Answer a pending browser dialog surf
 Browser snapshots surface pending/recent modal dialogs, and actions that open a modal return `blockedByDialog` so automation can answer the dialog explicitly.
 
 ### Meeting Notes & Transcripts (v2026.5.22+)
-```bash
-openclaw meeting-notes       # Read-only meeting-notes CLI surface
-```
 
-Transcript-backed meeting summaries use source-provider chunks and cleaned user-turn persistence in current stable releases.
+Transcript-backed meeting summaries use source-provider chunks and cleaned user-turn persistence in current stable releases. Meeting Notes is delivered as an external/source-provider plugin surface, so verify its installed plugin metadata before relying on any plugin-provided CLI commands.
 
 ### Workboard & Skill Workshop (v2026.5.28-v2026.6.1)
 
