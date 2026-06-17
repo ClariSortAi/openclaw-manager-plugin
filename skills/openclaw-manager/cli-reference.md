@@ -59,13 +59,15 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.8` stable note: current stable is published as `v2026.6.8`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
-### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
+### Chat Commands (v2026.5.3+; expanded in v2026.6.8)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
+/btw <question>     # Side-question alias; supported in CLI-backed sessions (v2026.6.8+)
 /context map        # Send a treemap image of current session context contributors (v2026.5.12+)
+/usage              # Show usage; v2026.6.8+ supports native full footer rendering
 ```
 
 ### Exec Policy (v2026.4.12+)
@@ -123,6 +125,10 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
 
+`v2026.5.26+` cron note: the default scheduler concurrency is `cron.maxConcurrentRuns: 8`, `cron runs --json` includes readable ISO time fields in current stable builds, and command-backed cron jobs are supported. Confirm exact job syntax with `openclaw cron add --help` on the installed version before creating command jobs in production.
+
+`v2026.6.5+` migration note: legacy cron JSON stores are migrated into SQLite-backed storage by doctor/config preflight. If `cron status` reports old store warnings, run `openclaw doctor --fix`, then re-check `openclaw cron list --json`.
+
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
 openclaw flows list          # List background task flows
@@ -154,6 +160,8 @@ openclaw skills search <query>   # Search ClawHub from core CLI (v2026.3.22+)
 openclaw skills install <skill-slug>  # Install a ClawHub skill (v2026.3.22+)
 openclaw skills update --all    # Update installed ClawHub skills (v2026.3.22+)
 ```
+
+`v2026.6.1+` Skill Workshop note: current stable builds include guarded Skill Workshop proposal/review workflows and a `skill_workshop` agent tool for creating, revising, approving, rejecting, quarantining, and rolling back skill changes. Use the Control UI review surface or installed-version CLI help for exact operator review commands.
 
 ### ClawHub (Skill Registry)
 
@@ -189,6 +197,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold typed simple tool plugins (v2026.5.18+)
+openclaw plugins validate      # Validate typed plugin manifests/packages (v2026.5.18+)
+openclaw plugins build         # Build typed plugin packages (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +207,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.5.28+` / `v2026.6.1+` externalization note: GitHub Copilot agent runtime and Tokenjuice are official install-on-demand plugins. Use `openclaw plugins list --json`, `openclaw plugins deps`, and `openclaw doctor --fix` when those runtimes report missing packages, version drift, or convergence repair hints.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -267,6 +280,13 @@ openclaw webhooks gmail setup    # Set up Gmail Pub/Sub webhook
 openclaw webhooks gmail run      # Run Gmail webhook listener
 ```
 
+### Meeting Notes & Transcripts (v2026.5.22+)
+```bash
+openclaw meeting-notes           # Read-only meeting-notes CLI surface when the external plugin is installed
+```
+
+Meeting Notes is a source-only external plugin with transcript-backed meeting summaries, manual transcript imports, and Discord voice as the first live source. Use `openclaw plugins deps` and `openclaw plugins info <id>` to verify install state before relying on it.
+
 ### Setup & Reset
 ```bash
 openclaw setup               # Initialize config and workspace
@@ -300,6 +320,10 @@ openclaw models auth setup-token --provider openai         # Direct OpenAI API k
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
+
+`v2026.5.26+` auth-profile note: named model login profiles and supported credential migration cover Hermes, OpenCode, Codex, and related providers. Prefer `openclaw models auth list --json` before and after migration so automation does not assume a single unnamed profile.
+
+`v2026.6.8+` catalog note: current stable catalogs include GLM-5.2, Claude Haiku 4.5, MiniMax M3, Kimi K2.7 Code, Claude Fable 5, Claude Opus 4.8, and OpenRouter OAuth support. Run `openclaw models list` or the onboarding model browser on the target host because provider availability depends on installed plugins and auth profiles.
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
@@ -338,7 +362,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -384,6 +408,9 @@ openclaw config set agents.defaults.tools.alsoAllow '["exec","fs"]'
 # v2026.4.12+: per-provider private-network request opt-in for trusted self-hosted endpoints
 openclaw config set models.providers.<provider>.request.allowPrivateNetwork true
 
+# v2026.5.18+: scoped managed HTTPS proxy CA trust
+openclaw config set proxy.tls.caFile "/path/to/proxy-ca.pem"
+
 # v2026.4.2+: migrate plugin-owned web provider config paths
 openclaw doctor --fix
 openclaw config get plugins.entries.xai.config.xSearch
@@ -411,6 +438,9 @@ openclaw config set streaming.mode "progress"
 openclaw config set streaming.progress.render "rich"
 openclaw config set agents.defaults.toolProgressDetail "compact"
 
+# Usage footer rendering (v2026.6.8+)
+# Use `openclaw config schema` to confirm the installed template keys before customizing.
+
 # Visible reply enforcement (v2026.4.29+)
 openclaw config set messages.visibleReplies true
 
@@ -437,12 +467,17 @@ openclaw config set channels.slack.replyBroadcast false
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
 
+# Cron concurrency (v2026.5.26+ default is 8)
+openclaw config set cron.maxConcurrentRuns 8
+
+# Key-free web_search providers stay explicit opt-ins in v2026.6.8+
+# Confirm provider-specific config paths with `openclaw config schema`.
 
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
@@ -494,6 +529,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Extra apt packages for Docker/Podman image builds (v2026.5.18+; `OPENCLAW_DOCKER_APT_PACKAGES` remains a legacy fallback) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -542,6 +578,9 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| Meeting Notes | external/source-only | Transcript-backed meeting summaries and manual transcript imports (v2026.5.22+) |
+| GitHub Copilot Agent Runtime | `@openclaw/copilot` | Official install-on-demand Copilot runtime plugin (v2026.5.28-v2026.6.1+) |
+| Tokenjuice | `@openclaw/tokenjuice` | Official install-on-demand Tokenjuice plugin (v2026.5.28-v2026.6.1+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 

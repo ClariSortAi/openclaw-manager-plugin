@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.6.8+` note: HTTP session/model override surfaces require admin authority, and key-free web-search providers remain explicit opt-ins rather than automatic no-key fallbacks.
 
 **Process:**
 1. Run the command
@@ -223,7 +224,20 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex PI OAuth route (v2026.4.12+)
+openclaw models auth setup-token --provider openai-codex
+
+# NVIDIA hosted models (v2026.4.29+)
+openclaw models auth setup-token --provider nvidia
+
+# LM Studio local/self-hosted provider (v2026.4.12+)
+openclaw models auth setup-token --provider lmstudio
 ```
+
+`v2026.5.26+` note: named model login profiles and supported credential migrations cover Hermes, OpenCode, Codex, and related auth families. Use `openclaw models auth list --json` before and after migrations so you can verify which named profile an agent/runtime will use.
+
+`v2026.6.8+` note: current stable catalogs include GLM-5.2, Claude Haiku 4.5, Claude Opus 4.8, MiniMax M3, Kimi K2.7 Code, Claude Fable 5, and OpenRouter OAuth support. Availability still depends on configured plugins, providers, and auth profiles on the target host.
 
 ### Verifying Model Authentication
 
