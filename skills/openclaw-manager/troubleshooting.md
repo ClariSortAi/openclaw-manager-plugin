@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.8+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, SQLite state repair, Skill Workshop, rich channel delivery, usage footer rendering, provider catalog updates, and latest security-boundary hardening, upgrade to **v2026.6.8+**.
 
 ## Common Issues
 
@@ -226,6 +226,22 @@ openclaw models auth setup-token --provider openai
 openclaw status --deep
 ```
 
+#### Named Model Auth Profile Looks Missing or Wrong
+**Symptoms:** A provider works in one agent/runtime but `models list`, onboarding, Codex, Hermes, OpenCode, or plugin-backed model browsing appears to use a different credential profile.
+
+**Cause:** v2026.5.26+ adds named model login profiles and migration paths for multiple auth-profile families. v2026.6.x also persists auth profiles in SQLite and tightens unresolved/unknown auth handling.
+
+**Fix:**
+```bash
+# Inspect profiles without printing secrets
+openclaw models auth list --json
+
+# Repair migrations and stale profile records
+openclaw doctor --fix
+openclaw models auth list --json
+openclaw status --deep
+```
+
 #### Gateway Token Rotation Does Not Apply to HTTP Routes Until Restart
 **Symptoms:** After rotating gateway token/SecretRef, WebSocket auth updates but HTTP routes (`/v1/*`, `/tools/invoke`, plugin HTTP routes) still accept the previous bearer until gateway restart.
 
@@ -300,7 +316,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -342,6 +358,23 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Tables, Lists, or Blockquotes Render Poorly
+**Symptoms:** Telegram replies lose table/list structure, collapse intentional line breaks, fail expandable blockquotes, or CLI-backed final replies differ from WebChat output.
+
+**Cause:** v2026.6.8 adds richer Telegram message delivery, including structured text, tables, lists, expandable blockquotes, preserved intentional line breaks, and richer CLI-backed final replies.
+
+**Fix:**
+```bash
+# Upgrade to current stable and repair externalized plugin state
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins deps
+openclaw doctor --fix
+openclaw gateway restart
+
+# Probe only Telegram first
+openclaw channels status --channel telegram
+```
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -585,9 +618,9 @@ openclaw gateway restart
 ```
 
 #### Configured Channel or Provider Disappears After Upgrade
-**Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
+**Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, GitHub Copilot, Tokenjuice, Codex Supervisor, Meeting Notes, or other official provider/channel as missing, not configured, version-drifted, or `plugin load failed: dependency tree corrupted`.
 
-**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. v2026.5.28-v2026.6.1 also externalizes official runtimes such as GitHub Copilot and Tokenjuice. Existing configs may need managed plugin dependency repair after upgrade.
 
 **Fix:**
 ```bash
@@ -603,6 +636,25 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Key-Free `web_search` Provider Does Not Auto-Select
+**Symptoms:** `web_search` reports no configured provider even though key-free providers such as Parallel Free, DuckDuckGo, Ollama, or Codex Hosted Search are available.
+
+**Cause:** v2026.6.8 keeps key-free providers as explicit opt-ins rather than surprising automatic fallbacks.
+
+**Fix:**
+```bash
+# Inspect installed provider and plugin state
+openclaw plugins list --json
+openclaw config schema
+
+# Configure the intended web_search provider using the installed schema path,
+# then validate before restart/reload.
+openclaw config validate
+openclaw gateway restart
+```
+
+If you want Parallel search specifically, verify the bundled Parallel provider is available on v2026.6.5+ or newer and configure it explicitly.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -690,7 +742,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install, and v2026.5.18+ raises the supported Node 22 floor to `22.19.0+`. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,12 +750,31 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
 ```
+
+#### Legacy JSON State Warnings After Upgrade
+**Symptoms:** `openclaw status`, `openclaw cron status`, plugin discovery, auth profile checks, or Matrix/channel state diagnostics mention legacy JSON stores, stale sidecars, or SQLite migration warnings.
+
+**Cause:** v2026.5.18-v2026.6.5 moves more runtime state into SQLite-backed stores, including cron, plugin install indexes, auth profiles, channel queues, session metadata, plugin SDK state, Matrix state, and sandbox registry data.
+
+**Fix:**
+```bash
+# Let doctor own migrations and stale-record cleanup
+openclaw doctor --fix
+
+# Verify the affected surfaces after migration
+openclaw cron list --json
+openclaw plugins list --json
+openclaw models auth list --json
+openclaw status --all
+```
+
+Do not hand-edit legacy JSON stores after a newer gateway has started; use `openclaw doctor --fix` and the CLI/status surfaces instead.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -766,6 +837,34 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw skills search <query>
 openclaw skills install <skill-slug>
 openclaw skills update --all
+```
+
+#### Skill Workshop or `skill_workshop` Is Missing
+**Symptoms:** Skill proposal/review controls are unavailable, the Control UI has no Skill Workshop surface, or an agent cannot use the `skill_workshop` tool.
+
+**Cause:** Guarded Skill Workshop proposal, review, quarantine, and rollback workflows were added in the v2026.6.1 stable line.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Repair plugin/skill metadata and restart
+openclaw doctor --fix
+openclaw gateway restart
+```
+
+If validation warns about retired Skill Workshop plugin configuration after upgrading to v2026.6.6+, prefer the current built-in/managed workflow and let `openclaw doctor --fix` remove stale plugin references.
+
+#### `openclaw plugins init|validate|build` Commands Not Found
+**Symptoms:** Plugin authoring docs mention `openclaw plugins init`, `openclaw plugins validate`, or `openclaw plugins build`, but the CLI reports unknown commands.
+
+**Cause:** Typed simple tool-plugin authoring commands were added in v2026.5.18.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins --help
 ```
 
 #### `openclaw skills update` Fails with `Invalid skill slug`
@@ -1063,7 +1162,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
