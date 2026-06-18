@@ -218,11 +218,21 @@ openclaw models auth setup-token --provider kilocode
 # Moonshot/Kimi (v2026.2.23+)
 openclaw models auth setup-token --provider moonshot
 
-# MiniMax (M2.7 catalog in v2026.3.28+)
+# MiniMax (M3 catalog in v2026.6.1+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# NVIDIA (v2026.4.29+; featured catalog refreshed in v2026.5.28+)
+openclaw models auth setup-token --provider nvidia
+
+# DeepInfra (full catalog browsing in v2026.5.27+)
+openclaw models auth setup-token --provider deepinfra
+
+# Z.AI / GLM (GLM-5.2 catalog support in v2026.6.8+)
+# Confirm the canonical provider id in your installed version before auth setup.
+openclaw models list
 ```
 
 ### Verifying Model Authentication

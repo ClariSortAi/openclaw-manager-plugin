@@ -55,6 +55,7 @@ Continue with:
    - Kilo Code gateway (managed hosting)
    - xAI / Grok
    - Moonshot / Kimi (includes web search)
+   - NVIDIA, DeepInfra, MiniMax, or Z.AI/GLM
    - Not sure yet / help me pick
 7. **Automation goals** — "What do you want to automate?" (optional, can skip)
    - Scheduled messages / daily digests

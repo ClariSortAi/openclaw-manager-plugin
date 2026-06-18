@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.8+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/WhatsApp rich delivery, SQLite-backed state migrations, Skill Workshop, Workboard/Meeting Notes, usage footers, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.6.8+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -342,6 +342,23 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Rich Replies Lose Tables, Lists, or Intentional Line Breaks
+**Symptoms:** Telegram replies flatten tables/lists, drop intentional line breaks, or show blockquote/list markup unexpectedly.
+
+**Cause:** Builds before v2026.6.8 had less complete rich-message rendering and CLI-backed reply handoff for Telegram structured text.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Restart and test a structured reply in Telegram
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+If custom plugins produce Telegram replies, keep plugin payloads on the supported rich-message structures rather than transport-specific ad hoc text.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +576,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.8+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -570,7 +587,7 @@ openclaw plugins uninstall clawhub:<package>
 #### Official Plugin Install or Update Reports Missing Dependencies
 **Symptoms:** An official plugin is configured but missing on disk, `plugins list --json` reports dependency install problems, or update/doctor keeps revisiting the same plugin.
 
-**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers.
+**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers. v2026.5.12+ externalized Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex, and related cones; v2026.5.28+/v2026.6.1+ also externalize official plugins such as GitHub Copilot, Tokenjuice, Codex Supervisor, and Meeting Notes.
 
 **Fix:**
 ```bash
@@ -603,6 +620,50 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Legacy Cron or Plugin State Looks Stale After Upgrade
+**Symptoms:** `openclaw cron status`, plugin discovery, installed package lookup, or channel inbound queues show stale/missing state after upgrading from a JSON-store era.
+
+**Cause:** v2026.6.1-v2026.6.5 move more runtime state to SQLite-backed stores, including plugin install indexes, auth profiles, inbound queues, and cron JSON stores.
+
+**Fix:**
+```bash
+# Let doctor migrate legacy stores before restart paths read them
+openclaw doctor --fix
+
+# Re-check state after repair
+openclaw cron status
+openclaw plugins list --json
+openclaw status --all
+```
+
+In v2026.6.8+, cron status may report the SQLite storage path rather than legacy `jobs.json`.
+
+#### Key-Free Web Search Provider Is Not Auto-Selected
+**Symptoms:** `web_search` reports no configured provider even though key-free options such as Parallel Free, DuckDuckGo, Ollama, or Codex Hosted Search are available.
+
+**Cause:** v2026.6.8 keeps key-free web-search providers as explicit opt-ins instead of silently choosing one when no API-backed provider is configured.
+
+**Fix:**
+```bash
+# Confirm current web-search/provider configuration paths
+openclaw config schema
+openclaw config validate
+```
+
+Choose the intended provider through onboarding or the canonical plugin config path, then validate and restart. This avoids surprising data egress through an unintended search backend.
+
+#### Gemini CLI Uses Ambient Google Credentials
+**Symptoms:** A Gemini CLI-backed run ignores the selected OpenClaw OAuth/API-key profile and appears to use machine-level Google credentials.
+
+**Cause:** Older builds could leak ambient Google credentials into Gemini CLI runtime homes. v2026.6.8 isolates Gemini CLI runtime auth to the selected OpenClaw profile.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw models auth list --provider google --json
+openclaw gateway restart
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,7 +759,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +879,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.8+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1063,7 +1124,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50

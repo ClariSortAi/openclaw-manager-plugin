@@ -104,6 +104,7 @@ As of v2026.4.14, interactive block actions and modal submits enforce global own
 As of v2026.4.15, Slack native command option menus (for example `/verbose`) use unique action ids to avoid interactive-option rendering conflicts.
 As of v2026.4.29-v2026.5.3, Slack active-run followups default to steering behavior, `/steer` can guide a running session without a new turn, and `streaming.mode: "progress"` can produce shared progress drafts instead of plain partial text updates.
 As of v2026.5.12, Slack is externalized from the core runtime dependency cone, and outbound reply behavior adds `unfurlLinks`, `unfurlMedia`, `replyBroadcast`, richer mention/source metadata, and stricter approval-button authorization. If Slack appears configured but unavailable after upgrade, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw channels status --channel slack`.
+As of v2026.5.28-v2026.6.8, Slack final replies survive late cleanup paths more reliably, outbound `message_sent` hooks fire consistently, and channel chunking handles surrogate pairs and Infinity limits more safely.
 
 ### Slack App Home and Thread Continuity (v2026.5.2+)
 
@@ -173,6 +174,7 @@ openclaw channels status --channel whatsapp
 `v2026.4.15+` reliability note: WhatsApp reconnect flow now drains pending credential writes before socket reopen, reducing false backup restores and reconnect loops after auth refreshes.
 `v2026.5.3+` target note: outbound WhatsApp Channel/Newsletter destinations can use explicit `@newsletter` targets with channel session metadata instead of being routed as DMs.
 `v2026.5.12+` packaging note: WhatsApp is externalized from the core runtime package, Baileys/runtime dependencies install with the managed plugin, and dependency repair should use `openclaw plugins deps` plus `openclaw doctor --fix` if WhatsApp is configured but not available after upgrade.
+`v2026.6.8+` delivery note: WhatsApp honors configured ACP bindings and preserves generated media completions more reliably. If account-specific config changes do not take effect, upgrade and verify the channel restarts with `openclaw channels status --channel whatsapp`.
 
 ### Self-Chat Mode (Personal Number)
 If using your own WhatsApp number:
@@ -239,6 +241,7 @@ openclaw gateway restart
 Telegram now defaults to `partial` streaming mode — the bot updates a single message in real-time using `sendMessageDraft` for private preview. This gives users a "typing" experience as the response generates.
 In v2026.4.29+ Telegram uses durable message edits for streaming previews to reduce draft-to-message flicker. In v2026.5.3+, `streaming.mode: "progress"` can enable shared progress-draft behavior with auto labels.
 In v2026.5.12+, Telegram polling runs in an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting in streamed and scheduled replies, and skips unmentioned group media before download when `requireMention` is active.
+In v2026.6.8+, Telegram rich-message delivery handles tables, lists, expandable blockquotes, preserved intentional line breaks, and CLI-backed replies more faithfully.
 
 ### Telegram DM Topics (v2026.3.1+)
 
@@ -254,6 +257,7 @@ Each DM conversation can have its own topic context, with sessions scoped to the
 - Inbound media download handling was hardened (transport-policy threading + IPv4 fallback retries) to reduce attachment fetch failures on mixed IPv4/IPv6 networks.
 - v2026.5.7+ honors `accessGroup:*` sender allowlists for DMs, groups, native commands, and callbacks before numeric sender-ID checks.
 - v2026.5.12+ keeps polling liveness tied to `getUpdates` and preserves reply-aware context through isolated polling/spooling, making duplicate pollers and token-rotation skips easier to diagnose.
+- v2026.6.8+ classifies streaming preview edit failures without killing the draft, survives `getUpdates` conflicts in isolated polling ingress, and remaps forum thread-create CLI paths more reliably.
 
 ---
 
@@ -393,6 +397,7 @@ openclaw gateway restart
 As of v2026.1.15, Microsoft Teams is a **plugin-only** channel via `@openclaw/msteams`.
 In v2026.3.24+, the Teams plugin adopts the official Teams SDK with improved 1:1 streaming UX, prompt-starter welcome cards, typing/status signals, and support for message edit/delete delivery flows.
 In v2026.4.14, Teams SSO signin invokes enforce sender allowlist checks; verify `allowFrom` entries and identity mapping if signin events begin failing after upgrade.
+In v2026.5.27+, untrusted Teams service URLs are blocked; verify tenant/app registration and service URL provenance if attachment fetches or replies begin failing after upgrade.
 
 ### Setup Steps
 
@@ -421,6 +426,7 @@ openclaw channels status
 ## Matrix (Plugin Required)
 
 Matrix is supported via the `@openclaw/matrix` plugin.
+In v2026.6.5+, Matrix voice-message preflight and thread-aware read/reply behavior preserve voice-note context and threaded conversations more reliably.
 
 ### Setup Steps
 
@@ -534,6 +540,7 @@ If your `channels.signal` config includes group controls and older builds reject
 ## Google Chat (Native)
 
 Google Chat is supported natively via HTTP webhook integration.
+In v2026.6.5+, Google Chat approvals can use platform-native cards and click handling instead of generic message flow.
 
 ### Setup Steps
 
@@ -706,6 +713,7 @@ openclaw channels status
 - Supports both Feishu (China) and Lark (international) via the same configuration
 - Requires event subscription configuration in the Feishu developer console
 - Group chat support follows the same `groupPolicy` pattern as other channels
+- v2026.6.5+ retries transient Feishu send rate-limit responses (HTTP 429, per-chat code 230020, tenant-level code 11232) with linear backoff and preserves merged streaming-card content.
 
 ### Feishu Improvements (v2026.3.x)
 - Reaction notifications and typing backoff fixes (v2026.3.1)

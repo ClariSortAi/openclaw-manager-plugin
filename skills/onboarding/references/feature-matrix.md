@@ -112,8 +112,11 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Kilo Code | `setup-token --provider kilocode` | Managed gateway, easy onboarding | Subscription |
 | xAI / Grok | `setup-token --provider xai` | Alternative reasoning models | API usage fees |
 | Moonshot / Kimi | `setup-token --provider moonshot` | Built-in web search with citations | API usage fees |
-| MiniMax | `setup-token --provider minimax` | M2.7 model catalog (v2026.3.28+) | API usage fees |
+| MiniMax | `setup-token --provider minimax` | M3 model catalog and media/music surfaces (v2026.6.1+) | API usage fees |
 | Vercel AI | `setup-token --provider vercel-ai` | Gateway with model routing | Varies |
+| NVIDIA | `setup-token --provider nvidia` | Hosted NVIDIA catalog with featured models | API usage fees |
+| DeepInfra | `setup-token --provider deepinfra` | Full credential-aware model catalog browsing | API usage fees |
+| Z.AI / GLM | Confirm provider id with `openclaw models list` | GLM-5.2 catalog support | API usage fees |
 
 ### By Use Case
 
@@ -127,4 +130,4 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Budget-conscious | Haiku 4.5 | low | default | Cheapest API option with good quality |
 | Speed-sensitive | Haiku 4.5 | off | default | Fastest responses |
 | Privacy-focused | Ollama (local) | n/a | varies | No data leaves your machine |
-| Maximum quality | Opus 4.7 | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |
+| Maximum quality | Opus 4.8 | adaptive | 1M | Best reasoning but highest cost — use when quality justifies it |
