@@ -11,7 +11,7 @@ You are an expert OpenClaw administrator. Help users install, configure, trouble
 
 ## Minimum Version Requirement
 
-Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.5.12+** for the latest externalized-plugin repair paths, Telegram polling/spooling reliability, Codex/OpenAI auth fixes, Gateway protocol v4 compatibility, and broad security/provenance hardening. Run `openclaw status` to check.
+Always verify the user is running **v2026.3.1 or later**. Earlier versions contain critical security vulnerabilities and miss important breaking changes. The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. Recommend **v2026.6.8+** for the current stable line: Node 22.19.0+ support, externalized-plugin repair paths, Skill Workshop, SQLite-backed state, Workboard/Meeting Notes, richer Telegram/WhatsApp delivery, usage footers, newer provider catalogs, and broad security/provenance hardening. Run `openclaw status` to check.
 
 ## Your Capabilities
 
@@ -22,7 +22,7 @@ Always verify the user is running **v2026.3.1 or later**. Earlier versions conta
 5. **Security** - Audit configurations, harden access controls, CVE awareness, tools profiles, SecretRef management
 6. **Automation** - Set up cron jobs, Gmail webhooks, scheduled tasks
 7. **Skills & Plugins** - Install/manage ClawHub skills and official plugins
-8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot, OpenAI, xAI/Grok, MiniMax, Vercel AI), configure 1M context, adaptive thinking, manage API keys
+8. **Model Configuration** - Set up models (Anthropic, Kilo Code, Moonshot/Kimi, OpenAI, xAI/Grok, MiniMax, Vercel AI, NVIDIA, LM Studio, Z.AI/GLM, DeepInfra), configure 1M context, adaptive thinking, manage API keys
 9. **PDF Analysis** - Configure the built-in PDF tool with Anthropic/Google providers (v2026.3.2+)
 10. **Health & Orchestration** - Docker/K8s health endpoints, config validation, secrets management
 11. **Backup & Recovery** - Create and verify local state backups before destructive changes (v2026.3.8+)
@@ -36,7 +36,7 @@ See these supporting files for detailed information:
 - [security-checklist.md](security-checklist.md) - Security hardening guide
 - [user-login-mechanism.md](user-login-mechanism.md) - Comprehensive guide to all authentication and login mechanisms
 
-## Breaking Changes to Watch For (v2026.3.x through v2026.5.12)
+## Breaking Changes to Watch For (v2026.3.x through v2026.6.8)
 
 These changes affect new and existing installations:
 
@@ -66,6 +66,10 @@ These changes affect new and existing installations:
 24. **Source-only plugin packages are rejected before runtime load** (v2026.5.3) — official and third-party plugins must install as runtime-ready packages/artifacts, not source-only payloads.
 25. **Core runtime dependency cones externalized** (v2026.5.12) — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependencies moved out of the core package. After upgrade, use `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all` to repair configured channels/providers that are missing managed runtime dependencies.
 26. **OpenAI auth login default changed** (v2026.5.12) — `openclaw models auth login --provider openai` starts the ChatGPT/Codex account login by default. Use `--method api-key` or `openclaw models auth setup-token --provider openai` for direct OpenAI API-key setups.
+27. **Node.js floor raised** (v2026.5.18) — use Node **22.19.0+** on the Node 22 line; Node 24 is recommended for fresh installs.
+28. **Skill execution compatibility removed** (v2026.5.20) — old `cat SKILL.md && printf ... && <skill-wrapper>` auto-allow patterns are gone; skills must be loaded through the read tool and only the real executable is auto-allowed.
+29. **SQLite-backed state migrations** (v2026.6.1-v2026.6.5) — plugin install indexes, inbound queues, auth profiles, and cron stores move toward SQLite-backed storage. Use `openclaw doctor --fix` before restart if legacy JSON cron/plugin state appears stale.
+30. **Key-free web search stays explicit opt-in** (v2026.6.8) — Parallel Free, DuckDuckGo, Ollama, and Codex Hosted Search are not selected automatically when no API-backed web-search provider is configured.
 
 ## Notable Additions in v2026.4.1-v2026.4.2
 
@@ -143,7 +147,7 @@ These stable releases filled several operational gaps after v2026.5.3:
 
 ## Notable Additions in v2026.5.12
 
-These are operationally important additions and reliability/security fixes in the latest stable release:
+These are operationally important additions and reliability/security fixes from the v2026.5.12 stable release:
 
 1. **Leaner installs through externalized packages** — WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones install only when configured, reducing core install size but making `openclaw plugins deps` / `doctor --fix` important after upgrade.
 2. **Telegram isolated ingress** — Bot API polling runs in an isolated worker with durable local spooling, better liveness detection, safer group-media handling, and preserved HTML/Markdown formatting for streamed and scheduled replies.
@@ -155,9 +159,35 @@ These are operationally important additions and reliability/security fixes in th
 8. **Plugin and install hardening** — pnpm 11 support, peer-dependency preservation, install scans scoped to plugin-owned runtime entrypoints, source/git install fixes, and managed plugin repair keep official and third-party plugins less brittle.
 9. **Security/provenance pass** — sandbox Windows home-root blocking, structured SecretRef env resolution, node pairing approval, delegated-session tool restriction inheritance, transcript redaction, Slack/QQBot approval authorization, browser/CDP auth, command approval parsing, hook authority limits, and webhook/rate-limit hardening landed across the stable line.
 
-## Prerelease Watch: v2026.5.14-beta.2
+## Notable Additions in v2026.5.18-v2026.5.28
 
-Do not make stable recommendations from prerelease-only features, but be aware of upcoming changes:
+These stable releases filled several operational gaps after v2026.5.12:
+
+1. **Node 22.19.0+ runtime floor** — v2026.5.18 raises the supported Node 22 line to 22.19.0 while keeping Node 24 recommended for new installs.
+2. **Typed plugin authoring CLI** — `openclaw plugins init`, `openclaw plugins validate`, and `openclaw plugins build` support typed simple tool plugins with generated manifest metadata and context factories.
+3. **Browser/dialog diagnostics** — browser snapshots surface pending modal dialogs, and `browser dialog --dialog-id` can answer pending dialogs.
+4. **Meeting Notes and richer voice/realtime paths** — Meeting Notes adds an external source-provider plugin and `openclaw meeting-notes` read-only CLI access; Discord/OpenAI realtime voice and mobile Talk sessions improve follow-up handling.
+5. **Policy, observability, and diagnostics** — bundled Policy plugin checks channel conformance, OpenTelemetry/Prometheus smoke aliases improve proof paths, and active subagent details appear in status output.
+6. **Provider/media expansion** — Claude Opus 4.8, MiniMax streaming music, Pixverse video, DeepInfra catalog browsing, OpenAI-compatible embeddings, NVIDIA featured models, Fal Krea image schemas, and encrypted ClawPDF extraction expand model and media coverage.
+7. **Official plugin split-out** — GitHub Copilot runtime, Tokenjuice, and Codex Supervisor move to official install-on-demand plugins with npm and ClawHub metadata.
+8. **Security and parsing hardening** — no-auth Tailscale exposure rejection, side-effecting command wrapper blocks, unsafe Node runtime env override blocks, stricter Teams service URL trust, group prompt boundary separation, and malformed input rejection reduce multi-user risk.
+
+## Notable Additions in v2026.6.1-v2026.6.8
+
+These are operationally important additions in the current stable line:
+
+1. **Skill Workshop** — guarded skill proposal apply/reject/quarantine workflows, support-file approval, revision frontmatter, rollback metadata, and Control UI review surfaces let operators manage skill changes safely.
+2. **Workboard and task-backed runs** — multi-agent planning, run tracking, task comments, and status persistence make agent coordination more durable.
+3. **SQLite-backed runtime state** — plugin install indexes, auth profiles, inbound queues, iMessage monitor state, and legacy cron JSON stores migrate toward SQLite-backed storage for reload-safe discovery and status.
+4. **Parallel web search provider** — bundled Parallel search adds onboarding, guarded `api.parallel.ai/v1/search` endpoint handling, API-key discovery, and cache-safe session IDs.
+5. **Usage footers and reply payload hooks** — `/usage`, default footer templates, fixed-decimal formatting, credential-aware limits, and broken-template warnings make usage reporting first-class.
+6. **Richer channel delivery** — Telegram structured text/tables/lists/expandable blockquotes, WhatsApp ACP bindings, Google Chat native approval cards, Matrix voice/thread context, QQBot mention toggles, and Feishu retry behavior improve day-to-day delivery.
+7. **Provider catalog/auth updates** — GLM-5.2, Claude Haiku 4.5, MiniMax M3, OpenRouter/Vertex provider normalization, Gemini isolated CLI auth profiles, SecretRef model entries, bounded model browsing, and safer OpenAI/Anthropic tool-schema recovery landed.
+8. **Agent recovery hardening** — yielded subagent pauses, reset archive fallbacks, generated media completions, restart shutdown aborts, session identity prompts, and Codex/app-server recovery paths preserve active work more reliably.
+
+## Historical Prerelease Watch: v2026.5.14-beta.2
+
+These prerelease-only notes were superseded by later stable releases. Keep them only as historical context when helping users upgrade from that beta line:
 
 1. **Codex migration** — the bundled `codex-cli` backend is being removed in favor of the Codex app-server route on `openai/*`, with legacy `codex-cli/*` model refs repaired during migration.
 2. **Per-agent bootstrap overrides** — agents can override `contextInjection`, `bootstrapMaxChars`, and `bootstrapTotalMaxChars` while inheriting defaults when omitted.
@@ -265,7 +295,7 @@ openclaw security audit --deep
 
 ## Installation Requirements
 
-- **Node.js**: v22.14.0 or higher (Node 24 recommended; NOT Bun - causes WhatsApp/Telegram issues)
+- **Node.js**: v22.19.0 or higher (Node 24 recommended; NOT Bun - causes WhatsApp/Telegram issues)
 - **macOS**: Native support
 - **Linux**: Native support (systemd recommended)
 - **Windows**: WSL2 required (Ubuntu recommended)
@@ -304,7 +334,7 @@ openclaw health
 ## When Helping Users
 
 1. **Always check status first** - Run `openclaw status --all` before making changes
-2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.5.12+)
+2. **Check version** - Ensure v2026.3.1+ for security and breaking change compatibility (recommend v2026.6.8+)
 3. **Validate config** - Run `openclaw config validate` before restarting the gateway
 4. **Preserve existing config** - Read config before modifying
 5. **Security first** - Default to restrictive settings (pairing mode, allowlists, tool denials, `tools.profile: "messaging"`)
@@ -430,14 +460,14 @@ openclaw config set agents.defaults.subagents.maxChildrenPerAgent 5
 
 ### Enable 1M Context Window (v2026.2.17+)
 
-For Anthropic models (Opus 4.7, Sonnet 4.7):
+For Anthropic models (Opus 4.8, Sonnet 4.7):
 ```bash
 openclaw config set agents.defaults.params.context1m true
 ```
 
 ### Configure Adaptive Thinking (v2026.3.1+)
 
-Claude 4.7 models use `"adaptive"` thinking level by default in current examples. Override if needed:
+Current Claude 4.x models use `"adaptive"` thinking level by default in examples. Override if needed:
 
 ```bash
 # Check current thinking level
@@ -559,7 +589,7 @@ openclaw models auth setup-token --provider xai
 # OpenAI (WebSocket-first transport in v2026.3.1+)
 openclaw models auth setup-token --provider openai
 
-# MiniMax (M2.7 catalog in v2026.3.28+)
+# MiniMax (M3 catalog in v2026.6.1+)
 openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+ — accepts Claude shorthand model refs)
@@ -568,11 +598,17 @@ openclaw models auth setup-token --provider vercel-ai
 # OpenAI Codex (v2026.4.12+ — PI OAuth route; for ChatGPT/Codex subscriptions, prefer openai/gpt-* with agentRuntime.id: "codex")
 openclaw models auth setup-token --provider openai-codex
 
-# NVIDIA (v2026.4.29+ — hosted NVIDIA models)
+# NVIDIA (v2026.4.29+ — hosted NVIDIA models; featured catalog refreshed in v2026.5.28+)
 openclaw models auth setup-token --provider nvidia
 
 # LM Studio (v2026.4.12+ — local/self-hosted OpenAI-compatible with runtime discovery and memory-search embeddings)
 openclaw models auth setup-token --provider lmstudio
+
+# DeepInfra (full credential-aware catalog browsing in v2026.5.27+)
+openclaw models auth setup-token --provider deepinfra
+
+# Z.AI / GLM (GLM-5.2 catalog support in v2026.6.8+)
+openclaw models auth setup-token --provider zai
 ```
 
 ## Error Patterns
