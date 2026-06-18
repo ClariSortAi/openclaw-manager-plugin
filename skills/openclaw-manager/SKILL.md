@@ -608,7 +608,8 @@ openclaw models auth setup-token --provider lmstudio
 openclaw models auth setup-token --provider deepinfra
 
 # Z.AI / GLM (GLM-5.2 catalog support in v2026.6.8+)
-openclaw models auth setup-token --provider zai
+# Confirm the canonical provider id in your installed version before auth setup.
+openclaw models list
 ```
 
 ## Error Patterns

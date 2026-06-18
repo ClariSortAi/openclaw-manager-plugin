@@ -314,7 +314,7 @@ openclaw models auth setup-token --provider lmstudio       # LM Studio local/sel
 openclaw models auth setup-token --provider nvidia         # NVIDIA hosted models (v2026.4.29+)
 openclaw models auth setup-token --provider deepinfra      # DeepInfra full catalog browsing (v2026.5.27+)
 openclaw models auth setup-token --provider minimax        # MiniMax M3 and music/media surfaces (v2026.6.1+)
-openclaw models auth setup-token --provider zai            # Z.AI/GLM, including GLM-5.2 (v2026.6.8+)
+openclaw models list                                      # Confirm canonical Z.AI/GLM provider id before GLM-5.2 auth setup (v2026.6.8+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)

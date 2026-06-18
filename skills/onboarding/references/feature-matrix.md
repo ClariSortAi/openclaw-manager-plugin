@@ -116,7 +116,7 @@ OpenClaw is provider-agnostic. Pick based on priorities — quality, cost, speed
 | Vercel AI | `setup-token --provider vercel-ai` | Gateway with model routing | Varies |
 | NVIDIA | `setup-token --provider nvidia` | Hosted NVIDIA catalog with featured models | API usage fees |
 | DeepInfra | `setup-token --provider deepinfra` | Full credential-aware model catalog browsing | API usage fees |
-| Z.AI / GLM | `setup-token --provider zai` | GLM-5.2 catalog support | API usage fees |
+| Z.AI / GLM | Confirm provider id with `openclaw models list` | GLM-5.2 catalog support | API usage fees |
 
 ### By Use Case
 
