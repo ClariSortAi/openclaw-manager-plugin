@@ -37,7 +37,7 @@ openclaw config set agents.defaults.model "<provider>/<model>"
 
 # Examples by provider:
 #   anthropic/claude-sonnet-4-7  (good balance of quality and cost)
-#   anthropic/claude-opus-4-7    (highest quality, most expensive)
+#   anthropic/claude-opus-4-8    (highest quality, most expensive)
 #   anthropic/claude-haiku-4-5   (budget-friendly, fast)
 #   openai/gpt-4o               (OpenAI alternative)
 #   ollama/llama3                (free, local, private)

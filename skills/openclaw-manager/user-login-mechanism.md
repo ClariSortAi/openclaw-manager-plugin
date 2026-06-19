@@ -125,6 +125,8 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.6.1+` note: auth profile writes are more atomic, auth failures dispatch by type, agent auth health labels are clearer, and exhausted-failover recovery is more actionable.
+`v2026.6.8+` note: SecretRef-backed model auth profiles are honored during model routing, model browsing is bounded, and HTTP session/model override surfaces require admin privileges.
 
 **Process:**
 1. Run the command
@@ -224,6 +226,8 @@ openclaw models auth setup-token --provider minimax
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
 ```
+
+In v2026.6.8+, GLM-5.2 and Claude Haiku 4.5 catalog entries are available, provider-qualified ids normalize across OpenRouter/Google Vertex paths, and key-free web-search providers remain explicit opt-ins rather than automatic fallbacks.
 
 ### Verifying Model Authentication
 

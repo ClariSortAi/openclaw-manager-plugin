@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.8+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, richer Telegram/WhatsApp delivery, Codex/OpenAI auth recovery, SQLite-backed state repair, usage footer fixes, model/search catalog hardening, and channel/provider reliability improvements, upgrade to **v2026.6.8+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -309,6 +309,23 @@ openclaw gateway restart
 openclaw channels logout
 openclaw channels login
 ```
+
+#### WhatsApp: Replies Use the Wrong Profile or ACP Binding Is Ignored
+**Symptoms:** A configured WhatsApp account is linked, but replies use the wrong credential/profile root, QR login recovery is flaky, or configured ACP bindings are ignored for WhatsApp delivery.
+
+**Cause:** v2026.5.28-v2026.6.8 fixed WhatsApp profile auth roots, QR display/retry behavior, per-account config restarts, captured replies after restart, media error reporting, and ACP binding delivery.
+
+**Fix:**
+```bash
+# Upgrade and repair managed channel dependencies
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw plugins deps
+openclaw doctor --fix
+openclaw gateway restart
+openclaw channels status --channel whatsapp
+```
+
+If a single account remains wrong, verify `channels.whatsapp.accounts.<account>` config before logging out/relinking.
 
 #### Telegram: Bot Not Responding
 **Symptoms:** Messages not processed
@@ -329,7 +346,7 @@ openclaw gateway restart
 #### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
 **Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
 
-**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active. v2026.6.6-v2026.6.8 further improves account-scoped topics, streamed text across tool calls, callback/draft coherence, unauthorized-DM cache isolation, and rich final replies with tables/lists/expandable blockquotes.
 
 **Fix:**
 ```bash
@@ -342,6 +359,21 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Rich Final Replies Lose Structure
+**Symptoms:** Telegram replies lose tables, list formatting, intentional line breaks, or expandable blockquotes; CLI-backed replies look less rich than expected.
+
+**Cause:** Rich Telegram final-reply rendering and structured text preservation landed across v2026.6.8, with additional prerelease improvements in v2026.6.9-beta.1.
+
+**Fix:**
+```bash
+# Upgrade to current stable first
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+Do not depend on beta-only rich HTML/sticker-path behavior until it reaches a stable release.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +591,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.8+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -587,7 +619,7 @@ openclaw gateway restart
 #### Configured Channel or Provider Disappears After Upgrade
 **Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
 
-**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. v2026.6.1-v2026.6.8 adds official plugin drift detection, SQLite-backed install indexes, nonfatal soft repair warnings, and managed repair for missing required platform packages. Existing configs may need managed plugin dependency repair after upgrade.
 
 **Fix:**
 ```bash
@@ -603,6 +635,20 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Official Plugin Repair Repeats or Reports Version Drift
+**Symptoms:** `openclaw plugins list --json` or `openclaw status --deep` repeatedly reports managed plugin drift, missing platform packages, or soft repair warnings after update.
+
+**Cause:** Current releases moved more official runtime/provider payloads into managed packages, and v2026.6.8 repairs missing required platform packages including Codex platform binaries.
+
+**Fix:**
+```bash
+openclaw plugins list --json
+openclaw plugins deps
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,12 +744,39 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required for current stable packages; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
 openclaw status
 ```
+
+#### Key-Free Web Search Does Not Start Automatically
+**Symptoms:** `web_search` says no API-backed provider is configured even though key-free providers such as DuckDuckGo, Ollama, Parallel Free, or Codex Hosted Search exist.
+
+**Cause:** v2026.6.8 keeps key-free search providers as explicit opt-ins instead of surprising automatic fallbacks.
+
+**Fix:**
+```bash
+# Review configured web-search providers and enable the intended one explicitly.
+openclaw config validate
+openclaw status --deep
+```
+
+Use `openclaw config schema` and provider docs to confirm the current provider-specific config path before setting keys or enabling key-free providers.
+
+#### Usage Footer Looks Wrong or Missing
+**Symptoms:** `/usage` or reply usage footers have bad decimal formatting, partial counts, credential-aware limit issues, or silently fail to render.
+
+**Cause:** Native full footer rendering, default templates, fixed-decimal formatting, credential-aware limits, partial-count handling, and broken-template warnings landed in v2026.6.8.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+```
+
+If using a custom footer template, check logs for the v2026.6.8 broken-template warning instead of assuming usage collection failed.
 
 #### Recovery Commands Fail on Stale `plugins.allow` or Removed Plugin Refs
 **Symptoms:** `openclaw status`, `openclaw doctor --fix`, or plugin recovery commands fail after plugin removal with errors around unknown plugin ids.
@@ -818,7 +891,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.8+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -1063,7 +1136,7 @@ openclaw config get agents.defaults.pdfMaxBytesMb
 **Fix:**
 ```bash
 # Ensure a supported model is configured (Anthropic or Google)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 
 # Increase size limits if needed
 openclaw config set agents.defaults.pdfMaxBytesMb 50
