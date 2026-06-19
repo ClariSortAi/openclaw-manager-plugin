@@ -59,11 +59,12 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.8` stable note: current stable is published as `v2026.6.8`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
-### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
+### Chat Commands (v2026.5.3+; expanded in v2026.5.12 and v2026.6.8)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
+/btw <question>     # Side question; supported in CLI-backed sessions in v2026.6.8+
 /side <question>    # Alias for /btw side questions (text and native slash command)
 /context map        # Send a treemap image of current session context contributors (v2026.5.12+)
 ```
@@ -197,6 +198,10 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
 
+`v2026.6.1+` official-plugin note: GitHub Copilot runtime (`@openclaw/copilot`) and Tokenjuice (`@openclaw/tokenjuice`) are externalized official install-on-demand plugins, and `plugins list --json` avoids loading the full runtime status graph during snapshot-only checks.
+
+`v2026.6.8+` repair note: managed plugin installs and updates repair missing required platform packages, including Codex platform binaries. If package payload repair repeats, run `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all` before restarting.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -301,6 +306,8 @@ openclaw models auth setup-token --provider openai-codex   # PI OAuth route; Cha
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
 ```
 
+`v2026.6.8+` model/search note: GLM-5.2 and Claude Haiku 4.5 catalog rows are supported, provider-qualified ids normalize across OpenRouter/Google Vertex paths, and key-free web-search providers such as Parallel Free, DuckDuckGo, Ollama, and Codex Hosted Search remain explicit opt-ins rather than automatic fallbacks.
+
 ### Container-Targeted CLI Execution (v2026.3.24+)
 ```bash
 # Run OpenClaw command against an active Docker/Podman container
@@ -338,7 +345,7 @@ openclaw config set channels.whatsapp.dmPolicy pairing
 
 # Agent settings
 openclaw config get agents.defaults.model
-openclaw config set agents.defaults.model "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.model "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.sandbox.mode all
 openclaw config set agents.defaults.sandbox.workspaceAccess none
 openclaw config set agents.defaults.sandbox.scope agent
@@ -395,7 +402,7 @@ openclaw config set acp.dispatch.enabled false
 # ACP runtime fallbacks (v2026.5.12+)
 openclaw config set acp.fallbacks '["<backup-runtime-id>"]'
 
-# Adaptive thinking (v2026.3.1+; current Claude 4.7 examples use "adaptive")
+# Adaptive thinking (v2026.3.1+; current Claude examples use "adaptive")
 openclaw config set agents.defaults.params.thinkingLevel "adaptive"
 
 # Fast mode (v2026.3.12+; provider/model dependent)
@@ -442,7 +449,7 @@ openclaw config set skills.install.allowUploadedArchives false
 openclaw config set talk.silenceTimeoutMs 1500
 
 # PDF tool (v2026.3.2+)
-openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-7"
+openclaw config set agents.defaults.pdfModel "anthropic/claude-opus-4-8"
 openclaw config set agents.defaults.pdfMaxBytesMb 50
 openclaw config set agents.defaults.pdfMaxPages 200
 
