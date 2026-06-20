@@ -59,12 +59,13 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.8` stable note: current stable is published as `v2026.6.8` and requires Node `v22.19.0+`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
-### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
+### Chat Commands (v2026.5.3+; expanded in v2026.5.12 and v2026.6.8)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
+/btw <question>     # Side question; supported in CLI-backed sessions in v2026.6.8+
 /context map        # Send a treemap image of current session context contributors (v2026.5.12+)
 ```
 
@@ -197,6 +198,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
 
+`v2026.6.x` plugin note: official install-on-demand plugins now include GitHub Copilot, Tokenjuice, Codex Supervisor, and bundled provider/search packages such as Parallel. `openclaw status --deep` and `openclaw doctor --fix` provide better managed-plugin version drift and convergence repair diagnostics.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -260,6 +263,10 @@ openclaw secrets audit           # Audit all SecretRef targets
 ```bash
 openclaw proxy validate          # Verify effective proxy config and destination allow/deny behavior
 ```
+
+### Web Search Providers (v2026.6.5+; default behavior clarified in v2026.6.8)
+
+Parallel is available as a bundled `web_search` provider. Key-free providers such as Parallel Free, DuckDuckGo, Ollama, and Codex Hosted Search remain explicit opt-ins; if no API-backed provider is configured, OpenClaw should not silently select a key-free fallback. Use onboarding or `openclaw config schema` to confirm the canonical provider config path for your installed version before enabling one in production.
 
 ### Webhooks
 ```bash
@@ -542,6 +549,10 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
+| GitHub Copilot | `@openclaw/copilot` | Official Copilot agent runtime plugin, externalized in v2026.6.1 |
+| Tokenjuice | `@openclaw/tokenjuice` | Official token/usage analysis plugin, externalized in v2026.6.1 |
+| Codex Supervisor | official package | Delegated Codex workflow plugin path introduced in v2026.5.28 |
+| Parallel Search | bundled | Parallel `web_search` provider; key-free variants remain explicit opt-ins (v2026.6.5+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
 

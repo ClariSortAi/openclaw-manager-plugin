@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.8+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.8+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram/WhatsApp rich delivery, Codex/OpenAI auth recovery, SQLite state hardening, web-search opt-in safety, and channel/provider reliability improvements, upgrade to **v2026.6.8+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -329,7 +329,7 @@ openclaw gateway restart
 #### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
 **Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
 
-**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+**Cause:** Older builds used less isolated Bot API polling, weaker group-media filtering, and less capable rich-message handling. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, and v2026.6.8 improves structured text, rich Markdown line breaks, tables, lists, expandable blockquotes, final replies, and CLI-backed replies while still skipping unmentioned group media before download when `requireMention` is active.
 
 **Fix:**
 ```bash
@@ -341,7 +341,7 @@ openclaw gateway restart
 openclaw channels status --channel telegram
 ```
 
-If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12+ keeps polling liveness tied to `getUpdates`, and v2026.6.x adds better spooled replay and rich-progress recovery so duplicate-poller or token-rotation issues surface more clearly.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.8+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -587,7 +587,7 @@ openclaw gateway restart
 #### Configured Channel or Provider Disappears After Upgrade
 **Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
 
-**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. v2026.6.x adds more official plugin packages, managed plugin version-drift diagnostics, and convergence repair. Existing configs may need managed plugin dependency repair after upgrade.
 
 **Fix:**
 ```bash
@@ -667,6 +667,41 @@ openclaw config validate
 openclaw config get plugins.entries.firecrawl.config.webFetch
 ```
 
+#### Web Search Uses the Wrong Provider or a Key-Free Fallback
+**Symptoms:** `web_search` runs through Parallel Free, DuckDuckGo, Ollama, or Codex Hosted Search when you expected an API-backed provider, or onboarding reports a key-free provider as ready unexpectedly.
+
+**Cause:** v2026.6.5 adds Parallel as a bundled search provider, and v2026.6.8 clarifies that key-free search providers must remain explicit opt-ins rather than silent fallbacks.
+
+**Fix:**
+```bash
+# Upgrade to current stable so provider defaults are predictable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Inspect the canonical config shape for your installed version
+openclaw config schema
+openclaw config validate
+openclaw status --deep
+```
+
+If you intentionally use a key-free provider, document that choice in the gateway config and verify one production query before relying on it.
+
+#### State Database or Memory Index Is Unstable on NFS
+**Symptoms:** SQLite busy errors, memory reindex rollback artifacts, or state/database churn appears after moving `OPENCLAW_STATE_DIR` to an NFS or network-mounted path.
+
+**Cause:** Older builds could use SQLite WAL behavior that is unsafe or brittle on network filesystems. v2026.6.8 avoids WAL on NFS/network state volumes and improves reindex rollback recovery.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Repair and validate state after upgrade
+openclaw doctor --fix
+openclaw status --deep
+```
+
+Prefer local disk for active OpenClaw state whenever possible; use backups or filesystem-level replication for durability instead of sharing the live SQLite directory.
+
 #### Container-Targeted CLI Command Runs Against the Wrong OpenClaw Instance
 **Symptoms:** You expect a command to run in Docker/Podman, but it executes against the local host runtime (or vice versa).
 
@@ -690,7 +725,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Current stable `v2026.6.8` requires Node `v22.19.0+`. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,7 +733,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required for current stable; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +853,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.8+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
