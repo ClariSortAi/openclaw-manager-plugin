@@ -125,6 +125,9 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.5.12+` note: OpenAI `models auth login --provider openai` defaults to ChatGPT/Codex account login; pass `--method api-key` or use `models auth setup-token --provider openai` for direct API-key setup.
+`v2026.6.x` note: auth profiles, plugin install indexes, inbound queues, and more channel state are increasingly SQLite-backed; run `openclaw doctor --fix` after upgrade if status reports migration or managed-plugin drift.
+`v2026.6.8+` note: SecretRef-backed model auth is honored for configured model entries, and HTTP session/model override surfaces require admin privileges.
 
 **Process:**
 1. Run the command
@@ -209,6 +212,12 @@ openclaw models auth setup-token --provider anthropic
 # OpenAI
 openclaw models auth setup-token --provider openai
 
+# OpenAI account login (v2026.5.12+ defaults to ChatGPT/Codex account flow)
+openclaw models auth login --provider openai
+
+# Direct OpenAI API-key login when you do not want the account flow
+openclaw models auth login --provider openai --method api-key
+
 # xAI / Grok (v2026.2.6+)
 openclaw models auth setup-token --provider xai
 
@@ -223,7 +232,21 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex PI OAuth route (v2026.4.12+)
+openclaw models auth setup-token --provider openai-codex
+
+# NVIDIA hosted models (v2026.4.29+)
+openclaw models auth setup-token --provider nvidia
+
+# LM Studio local/self-hosted provider (v2026.4.12+)
+openclaw models auth setup-token --provider lmstudio
 ```
+
+Recent model/provider notes:
+- v2026.6.1 adds MiniMax M3 support and keeps public OpenAI API-key profiles separate from native Codex app-server auth.
+- v2026.6.6 adds OpenRouter OAuth onboarding and Claude Fable 5 adaptive-thinking support.
+- v2026.6.8 adds GLM-5.2 and Claude Haiku 4.5 catalog coverage, bounded model browsing, and managed SecretRef auth fixes.
 
 ### Verifying Model Authentication
 
