@@ -125,6 +125,7 @@ openclaw channels login --account secondary
 `v2026.4.14+` note: Slack interactive actions now enforce global owner allowlist intent with stricter sender checks; validate `allowFrom` and pairing ownership if button/modal flows start failing.
 `v2026.4.15+` note: gateway bearer auth rotation now applies consistently to HTTP routes (`/v1/*`, `/tools/invoke`, plugin routes) after `openclaw secrets reload`/config hot reload, without waiting for a full gateway restart.
 `v2026.5.3+` note: Gateway startup and hot reload fail closed on invalid config instead of auto-restoring a previous snapshot; validate config and use `openclaw doctor --fix` for safe repair workflows.
+`v2026.6.9+` note: standalone official provider packages load through the plugin/provider path at Gateway startup; if a channel or provider disappears after upgrade, repair dependency state with `openclaw plugins deps`, `openclaw plugins update --all`, and `openclaw doctor --fix`.
 
 **Process:**
 1. Run the command
@@ -223,7 +224,15 @@ openclaw models auth setup-token --provider minimax
 
 # Vercel AI Gateway (v2026.2.23+)
 openclaw models auth setup-token --provider vercel-ai
+
+# OpenAI Codex PI route / Codex app-server SecretRefs (v2026.6.9+)
+openclaw models auth setup-token --provider openai-codex
+
+# StepFun official provider plugin (v2026.6.9+)
+openclaw models auth setup-token --provider stepfun
 ```
+
+`v2026.6.9+` Codex note: app-server auth supports SecretRefs, GPT-5.3 Spark OAuth routing is repaired, and legacy route persistence is handled by `openclaw doctor --fix`. Verify saved profiles with `openclaw models auth list --provider openai` after migration.
 
 ### Verifying Model Authentication
 

@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.9+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.9+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram rich delivery, Codex app-server recovery, SQLite storage hardening, Gateway diagnostics, and channel/provider reliability improvements, upgrade to **v2026.6.9+**.
 
 ## Common Issues
 
@@ -66,6 +66,8 @@ openclaw gateway start
 # v2026.3.13+: fail hard if RPC is unavailable (scope-limited probe RPC is treated as degraded)
 openclaw gateway status --require-rpc
 ```
+
+In v2026.6.10-beta.1, Gateway probes distinguish reachable-but-errored from unreachable. Treat that as prerelease watch-only, but use the distinction when evaluating beta diagnostics.
 
 **Fix:**
 ```bash
@@ -184,6 +186,22 @@ openclaw models auth setup-token --provider openai
 openclaw models auth list --provider openai
 ```
 
+#### Codex App-Server Auth or Legacy Route Fails After Upgrade
+**Symptoms:** Codex app-server turns fail after migration, legacy `codex-cli/*` model refs persist unexpectedly, or SecretRef-backed Codex credentials are not being picked up.
+
+**Cause:** v2026.6.9 adds Codex app-server SecretRefs, auto plugin approvals, GPT-5.3 Spark OAuth routing, remote-node `exec`, and route-repair fixes. Older builds can leave stale route/auth state.
+
+**Fix:**
+```bash
+# Upgrade to current stable
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Repair legacy route/provider state and verify auth profiles
+openclaw doctor --fix
+openclaw models auth list --provider openai
+openclaw status --deep
+```
+
 #### Anthropic OAuth Token Rejected
 **Symptoms:** `OAuth token rejected`, `unauthorized`, or auth failures when using Anthropic models
 
@@ -300,7 +318,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -329,7 +347,7 @@ openclaw gateway restart
 #### Telegram: Polling Stalls, Formatting Is Lost, or Group Media Triggers Unwanted Replies
 **Symptoms:** Telegram stops processing inbound updates, streamed/scheduled replies show literal HTML/Markdown markup, or group media without a bot mention still causes media-download errors.
 
-**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active.
+**Cause:** Older builds used less isolated Bot API polling and weaker group-media filtering. v2026.5.12 moves Telegram ingress to an isolated worker with durable local spooling, preserves supported HTML/Markdown formatting, and skips unmentioned group media before download when `requireMention` is active. v2026.6.9 further improves rich HTML, Markdown line breaks, sticker paths, table normalization, progress drafts, structured send errors, and spooled handler recovery.
 
 **Fix:**
 ```bash
@@ -342,6 +360,20 @@ openclaw channels status --channel telegram
 ```
 
 If polling still appears wedged, check whether the same bot token is running in another gateway; v2026.5.12 keeps polling liveness tied to `getUpdates` so duplicate-poller or token-rotation issues surface more clearly.
+
+#### Telegram: Rich HTML, Tables, Stickers, or Progress Drafts Render Incorrectly
+**Symptoms:** Telegram messages show escaped HTML, broken tables, missing sticker paths, or plain progress text instead of rich previews.
+
+**Cause:** The v2026.6.9 stable release includes the rich Telegram delivery fixes. Older versions may lose rich Markdown line breaks, table escaping, progress draft formatting, or Bot API rich-message handling.
+
+**Fix:**
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+If you intentionally disabled rich Telegram messages, verify that setting before changing formatter behavior.
 
 #### Telegram: Inbound Media Attachments Fail Intermittently
 **Symptoms:** Telegram text messages work, but inbound media (images/files) intermittently fails to process or download.
@@ -559,7 +591,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.9+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -603,6 +635,21 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Official Provider Plugin or StepFun Disappears After Upgrade
+**Symptoms:** A configured official provider package, StepFun, Codex Hosted Search, Copilot, Tokenjuice, or Codex Supervisor path is missing from status after an upgrade.
+
+**Cause:** v2026.6.9 makes standalone official provider packages first-class npm/ClawHub installs and loads externally installed channel plugins at Gateway startup. Stale plugin indexes or partial installs can hide configured providers.
+
+**Fix:**
+```bash
+openclaw plugins list --json
+openclaw plugins deps
+openclaw doctor --fix
+openclaw plugins update --all
+openclaw gateway restart
+openclaw status --deep
+```
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -698,7 +745,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +865,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.9+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
@@ -853,6 +900,21 @@ openclaw doctor --fix
 openclaw cron list
 openclaw cron runs
 ```
+
+#### Cron Runs Forcefully or Isolated Delivery Fails After Upgrade
+**Symptoms:** A cron job no longer force-runs during inspection, or isolated delivery fails with missing/implicit target errors.
+
+**Cause:** v2026.6.9 keeps safer cron delivery defaults: `runMode` defaults to `"due"` instead of `"force"`, and keyless implicit isolated delivery inherited from shared agent-main state is refused.
+
+**Fix:**
+```bash
+openclaw cron list --json
+openclaw cron get <id>
+openclaw cron edit <id>
+openclaw doctor --fix
+```
+
+Confirm each isolated job has an explicit delivery target before relying on scheduled output.
 
 #### Isolated Cron Jobs Stall or Hang (Fixed in v2026.3.13+ / tag `v2026.3.13-1`)
 **Symptoms:** Isolated cron jobs occasionally stop progressing, especially when nested lane execution is involved.
@@ -925,6 +987,37 @@ openclaw sessions cleanup
 openclaw config set session.maintenance.maxDiskBytes 1073741824
 openclaw config set session.maintenance.highWaterBytes 858993459
 ```
+
+#### Empty `chat.history`, Lost Subagent Completion, or Follow-Up Drain Stalls
+**Symptoms:** Interrupted turns finish without a visible final reply, `chat.history` is empty, subagent completion announcements disappear, media fields drift, or queued follow-ups stop draining.
+
+**Cause:** v2026.6.9 and the v2026.6.10-beta.1 prerelease include fixes for non-empty histories, pending subagent completions, media index alignment, fresh usage after compaction, and dormant follow-up drain restart.
+
+**Fix:**
+```bash
+# Upgrade to current stable first
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+
+# Inspect sessions and start a fresh turn if the old transcript was already damaged
+openclaw sessions list
+openclaw status --all
+```
+
+Use prerelease-only fixes only when you are deliberately testing beta behavior.
+
+#### Doctor Warns About Volatile SQLite State
+**Symptoms:** `openclaw doctor` warns that SQLite-backed state is volatile, or sessions/auth profiles behave inconsistently on network/NFS storage.
+
+**Cause:** v2026.6.9 avoids SQLite WAL on network filesystems, and v2026.6.10-beta.1 surfaces volatile SQLite state more clearly. OpenClaw state should live on durable local storage for production gateways.
+
+**Fix:**
+```bash
+openclaw doctor --fix
+openclaw status --all
+```
+
+If the warning persists, move OpenClaw state off ephemeral or network-mounted storage and restart the gateway.
 
 ### Tools Profile Issues (v2026.3.2+)
 
