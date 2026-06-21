@@ -59,13 +59,15 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.9` stable note: current stable is published as `v2026.6.9` and requires Node.js `>=22.19.0`. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
-### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
+### Chat Commands (v2026.5.3+; expanded in v2026.5.12 and v2026.6.10-beta.1)
 ```bash
 /steer <guidance>   # Guide the active current-session run without starting a new turn
 /side <question>    # Alias for /btw side questions (text and native slash command)
 /context map        # Send a treemap image of current session context contributors (v2026.5.12+)
+/name <title>       # Rename the current session from chat (v2026.6.10-beta.1 watch)
+/compact            # Explicitly compact the current session (v2026.6.10-beta.1 watch)
 ```
 
 ### Exec Policy (v2026.4.12+)
@@ -122,6 +124,8 @@ openclaw cron add --name "Digest" --cron "0 8 * * *" --message "Summarize inbox"
 ```
 
 `v2026.5.7+` cron status note: `openclaw cron list --json` and `openclaw cron show --json` include computed `status` values such as `disabled`, `running`, `ok`, `error`, `skipped`, and `idle`. In v2026.5.12+, use `openclaw cron get <id>` for a single stored job.
+
+`v2026.6.9+` cron default note: cron `runMode` now defaults to `"due"` instead of force-running, and implicit isolated delivery without an explicit target is rejected. Inspect migrated jobs with `openclaw cron list --json` and `openclaw cron get <id>` before relying on post-upgrade delivery behavior.
 
 ### Background Task Flows (v2026.3.31+, expanded in v2026.4.2)
 ```bash
@@ -197,6 +201,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
 
+`v2026.6.9+` official provider note: external provider packages are first-class npm/ClawHub installs, externally installed channel plugins load at Gateway startup, and StepFun is available through the official provider plugin path. If a configured provider/channel disappears after upgrade, repair with `openclaw plugins deps`, `openclaw plugins update --all`, and `openclaw doctor --fix`.
+
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
 `v2026.3.23+` recovery note: stale unknown `plugins.allow` ids are treated as warnings (not fatal), and `openclaw doctor --fix` prunes stale `plugins.allow` and `plugins.entries` references left behind after removals.
@@ -220,6 +226,7 @@ openclaw agents set-identity <id>  # Update agent identity
 openclaw sessions list         # List active sessions
 openclaw sessions list --limit 25  # Bound session table output (v2026.5.4+)
 openclaw sessions cleanup      # Clean up old sessions (respects disk budget)
+openclaw sessions compact <session-id>  # Compact a session explicitly (v2026.6.10-beta.1 watch)
 ```
 
 Session disk budget controls:
@@ -289,6 +296,8 @@ openclaw backup verify <path>          # Verify backup archive manifest/payload
 openclaw dashboard           # Open Control UI
 openclaw logs                # View logs
 openclaw message             # Send messages
+openclaw message send --dry-run  # Preview send output without delivery (v2026.6.10-beta.1 watch)
+openclaw message poll --dry-run  # Preview poll output without side effects (v2026.6.10-beta.1 watch)
 openclaw models list         # List available models
 openclaw models auth         # Configure model auth
 openclaw models auth list    # List saved auth profiles without secrets (v2026.5.4+)
@@ -299,6 +308,7 @@ openclaw models auth setup-token --provider anthropic      # Direct API key setu
 openclaw models auth setup-token --provider openai         # Direct OpenAI API key setup
 openclaw models auth setup-token --provider openai-codex   # PI OAuth route; ChatGPT/Codex subscriptions normally use openai/gpt-* with agentRuntime.id: "codex"
 openclaw models auth setup-token --provider lmstudio       # LM Studio local/self-hosted (v2026.4.12+)
+openclaw models auth setup-token --provider stepfun        # StepFun official provider plugin (v2026.6.9+)
 ```
 
 ### Container-Targeted CLI Execution (v2026.3.24+)
@@ -437,7 +447,6 @@ openclaw config set channels.slack.replyBroadcast false
 # Uploaded skill archives are disabled unless explicitly trusted (v2026.5.12+)
 openclaw config set skills.install.allowUploadedArchives false
 
-
 # Talk mode auto-send timeout (v2026.3.8+)
 openclaw config set talk.silenceTimeoutMs 1500
 
@@ -494,6 +503,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_EAGER_BROWSER_CONTROL_SERVER` | Start the browser-control server eagerly when required by browser automation setups (v2026.6.9+) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |
@@ -544,6 +554,14 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |
+
+### Official Provider Plugins (v2026.6.9+)
+
+| Provider Plugin | Install Path | Notes |
+|-----------------|--------------|-------|
+| StepFun | npm or ClawHub official provider package | First-class external provider package; configure auth with `openclaw models auth setup-token --provider stepfun` |
+| Codex Hosted Search | bundled/provider package path | Optional web-search provider; key-free search providers remain opt-in |
+| Copilot / Tokenjuice / Codex Supervisor | official provider packages | Use `openclaw plugins deps` and `openclaw doctor --fix` if an upgraded gateway has stale provider entries |
 
 Plugin slots allow exclusive categories (e.g., only one memory plugin active):
 ```bash
