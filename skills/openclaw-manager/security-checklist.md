@@ -12,7 +12,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.5.12+**.
+The v2026.3.x line adds gateway auth bypass prevention, webhook auth enforcement, ACP sandbox inheritance, config backup permission hardening, SSRF DNS pinning, and macOS umask hardening on top of the 40+ fixes in v2026.2.12. For latest hardening and recovery tooling, prefer **v2026.6.9+**.
 
 ### Known Critical Vulnerabilities
 
@@ -141,6 +141,16 @@ A January 2026 audit identified 512 total vulnerabilities (8 critical). Over 70 
 | Browser/CDP relay authentication | Sandbox browser CDP relay access requires authentication | v2026.5.12 |
 | Hook and gateway command authority limits | Hook CLI tools and gateway command scopes are constrained by caller context and requester metadata | v2026.5.12 |
 | Parser/input hardening | Exec approval command forms, malformed Host/path/JSON/base64 inputs, streamable MCP redirects, and exported markdown links receive stable fail-closed parsing and redaction behavior | v2026.5.12 |
+| Node runtime floor | OpenClaw's Node 22 line requires Node.js 22.19+; older service, Docker, or WSL runtimes fail update/install preflights | v2026.5.18 |
+| Exec approval and host env hardening | Exec approval realpath binding, approval-timeout fail-closed behavior, side-effecting command-wrapper blocking, unsafe Node/runtime env override blocking, rustup/git protocol env controls, and expanded stdio env filtering reduce wrapper and environment pivots | v2026.5.18-v2026.6.6 |
+| Group/content boundary enforcement | Untrusted group prompt text stays out of system prompts, browser/LanceDB media directives are neutralized, and transcript images plus trajectory exports are redacted consistently | v2026.5.27-v2026.6.6 |
+| Tailscale and node authority | No-auth Tailscale exposure is rejected, node pairing requests are rate-limited, and node/device-role approvals require admin authority | v2026.5.27-v2026.6.5 |
+| Teams/Discord/QQBot action authorization | Untrusted Teams service URLs are blocked, Teams group actions and Discord moderation paths require the correct sender/admin authority, and QQBot fallback approval buttons honor slash-command authorization | v2026.5.27-v2026.6.6 |
+| Sandbox and browser boundaries | Sandbox bind parent paths, discovered CDP WebSocket URLs, browser tool timeouts, screenshot/snapshot routes, invalid tab indexes, and unsafe viewport/permission/geolocation inputs fail closed | v2026.5.28-v2026.6.6 |
+| MCP/search policy hardening | MCP HTTP redirects and stdio environments are filtered, OAuth/SSE headers are normalized, and native web-search tool policy is enforced so disabled/unauthorized search paths do not silently run | v2026.6.5-v2026.6.8 |
+| Admin-only HTTP overrides | HTTP session and model override surfaces require admin privileges, and internal HTTP session overrides are blocked | v2026.6.8-v2026.6.9 |
+| Plugin ownership and install policy | Plugin write ownership checks, install-policy wrappers, package-boundary validation, and official-plugin recovery hardening prevent unowned plugin mutations from bypassing operator intent | v2026.6.6-v2026.6.9 |
+| Debug/config secret redaction | Debug and config output redacts secrets, auth-profile CLI prompts mask pasted tokens/passwords, and managed SecretRef provider auth resolution avoids leaking provider credentials | v2026.6.8-v2026.6.9 |
 
 **Government advisories:**
 - Belgium's Centre for Cybersecurity issued an emergency advisory classifying CVE-2026-25253 as critical
@@ -421,7 +431,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 ## Security Hardening Checklist
 
 ### Version & Patches
-- [ ] Running v2026.3.1 or later (recommend v2026.5.12+ for latest externalized-plugin repair, Telegram reliability, Codex/OpenAI auth, Gateway protocol, and security/provenance hardening)
+- [ ] Running v2026.3.1 or later (recommend v2026.6.9+ for latest provider-plugin repair, rich Telegram delivery, Codex/agent recovery, SQLite state repair, and security/provenance hardening)
 - [ ] `auth: "none"` not present in config (permanently removed in v2026.1.29)
 - [ ] If both `gateway.auth.token` and `gateway.auth.password` exist, `gateway.auth.mode` is explicitly set (v2026.3.7+)
 - [ ] If using `trusted-proxy`, shared-token/mixed-auth fallback assumptions are removed and same-host callers still present a valid token (v2026.3.31+)
@@ -432,6 +442,10 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 - [ ] If enabling file-transfer, configure `plugins.entries.file-transfer.config.nodes` as default-deny per node and keep `followSymlinks` disabled unless the node path policy has been reviewed
 - [ ] Validate config before restart because v2026.5.3+ fails closed instead of auto-restoring invalid config
 - [ ] If using externalized official channels/providers (Slack, WhatsApp, Amazon Bedrock, Anthropic Vertex), run `openclaw plugins deps` and `openclaw doctor --fix` after upgrade to v2026.5.12+
+- [ ] Node.js is v22.19.0 or newer everywhere OpenClaw runs (interactive shell, systemd/launchd service, Docker/Podman image, WSL, and update handoff)
+- [ ] If providers/channels are installed as external plugins, verify `openclaw plugins list --json`, `openclaw plugins deps`, and `openclaw status --deep` after upgrade to v2026.6.9+
+- [ ] Key-free web search providers are explicitly configured only when intended; do not rely on automatic fallback to Parallel Free, DuckDuckGo, Ollama, or Codex Hosted Search
+- [ ] HTTP model/session override paths and node/device-role approval flows are limited to admin/operator callers
 - [ ] If using per-sender tool policies, verify canonical channel-scoped sender keys and test an allowlisted plus denied sender before relying on the policy
 - [ ] If using ChatGPT/Codex account auth through OpenAI, verify the intended auth profile with `openclaw models auth list --provider openai` after upgrade
 - [ ] If using Telegram with `requireMention`, verify unmentioned group media is ignored before media download after upgrade to v2026.5.12+
@@ -599,7 +613,7 @@ Use full-disk encryption on the gateway host for an additional layer of protecti
 8. **Session Leakage** - CVE-2026-27004 demonstrated transcript content leaking across peer sessions in multi-user setups
 
 ### Mitigations
-- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.5.12+)
+- Keep OpenClaw updated to latest version (minimum v2026.3.1, recommended v2026.6.9+)
 - Use `tools.profile: "messaging"` for untrusted surfaces
 - Strict access control (pairing/allowlist)
 - Sandboxing for untrusted users
