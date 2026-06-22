@@ -59,7 +59,7 @@ openclaw pairing approve <channel> <code>  # Approve sender
 
 `v2026.3.13+` pairing note: bootstrap setup codes are single-use; if a code is consumed or expired, generate a fresh request.
 
-`v2026.5.12` stable note: current stable is published as `v2026.5.12`; older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
+`v2026.6.9` stable note: current stable is published as `v2026.6.9`; current installs require Node.js 22.19+ on the Node 22 line. Older `v2026.5.3` installs may still mention the `openclaw@2026.5.3-1` npm hotfix on the beta dist-tag for official bundled-plugin scanner false positives.
 
 ### Chat Commands (v2026.5.3+; expanded in v2026.5.12)
 ```bash
@@ -189,6 +189,9 @@ openclaw plugins remove <id>   # Remove/uninstall a plugin
 openclaw plugins uninstall <id-or-spec>  # Uninstall alias; accepts ids/specs (v2026.3.23+ clawhub uninstall fixes)
 openclaw plugins deps          # Inspect/repair plugin runtime dependencies (v2026.4.29+)
 openclaw plugins doctor        # Check plugin health
+openclaw plugins init          # Scaffold a typed tool plugin (v2026.5.18+)
+openclaw plugins validate      # Validate plugin manifest/package compatibility (v2026.5.18+)
+openclaw plugins build         # Build typed plugin artifacts (v2026.5.18+)
 ```
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
@@ -196,6 +199,8 @@ Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
+
+`v2026.6.9+` provider/plugin note: official provider packages are standalone npm releases, externally installed channel plugins load at Gateway startup, and StepFun is available from npm or ClawHub. If a provider or channel disappears after upgrade, check `openclaw plugins list --json`, run `openclaw plugins deps`, then `openclaw doctor --fix`.
 
 `v2026.3.23+` uninstall note: `openclaw plugins uninstall` accepts installed `clawhub:` specs and versionless ClawHub package names again, even when recorded installs were previously pinned.
 
@@ -449,6 +454,10 @@ openclaw config set agents.defaults.pdfMaxPages 200
 # Brave web search LLM context mode (v2026.3.8+)
 openclaw config set tools.web.search.brave.mode "llm-context"
 
+# Key-free web search providers stay explicit opt-ins (v2026.6.8+)
+# Configure Parallel Free, DuckDuckGo, Ollama, or Codex Hosted Search deliberately
+# instead of expecting automatic fallback when API-backed search is not configured.
+
 # Ollama embeddings for memory search (v2026.3.2+)
 openclaw config set memorySearch.provider "ollama"
 
@@ -494,6 +503,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 | `OPENCLAW_CLI` | Child-process marker set by OpenClaw CLI launches (v2026.3.11+) |
 | `OPENCLAW_TZ` | Pin Docker gateway/CLI timezone to an IANA TZ value (v2026.3.13+) |
 | `OPENCLAW_CONTAINER` | Default Docker/Podman container target for CLI command execution (v2026.3.24+) |
+| `OPENCLAW_IMAGE_APT_PACKAGES` | Runtime-neutral Docker/Podman image build arg for extra apt packages (v2026.5.18+; `OPENCLAW_DOCKER_APT_PACKAGES` remains a legacy fallback) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `SLACK_APP_TOKEN` | Slack app token |

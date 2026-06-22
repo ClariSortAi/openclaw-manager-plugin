@@ -5,7 +5,7 @@
 Always follow this order:
 
 ```bash
-# 1. Quick status (check version is v2026.3.1+, recommend v2026.5.12+)
+# 1. Quick status (check version is v2026.3.1+, recommend v2026.6.9+)
 openclaw status
 
 # 2. Validate config (catches invalid keys — v2026.3.2+)
@@ -26,7 +26,7 @@ journalctl --user -u openclaw-gateway -f
 
 ## Critical: Version Check
 
-Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.5.12+**):
+Before troubleshooting anything else, verify you are on **v2026.3.1 or later** (recommend **v2026.6.9+**):
 
 ```bash
 openclaw status
@@ -42,7 +42,7 @@ openclaw config validate
 openclaw gateway restart
 ```
 
-If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, Telegram isolated polling/spooling, Codex/OpenAI auth recovery, Gateway protocol compatibility, and channel/provider reliability improvements, upgrade to **v2026.5.12+**.
+If you need `openclaw backup` commands or Talk silence timeout tuning, upgrade to **v2026.3.8+**. For current stable fixes, provider-config migration coverage, auth-rotation reliability, externalized official plugin repair, rich Telegram delivery, Codex/agent-run recovery, SQLite-backed state repair, search/provider reliability, and channel/provider improvements, upgrade to **v2026.6.9+**.
 
 ## Common Issues
 
@@ -300,7 +300,7 @@ openclaw channels login
 ```bash
 # Ensure using Node, not Bun
 which node
-node --version  # Should be v22.14.0+ (Node 24 recommended)
+node --version  # Should be v22.19.0+ (Node 24 recommended)
 
 # Restart gateway
 openclaw gateway restart
@@ -559,7 +559,7 @@ openclaw plugins install @scope/package
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+; includes v2026.4.2 migrations and newer plugin repair fixes)
+# Upgrade to current stable (v2026.6.9+; includes v2026.4.2 migrations and newer plugin repair fixes)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Retry uninstall by id or clawhub spec
@@ -570,7 +570,7 @@ openclaw plugins uninstall clawhub:<package>
 #### Official Plugin Install or Update Reports Missing Dependencies
 **Symptoms:** An official plugin is configured but missing on disk, `plugins list --json` reports dependency install problems, or update/doctor keeps revisiting the same plugin.
 
-**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers.
+**Cause:** v2026.5.2+ added stronger externalized-plugin repair and dependency-state reporting for npm-first official plugin cutovers. v2026.6.9+ also treats standalone official provider packages as first-class npm releases and discovers externally installed channel plugins during Gateway startup.
 
 **Fix:**
 ```bash
@@ -584,10 +584,12 @@ openclaw plugins update --all
 openclaw gateway restart
 ```
 
+If the missing surface is a provider rather than a channel, also confirm the selected provider package appears in `openclaw plugins list --json` and rerun `openclaw status --deep` after repair.
+
 #### Configured Channel or Provider Disappears After Upgrade
 **Symptoms:** `openclaw status`, `openclaw channels list --all`, or `openclaw channels status --channel <name>` reports a configured Slack, WhatsApp, Bedrock, Anthropic Vertex, or other official provider/channel as missing, not configured, or `plugin load failed: dependency tree corrupted`.
 
-**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. Existing configs may need managed plugin dependency repair after upgrade.
+**Cause:** v2026.5.12 externalizes WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones from the core runtime. v2026.6.9 expands official provider packages as standalone npm releases. Existing configs may need managed plugin dependency repair after upgrade.
 
 **Fix:**
 ```bash
@@ -603,6 +605,28 @@ openclaw gateway restart
 ```
 
 If only one channel is affected, use `openclaw channels status --channel <name>` after repair to avoid starting unrelated monitors during diagnosis.
+
+#### Rich Telegram Formatting, Tables, or Progress Drafts Look Wrong
+**Symptoms:** Telegram replies lose tables/lists/blockquotes, streamed progress drafts show plain text, CLI-backed command output looks malformed, or stickers/media paths are dropped.
+
+**Cause:** Older builds had narrower Telegram rich-delivery support. v2026.6.8-v2026.6.9 add richer HTML/Markdown rendering, safe table normalization, expandable blockquotes, preserved line breaks, sticker paths, rich progress drafts, and command-output formatting.
+
+**Fix:**
+```bash
+# Upgrade to current stable and restart the affected channel
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw gateway restart
+openclaw channels status --channel telegram
+```
+
+If formatting is still wrong, confirm the bot token is not running in another gateway and inspect logs for Bot API parse-mode errors.
+
+#### `web_search` Does Not Fall Back to a Free Provider
+**Symptoms:** `web_search` reports no configured provider even though key-free providers such as DuckDuckGo, Ollama, Parallel Free, or Codex Hosted Search are available.
+
+**Cause:** v2026.6.8 keeps key-free search providers as deliberate opt-ins instead of surprising automatic fallbacks.
+
+**Fix:** Configure the intended provider explicitly and validate with a simple search. Use `openclaw config schema` to confirm the canonical provider path for your OpenClaw version.
 
 #### Official Bundled Plugin Install Blocked by Scanner
 **Symptoms:** Installing or updating an official bundled plugin fails with a dangerous-code scanner finding involving `process.env` plus normal API send usage in a compiled bundle.
@@ -690,7 +714,7 @@ If commands still fail, validate that the selected container image version is cu
 #### `openclaw update` Fails Due to Node Engine Floor
 **Symptoms:** `openclaw update` exits early with engine/runtime compatibility errors.
 
-**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. Older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
+**Cause:** v2026.3.24+ preflights npm package `engines.node` before install. v2026.5.18 raised the supported Node 22 floor to 22.19, so older Node runtimes fail with a clear upgrade message instead of attempting unsupported installs.
 
 **Fix:**
 ```bash
@@ -698,7 +722,7 @@ If commands still fail, validate that the selected container image version is cu
 node --version
 
 # Upgrade Node if below minimum supported floor
-# (v22.14.0+ required; Node 24 recommended)
+# (v22.19.0+ required; Node 24 recommended)
 
 # Retry update after runtime upgrade
 openclaw update
@@ -818,7 +842,7 @@ openclaw cron edit <id>
 
 **Fix:**
 ```bash
-# Upgrade to current stable (v2026.5.12+ includes timezone fix from v2026.3.24)
+# Upgrade to current stable (v2026.6.9+ includes timezone fix from v2026.3.24)
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Recreate or edit the job with explicit timezone
