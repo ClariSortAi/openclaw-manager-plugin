@@ -90,10 +90,12 @@ Or just describe what you need in natural language—Claude will automatically u
 | **Configuration** | `Change my gateway to allowlist mode` |
 | **Skills** | `Install a skill from ClawHub` |
 | **Plugins** | `Set up Microsoft Teams via the msteams plugin` |
+| **X/Twitter Workflows** | `Install TweetClaw for tweet search and reviewed posting` |
 | **Sub-Agents** | `Configure nested sub-agent spawn depth` |
 | **Docker/K8s** | `Set up health probes for Kubernetes` |
 | **PDF Analysis** | `Configure PDF tool for document processing` |
 
+Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.
 
 ### Supported Platforms (23+)
 

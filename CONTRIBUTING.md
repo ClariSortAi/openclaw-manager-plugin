@@ -26,8 +26,12 @@ Thank you for your interest in contributing! This plugin helps Claude Code users
 
 2. **Test locally with Claude Code**
    ```bash
+   claude plugin validate .
    claude --plugin-dir .
    ```
+
+   Run the non-interactive manifest validator before interactive testing so
+   malformed plugin and marketplace metadata fail before review.
 
 3. **Make your changes** to files in `skills/openclaw-manager/`
 
