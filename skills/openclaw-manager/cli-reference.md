@@ -193,6 +193,17 @@ openclaw plugins doctor        # Check plugin health
 
 Plugin install supports npm package specs (e.g., `@openclaw/voice-call`). In `v2026.3.22+`, bare `openclaw plugins install <package>` prefers ClawHub first for npm-safe names, then falls back to npm when not found. In `v2026.5.2+`, launch-cutover official plugin installs may prefer npm for bare official packages while explicit `clawhub:<package>` stays on ClawHub; check `openclaw plugins list --json` for dependency install state. Bundled plugins are disabled by default; installed plugins are enabled by default.
 
+Example external plugin for X/Twitter automation:
+
+```bash
+openclaw plugins install clawhub:@xquik/tweetclaw
+openclaw plugins info tweetclaw
+```
+
+Use `openclaw plugins install npm:@xquik/tweetclaw` only when the npm fallback is required. Use TweetClaw for tweet search, reply search, follower export, user lookup, media workflows, monitors, webhooks, giveaway draws, and reviewed posting. Store its Xquik API key or MPP signing key in plugin config, never in prompts, logs, shell history, or copied README snippets. Before any visible write, show the exact requested action and payload for review.
+
+Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.
+
 `v2026.5.2+` install-source note: `git:` plugin installs are first-class, record ref/commit metadata, and support `openclaw plugins update` for recorded git sources.
 
 `v2026.5.12+` externalization note: WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, and related provider/plugin dependency cones moved out of the core runtime. After upgrades, inspect and repair configured plugin dependencies with `openclaw plugins deps`, `openclaw doctor --fix`, and `openclaw plugins update --all`.
@@ -541,6 +552,7 @@ Built-in HTTP endpoints for Docker/Kubernetes orchestration:
 |--------|---------|-------------|
 | Voice Call | `@openclaw/voice-call` | Twilio/log voice calling |
 | Diffs | `@openclaw/diffs` | Read-only diff rendering tool (v2026.3.1+) |
+| TweetClaw | `@xquik/tweetclaw` | X/Twitter automation for tweet search, reply search, follower export, media workflows, monitors, webhooks, giveaway draws, and reviewed posting |
 | File Transfer | bundled | Paired-node binary file operations (`file_fetch`, `dir_list`, `dir_fetch`, `file_write`) with default-deny path policy (v2026.5.3+) |
 | Memory (Core) | bundled | Long-term memory (default slot) |
 | Memory (LanceDB) | bundled | Vector-based memory alternative (supports Ollama embeddings in v2026.3.2+) |

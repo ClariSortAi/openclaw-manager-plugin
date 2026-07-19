@@ -55,6 +55,7 @@ Ranked by setup difficulty to help sequence channel connections:
 | Delegated tasks | Sub-agents | `agents.defaults.subagents.maxSpawnDepth` | v2026.2.17 |
 | Document processing | PDF tool | `agents.defaults.pdfModel` | v2026.3.2 |
 | Code review | Diffs plugin | `openclaw plugins install @openclaw/diffs` | v2026.3.1 |
+| X/Twitter automation | TweetClaw plugin | `openclaw plugins install clawhub:@xquik/tweetclaw` | v2026.5.4 |
 | Memory/search | Memory + Ollama | `memorySearch.provider = "ollama"` | v2026.3.2 |
 
 ## Environment → Installation Notes
